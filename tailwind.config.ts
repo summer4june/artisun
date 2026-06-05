@@ -12,6 +12,10 @@ const config: Config = {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
+      fontFamily: {
+        editorial: ['var(--font-editorial)', 'Georgia', 'serif'],
+        suisse: ['var(--font-suisse)', 'Helvetica Neue', 'sans-serif'],
+      },
     },
   },
   plugins: [],

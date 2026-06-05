@@ -3,25 +3,58 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --brand-red:      #C93B1A;
+  --brand-cream:    #E8DCC8;
+  --brand-cream-dk: #C9B89A;
+  --brand-dark:     #0F0C09;
+  --brand-glow:     rgba(201,59,26,0.22);
+  
+  --font-headline: var(--font-editorial), Georgia, serif;
+  --font-subhead:  var(--font-suisse), 'Helvetica Neue', sans-serif;
+  --font-body:     var(--font-suisse), 'Helvetica Neue', sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: var(--brand-dark);
+  color: var(--brand-cream);
+  overflow-x: hidden;
+  /* Hide cursor for custom cursor implementation */
+  cursor: none;
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+/* Base link styles */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Lenis smooth scroll required styles */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
 }
