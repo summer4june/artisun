@@ -95,14 +95,12 @@ export function useBleedTransition(activeIndex: number) {
         const timeoutId = setTimeout(() => {
           if (!isResolved) {
             console.warn("Failsafe timeout: forcing load for", sec.mediaUrl);
-            let tex;
-            if (sec.mediaType === 'video') {
-              const video = document.createElement('video');
-              video.src = sec.mediaUrl;
-              tex = new THREE.VideoTexture(video);
-            } else {
-              tex = new THREE.Texture();
-            }
+            // CRITICAL FIX: Do NOT create a VideoTexture if the video has no data yet, or WebGL crashes!
+            // We create a safe 1x1 transparent dummy CanvasTexture instead.
+            const canvas = document.createElement('canvas');
+            canvas.width = 1; canvas.height = 1;
+            const tex = new THREE.CanvasTexture(canvas);
+            
             tex.generateMipmaps = false;
             tex.minFilter = THREE.LinearFilter;
             tex.magFilter = THREE.LinearFilter;
