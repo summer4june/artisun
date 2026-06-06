@@ -91,109 +91,40 @@ export default function BleedExperience({ onProgress }: BleedExperienceProps = {
       }
     });
 
-    // --- NEW TECHNIQUE: NATIVE SCROLL TRAP ---
-    // We do NOT use GSAP pins. We natively freeze the window when the section is perfectly framed.
-    let isTrapped = false;
-    let isAnimating = false;
-    let touchStartY = 0;
-
-    // Detect when the section is perfectly framed
     const trapTrigger = ScrollTrigger.create({
       trigger: containerRef.current,
       start: "top top",
-      end: "bottom top", // meaningless span, we just care about crossing 'top top'
+      end: `+=${sections.length * 100}%`, // Scroll distance proportional to sections
+      pin: true,
+      scrub: false,
+      snap: {
+        snapTo: 1 / (sections.length - 1), // Exact snap points for each section
+        duration: { min: 0.4, max: 0.8 },
+        delay: 0.1,
+        ease: "power1.inOut"
+      },
       onEnter: () => {
-        if (activeIndexRef.current < sections.length - 1) {
-          isTrapped = true;
-          // Force expansion just in case scrub lagged
-          gsap.set(cardRef.current, { width: '100vw', height: '100vh', borderRadius: '0px' });
-          isExpandedRef.current = true;
-          setIsExpanded(true);
-        }
+        gsap.set(cardRef.current, { width: '100vw', height: '100vh', borderRadius: '0px' });
+        isExpandedRef.current = true;
+        setIsExpanded(true);
       },
       onEnterBack: () => {
-        if (activeIndexRef.current > 0) {
-          isTrapped = true;
-          // Force expansion
-          gsap.set(cardRef.current, { width: '100vw', height: '100vh', borderRadius: '0px' });
-          isExpandedRef.current = true;
-          setIsExpanded(true);
+        gsap.set(cardRef.current, { width: '100vw', height: '100vh', borderRadius: '0px' });
+        isExpandedRef.current = true;
+        setIsExpanded(true);
+      },
+      onUpdate: (self) => {
+        const targetIndex = Math.min(sections.length - 1, Math.round(self.progress * (sections.length - 1)));
+        
+        if (targetIndex !== activeIndexRef.current) {
+          activeIndexRef.current = targetIndex;
+          setActiveIndex(targetIndex);
+          setHasScrolled(true);
         }
       }
     });
 
-    let accumulatedDelta = 0;
-
-    // Core Logic for handling Intent (Wheel or Touch)
-    const processIntent = (deltaY: number) => {
-      if (!isTrapped || isAnimating) return;
-
-      accumulatedDelta += deltaY;
-
-      // Lower threshold so regular mouse wheels can easily trigger it
-      if (accumulatedDelta > 20) {
-        // Deliberate Swipe DOWN
-        accumulatedDelta = 0;
-        if (activeIndexRef.current < sections.length - 1) {
-          isAnimating = true;
-          setHasScrolled(true);
-          const nextIdx = activeIndexRef.current + 1;
-          activeIndexRef.current = nextIdx;
-          setActiveIndex(nextIdx);
-          setTimeout(() => { isAnimating = false; }, 1200); // 1.2s strict cooldown
-        } else {
-          // Reached the end! Release the trap DOWN
-          isTrapped = false;
-          window.scrollBy({ top: 15, behavior: 'auto' }); // Nudge past the trigger
-        }
-      } else if (accumulatedDelta < -20) {
-        // Deliberate Swipe UP
-        accumulatedDelta = 0;
-        if (activeIndexRef.current > 0) {
-          isAnimating = true;
-          setHasScrolled(true);
-          const prevIdx = activeIndexRef.current - 1;
-          activeIndexRef.current = prevIdx;
-          setActiveIndex(prevIdx);
-          setTimeout(() => { isAnimating = false; }, 1200); // 1.2s strict cooldown
-        } else {
-          // Reached the beginning! Release the trap UP
-          isTrapped = false;
-          window.scrollBy({ top: -15, behavior: 'auto' }); // Nudge past the trigger
-        }
-      }
-    };
-
-    // Native Wheel Interceptor
-    const handleWheel = (e: WheelEvent) => {
-      if (isTrapped) {
-        e.preventDefault(); // Natively freeze the page
-        processIntent(e.deltaY);
-      }
-    };
-
-    // Native Touch Interceptor
-    const handleTouchStart = (e: TouchEvent) => {
-      touchStartY = e.touches[0].clientY;
-    };
-    
-    const handleTouchMove = (e: TouchEvent) => {
-      if (isTrapped) {
-        e.preventDefault(); // Natively freeze the page
-        const deltaY = touchStartY - e.touches[0].clientY;
-        processIntent(deltaY);
-      }
-    };
-
-    // Attach passive: false so preventDefault actually works
-    window.addEventListener('wheel', handleWheel, { passive: false });
-    window.addEventListener('touchstart', handleTouchStart, { passive: true });
-    window.addEventListener('touchmove', handleTouchMove, { passive: false });
-
     return () => {
-      window.removeEventListener('wheel', handleWheel);
-      window.removeEventListener('touchstart', handleTouchStart);
-      window.removeEventListener('touchmove', handleTouchMove);
       entranceTrigger.kill();
       trapTrigger.kill();
     };
