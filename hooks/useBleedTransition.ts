@@ -127,7 +127,7 @@ export function useBleedTransition(activeIndex: number) {
         if (sec.mediaType === 'video') {
           const video = document.createElement('video');
           video.src = sec.mediaUrl;
-          video.crossOrigin = 'anonymous';
+          // REMOVED crossOrigin='anonymous' to prevent Vercel CDN from throwing strict CORS errors
           video.loop = true;
           video.muted = true;
           video.playsInline = true;
