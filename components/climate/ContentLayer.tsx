@@ -83,16 +83,26 @@ export default function ContentLayer({ activeIndex }: ContentLayerProps) {
       ease: "power3.out"
     });
 
-    gsap.to(nextTypeChars, {
-      opacity: 1,
-      delay: 1.8,
-      duration: 0.01,
-      stagger: 0.02,
-      ease: "none"
-    });
+    // Start typing effect instantly without waiting for entrance
+    setTimeout(() => {
+      gsap.to(nextTypeChars, {
+        opacity: 1,
+        duration: 0.1,
+        stagger: 0.05,
+        ease: "none"
+      });
+    }, 0);
 
     prevIndexRef.current = activeIndex;
 
+    // CLEANUP: If activeIndex changes rapidly or component unmounts, kill all running tweens
+    // to prevent overlapping animations and memory leaks.
+    return () => {
+      if (containerRef.current) {
+        const allElements = containerRef.current.querySelectorAll('.anim-text, .anim-char, .type-char');
+        gsap.killTweensOf(allElements);
+      }
+    };
   }, [activeIndex]);
 
   return (

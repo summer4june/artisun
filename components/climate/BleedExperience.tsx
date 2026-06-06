@@ -53,7 +53,6 @@ export default function BleedExperience() {
 
     gsap.registerPlugin(ScrollTrigger);
 
-    // --- ENTRANCE ANIMATION ---
     const entranceAnim = gsap.timeline({ paused: true });
     entranceAnim.to(cardRef.current, {
       width: '100vw',
