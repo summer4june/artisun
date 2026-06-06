@@ -47,7 +47,7 @@ export default function ContentLayer({ activeIndex }: ContentLayerProps) {
     gsap.to([...Array.from(currentTexts), ...Array.from(currentChars), ...Array.from(currentTypeChars)], {
       opacity: 0,
       y: -60,
-      duration: 0.9,
+      duration: 0.5, // Much faster exit!
       ease: "power2.in",
       onComplete: () => {
         gsap.set(currentSec, { display: 'none' });
@@ -68,7 +68,7 @@ export default function ContentLayer({ activeIndex }: ContentLayerProps) {
     gsap.to(nextTexts, {
       opacity: 1,
       y: 0,
-      delay: 1.8,
+      delay: 1.2, // Show up earlier since bleed is faster
       duration: 1.2,
       ease: "power3.out",
       stagger: 0.1
@@ -77,7 +77,7 @@ export default function ContentLayer({ activeIndex }: ContentLayerProps) {
     gsap.to(nextChars, {
       opacity: 1,
       y: 0,
-      delay: 1.8,
+      delay: 1.2,
       duration: 1.2,
       stagger: 0.03,
       ease: "power3.out"
@@ -85,7 +85,7 @@ export default function ContentLayer({ activeIndex }: ContentLayerProps) {
 
     gsap.to(nextTypeChars, {
       opacity: 1,
-      delay: 2.4,
+      delay: 1.8,
       duration: 0.01,
       stagger: 0.02,
       ease: "none"

@@ -67,35 +67,33 @@ void main() {
   vec4 colorB = texture2D(textureB, uv);
   vec4 videoColor = mix(colorB, colorA, bleedMask);
 
-  // ---- DARK CINEMATIC OVERLAY (subtle) ----
-  // Keep overlay lighter so video is visible and color bleed reads clearly
+  // ---- STRONG CINEMATIC OVERLAY ----
+  // Deep gradient at the bottom so text is highly legible
   vec3 cinematicTint = mix(overlayColorB, overlayColorA, bleedMask);
-  float vertGrad   = 1.0 - uv.y;
-  float dist       = length(uv - vec2(0.5)) * 1.414;
-  float vignette   = 1.0 - smoothstep(0.4, 1.0, dist);
-  float overlayStr = 0.15 + vertGrad * 0.18 + (1.0 - vignette) * 0.10;
-  overlayStr = clamp(overlayStr, 0.0, 0.40);
+  
+  // Create a strong vertical gradient (dark at bottom)
+  float vertGrad = pow(1.0 - uv.y, 1.5); 
+  
+  // Radial vignette (dark at edges)
+  float dist = length(uv - vec2(0.5)) * 1.414;
+  float vignette = smoothstep(0.3, 1.0, dist);
+  
+  // Combine: base darkness + heavy bottom gradient + vignette edges
+  float overlayStr = 0.40 + vertGrad * 0.65 + vignette * 0.30;
+  
+  // Let it get very dark (up to 0.95) to match the HTML poster overlay
+  overlayStr = clamp(overlayStr, 0.0, 0.95);
 
   vec3 finalColor = mix(videoColor.rgb, cinematicTint, overlayStr);
 
-  // ---- VIVID CLIMATE COLOR BLEED FLOOD ----
-  // Only active during the transition (progress 0 → 1)
-  // The new climate's vivid accent color floods in as a liquid ink wave ahead of the bleed front
+  // Only show the border during active transition
   float transitionLife = smoothstep(0.0, 0.12, progress) * smoothstep(1.0, 0.88, progress);
 
-  // "Flood zone" = a wide band just behind the wipe front (where new color pours in)
-  float floodZone = smoothstep(p - 0.22, p - 0.02, organicSurface)   // rises at wipe front
-                  - smoothstep(p - 0.02, p + 0.04, organicSurface);  // ends at actual wipe edge
-  // clamp to 0-1
-  floodZone = clamp(floodZone, 0.0, 1.0);
-
-  // Mix the vivid accent with black to give a moody dark-tinted bleed
-  vec3 tintedAccent = mix(vec3(0.02, 0.01, 0.015), bleedAccentB, 0.55);
-  finalColor = mix(finalColor, tintedAccent, floodZone * transitionLife * 0.47);
-
-  // Subtle ink edge (very soft)
-  float inkBand = smoothstep(p - 0.025, p, organicSurface) - smoothstep(p, p + 0.025, organicSurface);
-  finalColor = mix(finalColor, vec3(0.02, 0.01, 0.01), inkBand * 0.40 * transitionLife);
+  // Crisp, Solid Black Border at the bleeding edge
+  // Using tight smoothsteps so it is a solid line rather than a blurry fade
+  float inkBand = smoothstep(p - 0.03, p - 0.02, organicSurface) - smoothstep(p + 0.02, p + 0.03, organicSurface);
+  // Pure black, 100% solid opacity
+  finalColor = mix(finalColor, vec3(0.0), inkBand * 1.0 * transitionLife);
 
   gl_FragColor = vec4(finalColor, 1.0);
 }

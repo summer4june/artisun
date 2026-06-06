@@ -25,7 +25,7 @@ export default function HeroSection({ mouseProxy }: { mouseProxy: { current: { x
         // Apply interactive spotlight mask
         const px = mouseProxy.current.px;
         const py = mouseProxy.current.py;
-        const maskStyle = `radial-gradient(circle 50px at ${px}px ${py}px, black 0%, transparent 100%)`;
+        const maskStyle = `radial-gradient(circle 150px at ${px}px ${py}px, black 0%, transparent 100%)`;
         revealWrapperRef.current.style.maskImage = maskStyle;
         revealWrapperRef.current.style.webkitMaskImage = maskStyle;
       }
@@ -55,7 +55,7 @@ export default function HeroSection({ mouseProxy }: { mouseProxy: { current: { x
         />
         
         {/* Spotlight reveal image */}
-        <div ref={revealWrapperRef} className="absolute inset-0 w-full h-full" style={{ WebkitMaskImage: 'radial-gradient(circle 50px at 50% 50%, black 0%, transparent 100%)' }}>
+        <div ref={revealWrapperRef} className="absolute inset-0 w-full h-full" style={{ WebkitMaskImage: 'radial-gradient(circle 150px at 50% 50%, black 0%, transparent 100%)' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img 
             ref={bgRevealRef}

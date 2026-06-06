@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
 import { sections } from '@/data/climateSections';
 import { useBleedTransition } from '@/hooks/useBleedTransition';
 import DiamondNav from '@/components/climate/DiamondNav';
@@ -45,29 +46,35 @@ export default function BleedExperience() {
     setExpandedState(isExpanded);
   }, [isExpanded, setExpandedState]);
 
+  // Use refs to track state inside the wheel event listener
+  const isAnimatingRef = useRef(false);
+  const pinTriggerRef = useRef<any>(null);
+
   useEffect(() => {
-    gsap.registerPlugin(ScrollTrigger);
-    
+    if (isLoading) return;
+
     if (!containerRef.current || !cardRef.current) return;
-    
-    // 1. Entrance Animation: Expands the mask card AS it scrolls into view
-    // By animating width/height of the outer mask, but keeping the inner canvas fixed at 100vw/100vh,
-    // we prevent WebGL from resizing 60 times a second, ensuring flawless smoothness!
-    const entranceAnim = gsap.fromTo(cardRef.current,
-      { width: '80%', height: '60vh', borderRadius: '32px' },
-      { width: '100%', height: '100vh', borderRadius: '0px', ease: 'none' }
-    );
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    // --- ENTRANCE ANIMATION ---
+    const entranceAnim = gsap.timeline({ paused: true });
+    entranceAnim.to(cardRef.current, {
+      width: '100vw',
+      height: '100vh',
+      borderRadius: '0px',
+      ease: "power2.inOut",
+      duration: 1
+    });
 
     const entranceTrigger = ScrollTrigger.create({
       trigger: containerRef.current,
-      start: "top bottom", // Starts when top of container hits bottom of screen
-      end: "top top",      // Ends when top of container hits top of screen
-      scrub: 1,            // 1-second smoothing for buttery scroll
+      start: "top bottom", 
+      end: "top top",
+      scrub: 1,
       animation: entranceAnim,
       onUpdate: (self) => {
-        const p = self.progress;
-        // Toggle UI visibility based on expansion
-        if (p < 0.99) {
+        if (self.progress < 0.99) {
           if (isExpandedRef.current !== false) {
             isExpandedRef.current = false;
             setIsExpanded(false);
@@ -81,48 +88,105 @@ export default function BleedExperience() {
       }
     });
 
-    // 2. Pinned Scrubbing: Plays the WebGL videos
-    const proxy = { progress: 0 };
-    const pinAnim = gsap.to(proxy, {
-      progress: 1,
-      ease: 'none',
-      onUpdate: () => {
-        const videoProgress = proxy.progress;
-        if (videoProgress > 0 && videoProgress < 1) setHasScrolled(true);
-        
-        const newIndex = Math.min(sections.length - 1, Math.floor(videoProgress * sections.length));
-        if (newIndex !== activeIndexRef.current) {
-          activeIndexRef.current = newIndex; // Update the ref immediately
-          setActiveIndex(newIndex);
+    // --- NEW TECHNIQUE: NATIVE SCROLL TRAP ---
+    // We do NOT use GSAP pins. We natively freeze the window when the section is perfectly framed.
+    let isTrapped = false;
+    let isAnimating = false;
+    let touchStartY = 0;
+
+    // Detect when the section is perfectly framed
+    const trapTrigger = ScrollTrigger.create({
+      trigger: containerRef.current,
+      start: "top top",
+      end: "bottom top", // meaningless span, we just care about crossing 'top top'
+      onEnter: () => {
+        if (activeIndexRef.current < sections.length - 1) {
+          isTrapped = true;
+          window.scrollTo(0, containerRef.current!.offsetTop);
+        }
+      },
+      onEnterBack: () => {
+        if (activeIndexRef.current > 0) {
+          isTrapped = true;
+          window.scrollTo(0, containerRef.current!.offsetTop);
         }
       }
     });
 
-    const pinTrigger = ScrollTrigger.create({
-      trigger: containerRef.current,
-      start: "top top",
-      // Reduced from 100% to 50% per section so it requires half the scrolling distance
-      end: `+=${sections.length * 50}%`,
-      pin: true,
-      scrub: 0.5, // Reduced from 1 to 0.5 for a snappier, more instantaneous feel
-      animation: pinAnim
-    });
+    // Core Logic for handling Intent (Wheel or Touch)
+    const processIntent = (deltaY: number) => {
+      if (!isTrapped || isAnimating) return;
+
+      if (deltaY > 30) {
+        // Deliberate Swipe DOWN
+        if (activeIndexRef.current < sections.length - 1) {
+          isAnimating = true;
+          setHasScrolled(true);
+          const nextIdx = activeIndexRef.current + 1;
+          activeIndexRef.current = nextIdx;
+          setActiveIndex(nextIdx);
+          setTimeout(() => { isAnimating = false; }, 1200); // 1.2s strict cooldown
+        } else {
+          // Reached the end! Release the trap DOWN
+          isTrapped = false;
+          window.scrollBy({ top: 15, behavior: 'auto' }); // Nudge past the trigger
+        }
+      } else if (deltaY < -30) {
+        // Deliberate Swipe UP
+        if (activeIndexRef.current > 0) {
+          isAnimating = true;
+          setHasScrolled(true);
+          const prevIdx = activeIndexRef.current - 1;
+          activeIndexRef.current = prevIdx;
+          setActiveIndex(prevIdx);
+          setTimeout(() => { isAnimating = false; }, 1200); // 1.2s strict cooldown
+        } else {
+          // Reached the beginning! Release the trap UP
+          isTrapped = false;
+          window.scrollBy({ top: -15, behavior: 'auto' }); // Nudge past the trigger
+        }
+      }
+    };
+
+    // Native Wheel Interceptor
+    const handleWheel = (e: WheelEvent) => {
+      if (isTrapped) {
+        e.preventDefault(); // Natively freeze the page
+        processIntent(e.deltaY);
+      }
+    };
+
+    // Native Touch Interceptor
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartY = e.touches[0].clientY;
+    };
+    
+    const handleTouchMove = (e: TouchEvent) => {
+      if (isTrapped) {
+        e.preventDefault(); // Natively freeze the page
+        const deltaY = touchStartY - e.touches[0].clientY;
+        processIntent(deltaY);
+      }
+    };
+
+    // Attach passive: false so preventDefault actually works
+    window.addEventListener('wheel', handleWheel, { passive: false });
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
 
     return () => {
+      window.removeEventListener('wheel', handleWheel);
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
       entranceTrigger.kill();
-      pinTrigger.kill();
+      trapTrigger.kill();
     };
   }, [isLoading]); 
 
   const navigateTo = (targetIndex: number) => {
-    const triggers = ScrollTrigger.getAll();
-    const myTrigger = triggers.find(t => t.vars.trigger === containerRef.current && t.vars.pin === true);
-    if (myTrigger) {
-      const start = myTrigger.start;
-      const end = myTrigger.end;
-      const progress = (targetIndex + 0.1) / sections.length;
-      const targetScroll = start + (end - start) * progress;
-      window.scrollTo({ top: targetScroll, behavior: 'smooth' });
+    if (targetIndex >= 0 && targetIndex < sections.length) {
+      activeIndexRef.current = targetIndex;
+      setActiveIndex(targetIndex);
     }
   };
 

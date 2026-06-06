@@ -307,8 +307,9 @@ export function useBleedTransition(activeIndex: number) {
 
     gsap.to(uniforms.progress, {
       value: 1.0,
-      duration: 4.0, // Slow cinematic wipe — clearly visible
-      ease: "power2.inOut",
+      duration: 2.5, // Faster, explosive wipe
+      delay: 0.4,    // Syncs perfectly with text disappearing (0.5s)
+      ease: "power2.out", // Instantly starts expanding
       onComplete: () => {
         uniforms.textureA.value = uniforms.textureB.value;
         uniforms.overlayColorA.value = uniforms.overlayColorB.value;
