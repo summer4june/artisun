@@ -105,7 +105,6 @@ export default function BleedExperience({ onProgress }: BleedExperienceProps = {
       onEnter: () => {
         if (activeIndexRef.current < sections.length - 1) {
           isTrapped = true;
-          window.scrollTo({ top: containerRef.current!.offsetTop, behavior: 'smooth' });
           // Force expansion just in case scrub lagged
           gsap.set(cardRef.current, { width: '100vw', height: '100vh', borderRadius: '0px' });
           isExpandedRef.current = true;
@@ -115,7 +114,6 @@ export default function BleedExperience({ onProgress }: BleedExperienceProps = {
       onEnterBack: () => {
         if (activeIndexRef.current > 0) {
           isTrapped = true;
-          window.scrollTo({ top: containerRef.current!.offsetTop, behavior: 'smooth' });
           // Force expansion
           gsap.set(cardRef.current, { width: '100vw', height: '100vh', borderRadius: '0px' });
           isExpandedRef.current = true;
