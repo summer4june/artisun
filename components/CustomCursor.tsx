@@ -67,14 +67,16 @@ export default function CustomCursor({ mouseProxy }: { mouseProxy: { current: { 
     <>
       <div 
         ref={dotRef}
-        className="fixed top-0 left-0 w-2 h-2 rounded-full pointer-events-none z-[100] bg-[var(--brand-red)]"
+        className="fixed top-0 left-0 w-3 h-3 rounded-full pointer-events-none z-[100] bg-[var(--brand-cream)] shadow-[0_0_10px_2px_rgba(232,220,200,0.8),0_0_20px_5px_rgba(201,59,26,0.6)]"
         aria-hidden="true"
       />
       <div 
         ref={ringRef}
-        className="fixed top-0 left-0 w-8 h-8 rounded-full pointer-events-none z-[99] border border-[rgba(232,220,200,0.5)] transition-transform duration-200 ease-out will-change-transform"
+        className="fixed top-0 left-0 w-10 h-10 pointer-events-none z-[99] transition-transform duration-200 ease-out will-change-transform flex items-center justify-center"
         aria-hidden="true"
-      />
+      >
+        <div className="w-full h-full rounded-full border border-dashed border-[rgba(232,220,200,0.4)] animate-[spin_8s_linear_infinite]" />
+      </div>
     </>
   );
 }

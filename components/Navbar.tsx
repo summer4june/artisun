@@ -11,14 +11,20 @@ export default function Navbar({ showIcon }: { showIcon: boolean }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8, delay: 0.2 }}
-        className="fixed top-6 left-8 z-50 flex items-center justify-center w-12 h-12"
+        className="fixed top-[28px] left-8 z-50 flex items-center justify-center h-[44px] w-[44px] rounded-full shadow-[0_4px_32px_rgba(0,0,0,0.38)] cursor-pointer group"
+        style={{
+          background: 'var(--nav-bg-color, rgba(18,14,12,0.82))',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          transition: 'background-color 0.7s ease'
+        }}
       >
         {showIcon && (
           <img 
             id="nav-icon"
             src="/icon-artisun.png" 
             alt="ARTISUN" 
-            className="w-full h-full object-contain filter brightness-0 invert sepia-[0.2] saturate-[0.6] brightness-[0.96]" 
+            className="w-7 h-7 object-contain filter brightness-0 invert sepia-[0.2] saturate-[0.6] brightness-[0.96] group-hover:scale-110 transition-transform duration-300" 
           />
         )}
       </motion.div>
@@ -31,9 +37,10 @@ export default function Navbar({ showIcon }: { showIcon: boolean }) {
         id="navbar"
         className="fixed top-6 left-1/2 z-50 h-[52px] px-8 flex items-center justify-center rounded-full shadow-[0_4px_32px_rgba(0,0,0,0.38)]"
         style={{
-          background: 'rgba(18,14,12,0.82)',
+          background: 'var(--nav-bg-color, rgba(18,14,12,0.82))',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
+          transition: 'background-color 0.7s ease'
         }}
       >
         <ul id="nav-links" className="flex items-center gap-8 list-none m-0 p-0 text-[14px] font-suisse font-medium tracking-[0.16em] text-[rgba(255,255,255,0.88)]">
@@ -69,15 +76,16 @@ export default function Navbar({ showIcon }: { showIcon: boolean }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8, delay: 0.2 }}
-        className="fixed top-[28px] right-8 z-50 flex items-center justify-center h-[44px] w-[44px] rounded-full shadow-[0_4px_32px_rgba(0,0,0,0.38)] cursor-pointer hover:bg-[rgba(255,255,255,0.08)] transition-colors duration-300"
+        className="fixed top-[28px] right-8 z-50 flex items-center justify-center h-[44px] w-[44px] rounded-full shadow-[0_4px_32px_rgba(0,0,0,0.38)] cursor-pointer group"
         style={{
-          background: 'rgba(18,14,12,0.82)',
+          background: 'var(--nav-bg-color, rgba(18,14,12,0.82))',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
+          transition: 'background-color 0.7s ease'
         }}
       >
         {/* Minimalist Cart Icon */}
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--brand-cream)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <svg className="group-hover:scale-110 transition-transform duration-300" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--brand-cream)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
           <line x1="3" y1="6" x2="21" y2="6"></line>
           <path d="M16 10a4 4 0 0 1-8 0"></path>

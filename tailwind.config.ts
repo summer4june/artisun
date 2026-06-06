@@ -16,6 +16,16 @@ const config: Config = {
         editorial: ['var(--font-editorial)', 'Georgia', 'serif'],
         suisse: ['var(--font-suisse)', 'Helvetica Neue', 'sans-serif'],
       },
+      keyframes: {
+        scrollIndicator: {
+          '0%': { transform: 'translateY(-100%)' },
+          '50%': { transform: 'translateY(0)' },
+          '100%': { transform: 'translateY(100%)' },
+        }
+      },
+      animation: {
+        scrollIndicator: 'scrollIndicator 2s cubic-bezier(0.85, 0, 0.15, 1) infinite',
+      }
     },
   },
   plugins: [],
