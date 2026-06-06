@@ -15,7 +15,8 @@ export default function Home() {
   const [mediaProgress, setMediaProgress] = useState(0);
   const mainRef = useRef<HTMLElement>(null);
   const instagramRef = useRef<HTMLAnchorElement>(null);
-  const pinterestRef = useRef<HTMLAnchorElement>(null);
+  const pinterestRightRef = useRef<HTMLAnchorElement>(null);
+  const pinterestLeftRef = useRef<HTMLAnchorElement>(null);
   
   // Mouse Proxy for performance (no react state re-renders on mousemove)
   const mouseProxy = useRef({ x: 0, y: 0, px: 0, py: 0 });
@@ -77,49 +78,30 @@ export default function Home() {
         )
       });
 
-      // Fade in Pinterest ONLY when BleedExperience is in view
-      if (pinterestRef.current) {
-        gsap.set(pinterestRef.current, { opacity: 0 });
+      // Toggle Pinterest Right vs Left
+      if (pinterestRightRef.current && pinterestLeftRef.current) {
+        gsap.set(pinterestLeftRef.current, { autoAlpha: 0 }); // Ensure it's hidden initially
+        
         ScrollTrigger.create({
           trigger: '#bleed-experience-section',
           start: 'top 50%',
           end: 'bottom 50%',
-          onEnter: () => gsap.to(pinterestRef.current, { opacity: 1, duration: 0.5 }),
-          onLeave: () => gsap.to(pinterestRef.current, { opacity: 0, duration: 0.5 }),
-          onEnterBack: () => gsap.to(pinterestRef.current, { opacity: 1, duration: 0.5 }),
-          onLeaveBack: () => gsap.to(pinterestRef.current, { opacity: 0, duration: 0.5 }),
-        });
-      }
-
-      // Global background transition on scroll
-      ScrollTrigger.create({
-        trigger: ".section-spacer",
-        start: "top bottom", // Starts when spacer enters from bottom (right as hero starts to scroll up)
-        end: "bottom top",   // Ends exactly when the text section reaches the top
-        scrub: true,
-        animation: gsap.to('#global-gradient', { opacity: 1, ease: 'none' })
-      });
-
-      // Animate Pinterest from Right to Left when reaching Climate section
-      if (pinterestRef.current && instagramRef.current) {
-        ScrollTrigger.create({
-          trigger: "#bleed-experience-section",
-          start: "top bottom", // Starts when the climate section enters the bottom of the screen
-          end: "top center",   // Finishes animating when it hits the center
-          scrub: true,
-          invalidateOnRefresh: true, // Recalculate on window resize
-          animation: gsap.to(pinterestRef.current, {
-            x: () => {
-              // Calculate distance from right to left dynamically
-              const leftPadding = window.innerWidth < 768 ? 32 : 48; // left-8 or left-12
-              const rightPadding = window.innerWidth < 768 ? 32 : 48; // right-8 or right-12
-              const pinRect = pinterestRef.current!.getBoundingClientRect();
-              const distance = window.innerWidth - rightPadding - leftPadding - pinRect.width;
-              return -distance;
-            },
-            y: 32, // Stack it exactly 32px below Instagram
-            ease: "power2.inOut"
-          })
+          onEnter: () => {
+            gsap.to(pinterestRightRef.current, { autoAlpha: 0, duration: 0.5 });
+            gsap.to(pinterestLeftRef.current, { autoAlpha: 1, duration: 0.5 });
+          },
+          onLeave: () => {
+            gsap.to(pinterestRightRef.current, { autoAlpha: 1, duration: 0.5 });
+            gsap.to(pinterestLeftRef.current, { autoAlpha: 0, duration: 0.5 });
+          },
+          onEnterBack: () => {
+            gsap.to(pinterestRightRef.current, { autoAlpha: 0, duration: 0.5 });
+            gsap.to(pinterestLeftRef.current, { autoAlpha: 1, duration: 0.5 });
+          },
+          onLeaveBack: () => {
+            gsap.to(pinterestRightRef.current, { autoAlpha: 1, duration: 0.5 });
+            gsap.to(pinterestLeftRef.current, { autoAlpha: 0, duration: 0.5 });
+          },
         });
       }
     }
@@ -166,17 +148,26 @@ export default function Home() {
           href="https://instagram.com" 
           target="_blank" 
           rel="noopener noreferrer" 
-          className="absolute top-[45%] -translate-y-1/2 left-8 md:left-12 pointer-events-auto font-suisse font-medium text-[11px] md:text-[13px] tracking-[0.12em] text-[#e8dfc5] uppercase border-b-[1px] border-[#e8dfc5] pb-[2px] hover:text-white hover:border-white transition-colors duration-300"
+          className="absolute top-[45%] md:top-1/2 -translate-y-1/2 left-8 md:left-12 pointer-events-auto font-suisse font-medium text-[11px] md:text-[13px] tracking-[0.12em] text-[#e8dfc5] uppercase border-b-[1px] border-[#e8dfc5] pb-[2px] hover:text-white hover:border-white transition-colors duration-300"
         >
           Instagram
         </a>
         <a 
-          ref={pinterestRef}
+          ref={pinterestRightRef}
           href="https://pinterest.com" 
           target="_blank" 
           rel="noopener noreferrer" 
-          className="absolute top-[55%] -translate-y-1/2 left-8 md:left-12 pointer-events-auto font-suisse font-medium text-[11px] md:text-[13px] tracking-[0.12em] text-[#e8dfc5] uppercase border-b-[1px] border-[#e8dfc5] pb-[2px] hover:text-white hover:border-white transition-colors duration-300"
-          style={{ opacity: 0 }}
+          className="absolute top-[45%] md:top-1/2 -translate-y-1/2 right-8 md:right-12 pointer-events-auto font-suisse font-medium text-[11px] md:text-[13px] tracking-[0.12em] text-[#e8dfc5] uppercase border-b-[1px] border-[#e8dfc5] pb-[2px] hover:text-white hover:border-white transition-colors duration-300"
+        >
+          Pinterest
+        </a>
+        <a 
+          ref={pinterestLeftRef}
+          href="https://pinterest.com" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className="absolute top-[55%] md:top-[calc(50%+32px)] -translate-y-1/2 left-8 md:left-12 pointer-events-auto font-suisse font-medium text-[11px] md:text-[13px] tracking-[0.12em] text-[#e8dfc5] uppercase border-b-[1px] border-[#e8dfc5] pb-[2px] hover:text-white hover:border-white transition-colors duration-300"
+          style={{ opacity: 0, visibility: 'hidden' }}
         >
           Pinterest
         </a>

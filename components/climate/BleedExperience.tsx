@@ -55,8 +55,6 @@ export default function BleedExperience({ onProgress }: BleedExperienceProps = {
 
 
   useEffect(() => {
-    if (isLoading) return;
-
     if (!containerRef.current || !cardRef.current) return;
 
     gsap.registerPlugin(ScrollTrigger);
@@ -128,7 +126,7 @@ export default function BleedExperience({ onProgress }: BleedExperienceProps = {
       entranceTrigger.kill();
       trapTrigger.kill();
     };
-  }, [isLoading]); 
+  }, []); 
 
   const navigateTo = (targetIndex: number) => {
     if (targetIndex >= 0 && targetIndex < sections.length) {
