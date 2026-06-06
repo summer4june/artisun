@@ -110,7 +110,7 @@ export function useBleedTransition(activeIndex: number) {
             manager.itemEnd(sec.mediaUrl);
             resolve(tex);
           }
-        }, 4000); // 4 seconds max wait per item
+        }, 30000); // 30 seconds max wait per item
 
         const complete = (texture: THREE.Texture) => {
           if (isResolved) return;

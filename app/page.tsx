@@ -68,9 +68,23 @@ export default function Home() {
         scrub: true,
         animation: gsap.fromTo('.scroll-indicator', 
           { opacity: 1 }, 
-          { opacity: 0, ease: 'none', immediateRender: false }
+          { opacity: 0, ease: 'none' }
         )
       });
+
+      // Fade in Pinterest ONLY when BleedExperience is in view
+      if (pinterestRef.current) {
+        gsap.set(pinterestRef.current, { opacity: 0 });
+        ScrollTrigger.create({
+          trigger: '#bleed-experience-section',
+          start: 'top 50%',
+          end: 'bottom 50%',
+          onEnter: () => gsap.to(pinterestRef.current, { opacity: 1, duration: 0.5 }),
+          onLeave: () => gsap.to(pinterestRef.current, { opacity: 0, duration: 0.5 }),
+          onEnterBack: () => gsap.to(pinterestRef.current, { opacity: 1, duration: 0.5 }),
+          onLeaveBack: () => gsap.to(pinterestRef.current, { opacity: 0, duration: 0.5 }),
+        });
+      }
 
       // Global background transition on scroll
       ScrollTrigger.create({
@@ -156,7 +170,8 @@ export default function Home() {
           href="https://pinterest.com" 
           target="_blank" 
           rel="noopener noreferrer" 
-          className="absolute top-[45%] -translate-y-1/2 right-8 md:right-12 pointer-events-auto font-suisse font-medium text-[11px] md:text-[13px] tracking-[0.12em] text-[#e8dfc5] uppercase border-b-[1px] border-[#e8dfc5] pb-[2px] hover:text-white hover:border-white transition-colors duration-300"
+          className="absolute top-[55%] -translate-y-1/2 left-8 md:left-12 pointer-events-auto font-suisse font-medium text-[11px] md:text-[13px] tracking-[0.12em] text-[#e8dfc5] uppercase border-b-[1px] border-[#e8dfc5] pb-[2px] hover:text-white hover:border-white transition-colors duration-300"
+          style={{ opacity: 0 }}
         >
           Pinterest
         </a>
