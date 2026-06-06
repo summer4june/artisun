@@ -65,6 +65,9 @@ export function useBleedTransition(activeIndex: number) {
         textureB: { value: null },
         overlayColorA: { value: new THREE.Color('#081526') },
         overlayColorB: { value: new THREE.Color('#081526') },
+        // Vivid bleed accent colors — used for the visible ink flood during transition
+        bleedAccentA: { value: new THREE.Color('#1a6aaa') }, // Shimla vivid blue
+        bleedAccentB: { value: new THREE.Color('#1a6aaa') },
         progress: { value: 0.0 },
         time: { value: 0.0 },
         uMouse: { value: new THREE.Vector2(-1, -1) }
@@ -283,21 +286,33 @@ export function useBleedTransition(activeIndex: number) {
       new THREE.Color('#2d1c16'), // Jaipur
       new THREE.Color('#0a2016'), // Bangalore
       new THREE.Color('#160e22'), // Mumbai
+      new THREE.Color('#12100a'), // Constant
+    ];
+
+    // VIVID accent colors — used for the actual ink bleed flood (much more saturated)
+    const bleedAccentColors = [
+      new THREE.Color('#1a6aaa'), // Shimla → vivid ocean blue
+      new THREE.Color('#c45a20'), // Jaipur → vivid terracotta orange
+      new THREE.Color('#1a6a3a'), // Bangalore → vivid tropical green
+      new THREE.Color('#6a20aa'), // Mumbai → vivid coastal purple
+      new THREE.Color('#c0a030'), // Constant → vivid golden
     ];
     
     uniforms.textureB.value = texturesRef.current[activeIndex];
     uniforms.overlayColorB.value = sectionColors[activeIndex % sectionColors.length];
+    uniforms.bleedAccentB.value = bleedAccentColors[activeIndex % bleedAccentColors.length];
     
     gsap.killTweensOf(uniforms.progress);
     uniforms.progress.value = 0.0;
 
     gsap.to(uniforms.progress, {
       value: 1.0,
-      duration: 1.2, // Sped up massively from 3.6s to 1.2s for instantaneous feeling
+      duration: 4.0, // Slow cinematic wipe — clearly visible
       ease: "power2.inOut",
       onComplete: () => {
         uniforms.textureA.value = uniforms.textureB.value;
         uniforms.overlayColorA.value = uniforms.overlayColorB.value;
+        uniforms.bleedAccentA.value = uniforms.bleedAccentB.value;
         uniforms.progress.value = 0.0;
       }
     });
