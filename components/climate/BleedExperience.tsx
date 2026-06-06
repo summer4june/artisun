@@ -67,7 +67,7 @@ export default function BleedExperience() {
       trigger: containerRef.current,
       start: "top bottom", 
       end: "top top",
-      scrub: 1,
+      scrub: true, // changed from '1' to 'true' to instantly match scroll without lag
       animation: entranceAnim,
       onUpdate: (self) => {
         if (self.progress < 0.99) {
@@ -99,12 +99,20 @@ export default function BleedExperience() {
         if (activeIndexRef.current < sections.length - 1) {
           isTrapped = true;
           window.scrollTo(0, containerRef.current!.offsetTop);
+          // Force expansion just in case scrub lagged
+          gsap.set(cardRef.current, { width: '100vw', height: '100vh', borderRadius: '0px' });
+          isExpandedRef.current = true;
+          setIsExpanded(true);
         }
       },
       onEnterBack: () => {
         if (activeIndexRef.current > 0) {
           isTrapped = true;
           window.scrollTo(0, containerRef.current!.offsetTop);
+          // Force expansion
+          gsap.set(cardRef.current, { width: '100vw', height: '100vh', borderRadius: '0px' });
+          isExpandedRef.current = true;
+          setIsExpanded(true);
         }
       }
     });

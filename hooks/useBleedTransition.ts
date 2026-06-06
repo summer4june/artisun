@@ -86,8 +86,46 @@ export function useBleedTransition(activeIndex: number) {
     const imageLoader = new THREE.TextureLoader(manager);
     imageLoader.setCrossOrigin('anonymous');
 
-    const loadMedia = (sec: typeof sections[0]) => {
+    const loadMedia = (sec: any) => {
       return new Promise<THREE.Texture>((resolve) => {
+        manager.itemStart(sec.mediaUrl);
+        let isResolved = false;
+
+        // Failsafe Timeout: NEVER let the loading screen hang forever
+        const timeoutId = setTimeout(() => {
+          if (!isResolved) {
+            console.warn("Failsafe timeout: forcing load for", sec.mediaUrl);
+            let tex;
+            if (sec.mediaType === 'video') {
+              const video = document.createElement('video');
+              video.src = sec.mediaUrl;
+              tex = new THREE.VideoTexture(video);
+            } else {
+              tex = new THREE.Texture();
+            }
+            tex.generateMipmaps = false;
+            tex.minFilter = THREE.LinearFilter;
+            tex.magFilter = THREE.LinearFilter;
+            tex.colorSpace = THREE.SRGBColorSpace;
+            
+            isResolved = true;
+            manager.itemEnd(sec.mediaUrl);
+            resolve(tex);
+          }
+        }, 4000); // 4 seconds max wait per item
+
+        const complete = (texture: THREE.Texture) => {
+          if (isResolved) return;
+          isResolved = true;
+          clearTimeout(timeoutId);
+          texture.generateMipmaps = false;
+          texture.minFilter = THREE.LinearFilter;
+          texture.magFilter = THREE.LinearFilter;
+          texture.colorSpace = THREE.SRGBColorSpace;
+          manager.itemEnd(sec.mediaUrl);
+          resolve(texture);
+        };
+
         if (sec.mediaType === 'video') {
           const video = document.createElement('video');
           video.src = sec.mediaUrl;
@@ -95,58 +133,33 @@ export function useBleedTransition(activeIndex: number) {
           video.loop = true;
           video.muted = true;
           video.playsInline = true;
-          video.autoplay = true;
-          
           videosRef.current.push(video);
           
-          // Crucial for strict browsers like Safari
           video.setAttribute('muted', 'true');
           video.setAttribute('playsinline', 'true');
           video.setAttribute('webkit-playsinline', 'true');
           video.setAttribute('autoplay', 'true');
-          
-          // Start frozen (0.1 is the safest minimum limit across browsers)
           video.playbackRate = 0.1;
           
-          const handleLoad = () => {
-            const texture = new THREE.VideoTexture(video);
-            texture.generateMipmaps = false;
-            texture.minFilter = THREE.LinearFilter;
-            texture.magFilter = THREE.LinearFilter;
-            texture.colorSpace = THREE.SRGBColorSpace;
-            
-            manager.itemStart(sec.mediaUrl);
-            manager.itemEnd(sec.mediaUrl);
-            resolve(texture);
+          video.oncanplay = () => {
+            if (!isResolved) complete(new THREE.VideoTexture(video));
           };
 
-          video.onloadeddata = handleLoad;
           video.onerror = () => {
             console.error("Failed to load video:", sec.mediaUrl);
-            manager.itemStart(sec.mediaUrl);
-            manager.itemEnd(sec.mediaUrl);
-            resolve(new THREE.Texture()); // prevent infinite hang
+            if (!isResolved) complete(new THREE.Texture());
           };
           
           video.load();
           video.play().catch(() => {});
         } else {
-          manager.itemStart(sec.mediaUrl);
           imageLoader.load(
             sec.mediaUrl, 
-            (tex) => {
-              tex.generateMipmaps = false;
-              tex.minFilter = THREE.LinearFilter;
-              tex.magFilter = THREE.LinearFilter;
-              tex.colorSpace = THREE.SRGBColorSpace;
-              manager.itemEnd(sec.mediaUrl);
-              resolve(tex);
-            },
+            (tex) => complete(tex),
             undefined,
             (err) => {
               console.error("Failed to load image:", sec.mediaUrl);
-              manager.itemEnd(sec.mediaUrl);
-              resolve(new THREE.Texture());
+              if (!isResolved) complete(new THREE.Texture());
             }
           );
         }
