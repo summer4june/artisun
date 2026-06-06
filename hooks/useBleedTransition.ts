@@ -333,5 +333,5 @@ export function useBleedTransition(activeIndex: number) {
     updateVideoPlayback();
   }, [activeIndex]);
 
-  return { mountRef, loadingProgress, setExpandedState };
+  return { mountRef, isExpandedRef, texturesRef, setExpandedState, loadingProgress };
 }

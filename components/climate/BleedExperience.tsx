@@ -9,7 +9,11 @@ import DiamondNav from '@/components/climate/DiamondNav';
 import ContentLayer from '@/components/climate/ContentLayer';
 import ScrollHint from '@/components/climate/ScrollHint';
 
-export default function BleedExperience() {
+interface BleedExperienceProps {
+  onProgress?: (progress: number) => void;
+}
+
+export default function BleedExperience({ onProgress }: BleedExperienceProps = {}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const isExpandedRef = useRef(false);
@@ -39,6 +43,10 @@ export default function BleedExperience() {
   }, [activeIndex, isExpanded]);
   
   const { mountRef, loadingProgress, setExpandedState } = useBleedTransition(activeIndex);
+  
+  useEffect(() => {
+    if (onProgress) onProgress(loadingProgress);
+  }, [loadingProgress, onProgress]);
   const isLoading = loadingProgress < 100;
 
   useEffect(() => {

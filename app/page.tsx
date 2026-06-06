@@ -12,6 +12,7 @@ import BleedExperience from '../components/climate/BleedExperience';
 
 export default function Home() {
   const [loadingComplete, setLoadingComplete] = useState(false);
+  const [mediaProgress, setMediaProgress] = useState(0);
   const mainRef = useRef<HTMLElement>(null);
   const instagramRef = useRef<HTMLAnchorElement>(null);
   const pinterestRef = useRef<HTMLAnchorElement>(null);
@@ -113,7 +114,7 @@ export default function Home() {
       <div id="global-gradient" className="fixed inset-0 z-[-2] opacity-0" style={{ background: 'linear-gradient(to bottom, #c02d19 0%, #210502 100%)' }} />
 
       {!loadingComplete && (
-        <LoadingScreen onComplete={() => setLoadingComplete(true)} />
+        <LoadingScreen progress={mediaProgress} onComplete={() => setLoadingComplete(true)} />
       )}
       
       <CustomCursor mouseProxy={mouseProxy} />
@@ -126,12 +127,12 @@ export default function Home() {
       <HeroSection mouseProxy={mouseProxy} />
       
       {/* Spacer to provide breathing room between Hero and Text Reveal */}
-      <div className="section-spacer relative w-full h-[25vh] md:h-[30vh] bg-transparent pointer-events-none" />
+      <div className="section-spacer relative w-full h-[10vh] md:h-[15vh] bg-transparent pointer-events-none" />
       
       <TextRevealSection />
 
       <div id="bleed-experience-section">
-        <BleedExperience />
+        <BleedExperience onProgress={setMediaProgress} />
       </div>
 
       {/* Temporary Footer Spacer so we can actually scroll past the WebGL section! */}
