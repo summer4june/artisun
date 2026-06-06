@@ -17,7 +17,6 @@ export default function BleedExperience() {
   const [activeIndex, setActiveIndex] = useState(0);
   const activeIndexRef = useRef(0);
   const [hasScrolled, setHasScrolled] = useState(false);
-  const [isPinned, setIsPinned] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   
   useEffect(() => {
@@ -106,10 +105,7 @@ export default function BleedExperience() {
       end: `+=${sections.length * 50}%`,
       pin: true,
       scrub: 0.5, // Reduced from 1 to 0.5 for a snappier, more instantaneous feel
-      animation: pinAnim,
-      onToggle: (self) => {
-        setIsPinned(self.isActive);
-      }
+      animation: pinAnim
     });
 
     return () => {

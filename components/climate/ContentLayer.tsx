@@ -28,6 +28,7 @@ export default function ContentLayer({ activeIndex }: ContentLayerProps) {
         gsap.set(sec, { display: 'none' });
       }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -132,6 +133,7 @@ export default function ContentLayer({ activeIndex }: ContentLayerProps) {
 
             
             {sec.title === 'IMAGE_LOGO' ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img 
                 src="/logo.png" 
                 alt="Artisun" 

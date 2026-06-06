@@ -20,6 +20,7 @@ export default function Navbar({ showIcon }: { showIcon: boolean }) {
         }}
       >
         {showIcon && (
+          // eslint-disable-next-line @next/next/no-img-element
           <img 
             id="nav-icon"
             src="/icon-artisun.png" 

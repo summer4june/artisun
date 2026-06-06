@@ -46,6 +46,7 @@ export default function HeroSection({ mouseProxy }: { mouseProxy: { current: { x
         }}
       >
         {/* Base faint image */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img 
           ref={bgRef}
           src="/bg-hero.jpg"
@@ -55,6 +56,7 @@ export default function HeroSection({ mouseProxy }: { mouseProxy: { current: { x
         
         {/* Spotlight reveal image */}
         <div ref={revealWrapperRef} className="absolute inset-0 w-full h-full" style={{ WebkitMaskImage: 'radial-gradient(circle 50px at 50% 50%, black 0%, transparent 100%)' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img 
             ref={bgRevealRef}
             src="/bg-hero.jpg"
@@ -72,6 +74,7 @@ export default function HeroSection({ mouseProxy }: { mouseProxy: { current: { x
       <div className="relative z-10 flex flex-col items-center justify-center text-center w-full h-full">
         <div ref={textRef} className="relative w-full max-w-[90vw] md:max-w-[680px]">
           {/* Using aspect ratio and object-cover to crop out the invisible transparent padding around the logo text */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img 
             src="/logo.png" 
             alt="ARTISUN" 
