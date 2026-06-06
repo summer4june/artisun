@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
 import { sections } from '@/data/climateSections';
 import { useBleedTransition } from '@/hooks/useBleedTransition';
 import DiamondNav from '@/components/climate/DiamondNav';
@@ -46,9 +45,6 @@ export default function BleedExperience() {
     setExpandedState(isExpanded);
   }, [isExpanded, setExpandedState]);
 
-  // Use refs to track state inside the wheel event listener
-  const isAnimatingRef = useRef(false);
-  const pinTriggerRef = useRef<any>(null);
 
   useEffect(() => {
     if (isLoading) return;
