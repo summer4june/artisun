@@ -105,7 +105,7 @@ export default function BleedExperience({ onProgress }: BleedExperienceProps = {
       onEnter: () => {
         if (activeIndexRef.current < sections.length - 1) {
           isTrapped = true;
-          window.scrollTo(0, containerRef.current!.offsetTop);
+          window.scrollTo({ top: containerRef.current!.offsetTop, behavior: 'smooth' });
           // Force expansion just in case scrub lagged
           gsap.set(cardRef.current, { width: '100vw', height: '100vh', borderRadius: '0px' });
           isExpandedRef.current = true;
@@ -115,7 +115,7 @@ export default function BleedExperience({ onProgress }: BleedExperienceProps = {
       onEnterBack: () => {
         if (activeIndexRef.current > 0) {
           isTrapped = true;
-          window.scrollTo(0, containerRef.current!.offsetTop);
+          window.scrollTo({ top: containerRef.current!.offsetTop, behavior: 'smooth' });
           // Force expansion
           gsap.set(cardRef.current, { width: '100vw', height: '100vh', borderRadius: '0px' });
           isExpandedRef.current = true;
@@ -124,12 +124,18 @@ export default function BleedExperience({ onProgress }: BleedExperienceProps = {
       }
     });
 
+    let accumulatedDelta = 0;
+
     // Core Logic for handling Intent (Wheel or Touch)
     const processIntent = (deltaY: number) => {
       if (!isTrapped || isAnimating) return;
 
-      if (deltaY > 30) {
+      accumulatedDelta += deltaY;
+
+      // Lower threshold so regular mouse wheels can easily trigger it
+      if (accumulatedDelta > 20) {
         // Deliberate Swipe DOWN
+        accumulatedDelta = 0;
         if (activeIndexRef.current < sections.length - 1) {
           isAnimating = true;
           setHasScrolled(true);
@@ -142,8 +148,9 @@ export default function BleedExperience({ onProgress }: BleedExperienceProps = {
           isTrapped = false;
           window.scrollBy({ top: 15, behavior: 'auto' }); // Nudge past the trigger
         }
-      } else if (deltaY < -30) {
+      } else if (accumulatedDelta < -20) {
         // Deliberate Swipe UP
+        accumulatedDelta = 0;
         if (activeIndexRef.current > 0) {
           isAnimating = true;
           setHasScrolled(true);
@@ -202,7 +209,7 @@ export default function BleedExperience({ onProgress }: BleedExperienceProps = {
   };
 
   return (
-    <section ref={containerRef} className="relative w-full h-[100vh] bg-transparent flex items-center justify-center overflow-hidden">
+    <section ref={containerRef} className="relative w-full h-[100vh] bg-transparent flex items-center justify-center overflow-hidden z-20">
       
       <div 
         ref={cardRef} 

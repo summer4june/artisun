@@ -37,6 +37,11 @@ export default function Home() {
     gsap.registerPlugin(ScrollTrigger);
     
     if (loadingComplete) {
+      // Refresh ScrollTrigger to recalculate heights after loading screen goes away
+      setTimeout(() => {
+        ScrollTrigger.refresh();
+      }, 100);
+
       const tl = gsap.timeline();
       
       // Hero Logo fade in / slight scale
