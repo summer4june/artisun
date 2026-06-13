@@ -69,8 +69,7 @@ export function useBleedTransition(activeIndex: number) {
         bleedAccentA: { value: new THREE.Color('#1a6aaa') }, // Shimla vivid blue
         bleedAccentB: { value: new THREE.Color('#1a6aaa') },
         progress: { value: 0.0 },
-        time: { value: 0.0 },
-        uMouse: { value: new THREE.Vector2(-1, -1) }
+        time: { value: 0.0 }
       }
     });
     materialRef.current = material;
@@ -264,18 +263,9 @@ export function useBleedTransition(activeIndex: number) {
     
     resizeObserver.observe(mountRef.current);
 
-    // Track Mouse specifically for the Liquid Effect in the shader
-    const handleMouseMove = (e: MouseEvent) => {
-      if (materialRef.current) {
-        materialRef.current.uniforms.uMouse.value.x = e.clientX / window.innerWidth;
-        materialRef.current.uniforms.uMouse.value.y = 1.0 - (e.clientY / window.innerHeight);
-      }
-    };
-    window.addEventListener('mousemove', handleMouseMove, { passive: true });
 
     return () => {
       resizeObserver.disconnect();
-      window.removeEventListener('mousemove', handleMouseMove);
       cancelAnimationFrame(animationFrameId);
       renderer.dispose();
       geometry.dispose();
