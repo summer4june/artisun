@@ -210,7 +210,7 @@ export default function ProductsSection() {
                 onClick={() => handleNavClick(idx)}
                 className="group relative p-4 flex items-center justify-center cursor-pointer"
               >
-                <div className={\`w-2 h-2 rounded-full transition-all duration-500 \${activeIndex === idx ? 'bg-white scale-150 shadow-[0_0_10px_rgba(255,255,255,0.8)]' : 'bg-white/30 group-hover:bg-white/60'}\`}></div>
+                <div className={`w-2 h-2 rounded-full transition-all duration-500 ${activeIndex === idx ? 'bg-white scale-150 shadow-[0_0_10px_rgba(255,255,255,0.8)]' : 'bg-white/30 group-hover:bg-white/60'}`}></div>
               </button>
             ))}
           </div>
