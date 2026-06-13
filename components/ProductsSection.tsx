@@ -38,6 +38,7 @@ export default function ProductsSection() {
   const stRef = useRef<ScrollTrigger | null>(null);
   
   const [activeIndex, setActiveIndex] = useState(0);
+  const activeIndexRef = useRef(0); // Add a ref to avoid stale closures in GSAP
 
   useEffect(() => {
     if (!containerRef.current || !triggerRef.current) return;
@@ -84,9 +85,11 @@ export default function ProductsSection() {
       scrub: 1, // Smooth scrubbing
       animation: tl,
       onUpdate: (self) => {
-        if (self.progress > 0.5 && activeIndex !== 1) {
+        if (self.progress > 0.5 && activeIndexRef.current !== 1) {
+          activeIndexRef.current = 1;
           setActiveIndex(1);
-        } else if (self.progress <= 0.5 && activeIndex !== 0) {
+        } else if (self.progress <= 0.5 && activeIndexRef.current !== 0) {
+          activeIndexRef.current = 0;
           setActiveIndex(0);
         }
       }
@@ -95,7 +98,7 @@ export default function ProductsSection() {
     return () => {
       stRef.current?.kill();
     };
-  }, [activeIndex]);
+  }, []); // Remove activeIndex to stop timeline from rebuilding on every state change
 
   const handleNavClick = (index: number) => {
     if (!stRef.current) return;
