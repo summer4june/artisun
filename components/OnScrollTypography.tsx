@@ -97,18 +97,20 @@ async function ensureFontLoaded(
     } catch (e) {}
 }
 
-export default function OnScrollTypography(props: Props) {
-    const {
-        text,
-        effect,
-        lineGap,
-        padding,
-        triggerOnce,
-        viewportAmount,
-        stagger,
-        textColor,
-        isActive,
-    } = props
+export default function OnScrollTypography({
+    width = 600,
+    height = 300,
+    text = "CREATIVE POWER\nUNLOCKED\nTODAY",
+    effect = "effect1",
+    titleFont = DEFAULT_FONT,
+    lineGap = 4,
+    padding = 24,
+    triggerOnce = false,
+    viewportAmount = 0.6,
+    stagger = 0.12,
+    textColor = "#111111",
+    isActive
+}: Props) {
 
     const lines = text
         .split("\n")
@@ -446,7 +448,7 @@ export default function OnScrollTypography(props: Props) {
     const lockedFontRef = React.useRef<any | null>(null)
 
     React.useEffect(() => {
-        const incoming = props.titleFont
+        const incoming = titleFont
         if (!isValidFontObj(incoming)) return
 
         const css = pickFontCSS(incoming)
@@ -456,14 +458,14 @@ export default function OnScrollTypography(props: Props) {
                 setFontReadyTick((t) => t + 1)
             }
         )
-    }, [props.titleFont])
+    }, [titleFont])
 
     const fontCSS = React.useMemo(() => {
         const base = DEFAULT_FONT
-        const chosen = lockedFontRef.current || props.titleFont
+        const chosen = lockedFontRef.current || titleFont
         const css = pickFontCSS(chosen)
         return { ...base, ...css }
-    }, [props.titleFont, fontReadyTick])
+    }, [titleFont, fontReadyTick])
 
     const textAlign: "left" | "center" | "right" = fontCSS.textAlign || "center"
 
@@ -534,18 +536,6 @@ export default function OnScrollTypography(props: Props) {
     )
 }
 
-OnScrollTypography.defaultProps = {
-    width: 600,
-    height: 300,
-    text: "CREATIVE POWER\nUNLOCKED\nTODAY",
-    effect: "effect1",
-    titleFont: DEFAULT_FONT,
-    lineGap: 4,
-    padding: 24,
-    triggerOnce: false,
-    viewportAmount: 0.6,
-    stagger: 0.12,
-    textColor: "#111111",
-}
+
 
 
