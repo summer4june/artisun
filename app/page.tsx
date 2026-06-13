@@ -126,7 +126,7 @@ export default function Home() {
   }, [loadingComplete]);
 
   return (
-    <main ref={mainRef} className="relative w-full min-h-screen overflow-clip">
+    <main ref={mainRef} className="relative w-full min-h-screen overflow-x-hidden isolate">
 
       {/* ── GLOBAL BACKGROUND ── fixed, 150vh, molten-core gradient + grain + animated light */}
       <div
