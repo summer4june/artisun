@@ -51,13 +51,17 @@ export default function ClimateSection({ onProgress }: ClimateSectionProps) {
         const t        = rawIdx - curr; // 0→1 within each segment
 
         // Set opacity on every panel
+        // We do an "over-fade": the current panel stays at opacity 1,
+        // and the next panel fades in on top of it. This prevents the
+        // background gradient from showing through during transitions.
         panelRefs.current.forEach((panel, i) => {
           if (!panel) return;
           let alpha = 0;
-          if (i === curr) alpha = 1 - t;
-          if (i === next)  alpha = t;
-          // clamp 0–1
-          alpha = Math.max(0, Math.min(1, alpha));
+          if (i === curr) {
+            alpha = 1;
+          } else if (i === next) {
+            alpha = t;
+          }
           panel.style.opacity = String(alpha.toFixed(3));
         });
 
