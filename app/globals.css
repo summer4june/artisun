@@ -21,7 +21,7 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: var(--brand-dark);
+  background-color: #050505;
   color: var(--brand-cream);
   overflow-x: hidden;
   /* Hide cursor for custom cursor implementation */
