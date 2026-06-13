@@ -82,25 +82,25 @@ export default function SolutionSection() {
         </div>
         
         {/* Paragraph 2: Middle Right (Left-aligned against the sun) */}
-        <div className="absolute top-1/2 -translate-y-1/2 right-4 md:right-[10%] w-full max-w-[280px] md:max-w-[320px] pointer-events-none z-20 font-suisse tracking-wide">
+        <div className="absolute top-1/2 -translate-y-1/2 right-4 md:right-[10%] w-full max-w-[280px] md:max-w-sm pointer-events-none z-20 font-editorial">
           <OnScrollTypography 
             text={p2}
             effect="effect9"
-            titleFont={{ fontFamily: "inherit", fontSize: "clamp(1rem, 1.5vw, 1.25rem)", fontWeight: 400, lineHeight: 1.5, textAlign: "left" }}
+            titleFont={{ fontFamily: "inherit", fontSize: "clamp(1.5rem, 3vw, 2.5rem)", fontWeight: 400, textAlign: "left" }}
             textColor="var(--brand-cream)"
-            lineGap={6}
+            lineGap={8}
             isActive={activeIndex === 1}
           />
         </div>
         
         {/* Paragraph 3: Bottom Left (Right-aligned against the sun) */}
-        <div className="absolute bottom-[10%] left-4 md:left-[15%] w-full max-w-[300px] md:max-w-[400px] pointer-events-none z-20 font-editorial">
+        <div className="absolute bottom-[10%] left-4 md:left-[15%] w-full max-w-[300px] md:max-w-sm pointer-events-none z-20 font-editorial">
           <OnScrollTypography 
             text={p3}
             effect="effect9"
-            titleFont={{ fontFamily: "inherit", fontSize: "clamp(2rem, 4vw, 3.5rem)", fontWeight: 400, textAlign: "right" }}
+            titleFont={{ fontFamily: "inherit", fontSize: "clamp(1.5rem, 3vw, 2.5rem)", fontWeight: 400, textAlign: "right" }}
             textColor="var(--brand-cream)"
-            lineGap={10}
+            lineGap={8}
             isActive={activeIndex === 2}
           />
         </div>
