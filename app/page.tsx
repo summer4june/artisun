@@ -11,6 +11,7 @@ import TextRevealSection from '../components/TextRevealSection';
 import BleedExperience from '../components/climate/BleedExperience';
 import SolutionSection from '../components/SolutionSection';
 import ProductsSection from '../components/ProductsSection';
+import Footer from '../components/Footer';
 
 export default function Home() {
   const [loadingComplete, setLoadingComplete] = useState(false);
@@ -149,10 +150,8 @@ export default function Home() {
       <SolutionSection />
       <ProductsSection />
 
-      {/* Temporary Footer Spacer so we can actually scroll past the WebGL section! */}
-      <div className="w-full h-screen bg-[#081526] flex items-center justify-center pointer-events-none relative z-10">
-        <h2 className="text-[#e8dfc5] font-editorial text-4xl md:text-6xl opacity-50">To be continued...</h2>
-      </div>
+      {/* Main Footer */}
+      <Footer />
 
       {/* Globally Fixed Social Links */}
       <div className={`fixed inset-0 pointer-events-none z-50 transition-opacity duration-1000 hidden md:block ${loadingComplete ? 'opacity-100' : 'opacity-0'}`}>

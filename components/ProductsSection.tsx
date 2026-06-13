@@ -13,7 +13,7 @@ if (typeof window !== 'undefined') {
 const products = [
   {
     id: 'front',
-    title: 'Electric Ace', // Mimicking Veloretti's style for the title
+    title: 'Electric Ace',
     subtitle: 'ORIGIN SUNWEAR',
     desc: 'The new Origin is the latest revolution in daily suncare with a bold finish. It combines a clean design, cutting-edge technology, and extreme UV safety features.',
     img: '/bottle_front.png',
@@ -34,55 +34,61 @@ export default function ProductsSection() {
   const triggerRef = useRef<HTMLDivElement>(null);
   const bottle1Ref = useRef<HTMLDivElement>(null);
   const bottle2Ref = useRef<HTMLDivElement>(null);
+  const shadow1Ref = useRef<HTMLDivElement>(null);
+  const shadow2Ref = useRef<HTMLDivElement>(null);
   const textContainerRef = useRef<HTMLDivElement>(null);
   const stRef = useRef<ScrollTrigger | null>(null);
   
   const [activeIndex, setActiveIndex] = useState(0);
-  const activeIndexRef = useRef(0); // Add a ref to avoid stale closures in GSAP
+  const activeIndexRef = useRef(0);
 
   useEffect(() => {
     if (!containerRef.current || !triggerRef.current) return;
 
-    // Reset positions initially
-    gsap.set(bottle2Ref.current, { scale: 0.6, x: '25vw', z: -500, opacity: 0, filter: 'blur(8px)' });
-    gsap.set(bottle1Ref.current, { scale: 1, x: '0vw', z: 0, opacity: 1, filter: 'blur(0px)' });
+    // Reset positions initially for a dynamic 3D Isometric Camera Angle
+    gsap.set(bottle2Ref.current, { scale: 0.5, x: '25vw', y: '-5vh', z: -1200, rotationY: -35, opacity: 0, filter: 'blur(12px)' });
+    gsap.set(bottle1Ref.current, { scale: 1, x: '10vw', y: '0vh', z: 0, rotationY: -5, opacity: 1, filter: 'blur(0px)' });
 
     const tl = gsap.timeline({ paused: true });
 
-    // The Veloretti 3D Carousel Push Transition
-    // Bottle 1 moves back, blurs, shifts right into the background, and fades OUT completely
+    // The Veloretti True 3D Carousel Push
+    // Bottle 1 pushes back, rotates away, blurs, and fades OUT completely
     tl.to(bottle1Ref.current, {
-      scale: 0.6,
-      x: '25vw',
-      z: -500,
+      scale: 0.5,
+      x: '-5vw',
+      y: '-5vh',
+      z: -1200,
+      rotationY: 25,
       opacity: 0,
-      filter: 'blur(8px)',
-      ease: 'power2.inOut',
-      duration: 1
+      filter: 'blur(12px)',
+      ease: 'power3.inOut',
+      duration: 1.5
     }, 0);
 
-    // Bottle 2 moves forward from the right background into the center focus, and fades IN completely
+    // Bottle 2 pulls forward from the right background into the hero focus, fading IN
     tl.to(bottle2Ref.current, {
       scale: 1,
-      x: '0vw',
+      x: '10vw',
+      y: '0vh',
       z: 0,
+      rotationY: -5,
       opacity: 1,
       filter: 'blur(0px)',
-      ease: 'power2.inOut',
-      duration: 1
+      ease: 'power3.inOut',
+      duration: 1.5
     }, 0);
 
     // Fade out text 1, fade in text 2
-    tl.to('.text-panel-0', { opacity: 0, y: -20, duration: 0.4, ease: 'power2.in' }, 0);
-    tl.fromTo('.text-panel-1', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }, 0.6);
+    tl.to('.text-panel-0', { opacity: 0, y: -30, duration: 0.6, ease: 'power2.inOut' }, 0);
+    tl.fromTo('.text-panel-1', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.inOut' }, 0.9);
 
     // Create the ScrollTrigger
     stRef.current = ScrollTrigger.create({
       trigger: triggerRef.current,
       start: "top top",
-      end: "+=200%", // 2 screens to transition
+      end: "+=250%", // Extended scrolling duration for smoother camera action
       pin: containerRef.current,
-      scrub: 1, // Smooth scrubbing
+      scrub: 1.5, // High scrub lag for buttery smooth cinematic inertia
       animation: tl,
       onUpdate: (self) => {
         if (self.progress > 0.5 && activeIndexRef.current !== 1) {
@@ -98,7 +104,7 @@ export default function ProductsSection() {
     return () => {
       stRef.current?.kill();
     };
-  }, []); // Remove activeIndex to stop timeline from rebuilding on every state change
+  }, []);
 
   const handleNavClick = (index: number) => {
     if (!stRef.current) return;
@@ -108,12 +114,11 @@ export default function ProductsSection() {
 
     gsap.to(window, {
       scrollTo: scrollPos,
-      duration: 1.2,
-      ease: "power3.inOut"
+      duration: 1.5,
+      ease: "power4.inOut"
     });
   };
 
-  // SVG curved path coordinates for the navigation dots on the right
   const navDots = [
     { x: 70, y: 15 },
     { x: 90, y: 85 }
@@ -124,26 +129,31 @@ export default function ProductsSection() {
       {/* Pinned Container */}
       <section 
         ref={containerRef} 
-        className="w-full h-screen bg-[#0d0c0b] flex items-center justify-center overflow-hidden touch-none relative"
+        className="w-full h-screen bg-[#111111] flex items-center justify-center overflow-hidden touch-none relative z-10"
       >
-        {/* Dynamic Studio Spotlight */}
+        {/* Cinematic Lighting: A sharp radial glow behind the bottles */}
         <div 
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[50vw] h-[50vw] max-w-[800px] max-h-[800px] rounded-full blur-[120px] transition-colors duration-1000 ease-in-out z-0 pointer-events-none"
-          style={{ backgroundColor: activeIndex === 0 ? 'rgba(212, 64, 38, 0.15)' : 'rgba(138, 39, 24, 0.15)' }}
+          className="absolute top-1/2 left-[60%] -translate-x-1/2 -translate-y-1/2 w-[70vw] h-[70vw] max-w-[1000px] max-h-[1000px] rounded-full blur-[140px] transition-colors duration-[1500ms] ease-in-out z-0 pointer-events-none"
+          style={{ backgroundColor: activeIndex === 0 ? 'rgba(212, 64, 38, 0.12)' : 'rgba(138, 39, 24, 0.12)' }}
         />
+        
+        {/* Floor Gradient to ground the 3D scene */}
+        <div className="absolute bottom-0 left-0 w-full h-[30vh] bg-gradient-to-t from-black to-transparent z-0 pointer-events-none" />
 
-        <div className="relative w-full max-w-[1400px] h-full flex items-center justify-between px-8 md:px-16 pt-20 z-10">
+        <div className="relative w-full max-w-[1400px] h-full flex items-center justify-between px-8 md:px-16 pt-20 z-10 perspective-[1500px]">
           
-          {/* Left Text Panel */}
-          <div ref={textContainerRef} className="relative w-1/3 h-full flex flex-col justify-center pointer-events-none">
+          {/* Left Text Panel - Exactly aligned with Veloretti */}
+          <div ref={textContainerRef} className="relative w-1/3 h-full flex flex-col justify-center pointer-events-none z-30">
             {products.map((prod, idx) => (
               <div 
                 key={prod.id} 
-                className={`absolute left-0 text-panel-${idx}`}
-                style={{ opacity: idx === 0 ? 1 : 0, transform: idx === 0 ? 'translateY(0)' : 'translateY(20px)' }}
+                className={`absolute left-0 text-panel-${idx} w-[120%]`}
+                style={{ opacity: idx === 0 ? 1 : 0, transform: idx === 0 ? 'translateY(0)' : 'translateY(30px)' }}
               >
-                <h2 className="font-editorial text-[#efeeed] text-[64px] md:text-[80px] leading-none mb-6 tracking-tight drop-shadow-sm">{prod.title}</h2>
-                <p className="font-suisse text-[13px] md:text-[15px] text-[#efeeed]/50 leading-relaxed max-w-sm font-light">
+                <p className="font-suisse text-xs tracking-[0.25em] uppercase text-white/40 mb-4">{prod.subtitle}</p>
+                <h2 className="font-editorial text-[#ffffff] text-[72px] md:text-[96px] leading-[0.9] mb-8 tracking-tighter drop-shadow-lg">{prod.title}</h2>
+                <div className="w-12 h-[1px] bg-white/20 mb-8" /> {/* Subtle separator line */}
+                <p className="font-suisse text-[14px] md:text-[16px] text-[#efeeed]/60 leading-relaxed max-w-sm font-light">
                   {prod.desc}
                 </p>
               </div>
@@ -151,42 +161,44 @@ export default function ProductsSection() {
           </div>
 
           {/* Center 3D Carousel Stage */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ perspective: '1200px', transformStyle: 'preserve-3d' }}>
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ transformStyle: 'preserve-3d' }}>
             
-            {/* Bottle 2 (Background initially) */}
-            <div ref={bottle2Ref} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[640px] flex items-center justify-center origin-center will-change-transform">
+            {/* Bottle 2 (Background) */}
+            <div ref={bottle2Ref} className="absolute top-[50%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[640px] flex flex-col items-center justify-center origin-bottom will-change-transform">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img 
                 src={products[1].img} 
                 alt={products[1].title} 
                 className="w-auto h-full max-w-none object-contain drop-shadow-2xl" 
               />
+              {/* Floor Shadow */}
+              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-[250px] h-[30px] bg-black/60 rounded-[100%] blur-[15px]" />
             </div>
 
-            {/* Bottle 1 (Foreground initially) */}
-            <div ref={bottle1Ref} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[640px] flex items-center justify-center origin-center will-change-transform">
+            {/* Bottle 1 (Foreground) */}
+            <div ref={bottle1Ref} className="absolute top-[50%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[640px] flex flex-col items-center justify-center origin-bottom will-change-transform">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img 
                 src={products[0].img} 
                 alt={products[0].title} 
                 className="w-auto h-full max-w-none object-contain drop-shadow-2xl" 
               />
+              {/* Floor Shadow */}
+              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-[250px] h-[30px] bg-black/60 rounded-[100%] blur-[15px]" />
             </div>
 
           </div>
 
-          {/* Right Curved Navigation (Veloretti Style) */}
+          {/* Right Curved Navigation */}
           <div className="relative w-32 h-[300px] flex items-center justify-center z-40">
-            {/* The Curved Line */}
             <svg width="100" height="200" viewBox="0 0 100 200" className="absolute right-4 top-1/2 -translate-y-1/2 overflow-visible">
               <path 
                 d="M 50 0 A 150 150 0 0 1 50 200" 
                 fill="transparent" 
-                stroke="rgba(255,255,255,0.2)" 
-                strokeWidth="1" 
+                stroke="rgba(255,255,255,0.15)" 
+                strokeWidth="1.5" 
               />
               
-              {/* The Navigation Dots along the curve */}
               {products.map((prod, idx) => {
                 const pos = navDots[idx];
                 const isActive = activeIndex === idx;
@@ -197,23 +209,19 @@ export default function ProductsSection() {
                     onClick={() => handleNavClick(idx)}
                     className="cursor-pointer group"
                   >
-                    {/* Outer Ring */}
                     <circle 
-                      cx="0" 
-                      cy="0" 
-                      r={isActive ? "14" : "12"} 
+                      cx="0" cy="0" 
+                      r={isActive ? "14" : "10"} 
                       fill="transparent" 
-                      stroke={isActive ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.3)"} 
+                      stroke={isActive ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.2)"} 
                       strokeWidth="2"
-                      className="transition-all duration-300 group-hover:stroke-white"
+                      className="transition-all duration-500 group-hover:stroke-white"
                     />
-                    {/* Inner Color Swatch */}
                     <circle 
-                      cx="0" 
-                      cy="0" 
-                      r={isActive ? "10" : "8"} 
-                      fill={prod.color} 
-                      className="transition-all duration-300"
+                      cx="0" cy="0" 
+                      r={isActive ? "10" : "6"} 
+                      fill={isActive ? prod.color : "rgba(255,255,255,0.1)"} 
+                      className="transition-all duration-500 group-hover:fill-white/40"
                     />
                   </g>
                 );
