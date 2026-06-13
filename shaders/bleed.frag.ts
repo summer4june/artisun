@@ -3,27 +3,64 @@ uniform sampler2D textureA;
 uniform sampler2D textureB;
 uniform vec3 overlayColorA;
 uniform vec3 overlayColorB;
-uniform vec3 bleedAccentA;   // Not used, kept for compatibility
-uniform vec3 bleedAccentB;   // Not used, kept for compatibility
+uniform vec3 bleedAccentA;   // vivid version of old climate color
+uniform vec3 bleedAccentB;   // vivid version of new climate color — floods in during bleed
 uniform float progress;
-uniform float time;          // Not used, kept for compatibility
-uniform vec2 uMouse;         // Not used, kept for compatibility
+uniform float time;
+uniform vec2 uMouse;
 varying vec2 vUv;
+
+float random(vec2 st) {
+  return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
+}
+
+float noise(vec2 st) {
+  vec2 i = floor(st);
+  vec2 f = fract(st);
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(
+    mix(random(i), random(i + vec2(1.0, 0.0)), u.x),
+    mix(random(i + vec2(0.0, 1.0)), random(i + vec2(1.0, 1.0)), u.x),
+    u.y
+  );
+}
+
+float fbm(vec2 p) {
+  float v = 0.0;
+  float a = 0.5;
+  for (int i = 0; i < 6; i++) {
+    v += a * noise(p);
+    p *= 2.1;
+    a *= 0.5;
+  }
+  return v;
+}
 
 void main() {
   vec2 uv = vUv;
 
+  // ---- ORGANIC LIQUID BLEED MASK ----
+  // Three fbm layers animated at different rates = complex liquid tendrils
+  float n1 = fbm(uv * 2.2 + vec2(time * 0.07,  time * 0.05));
+  float n2 = fbm(uv * 4.5 - vec2(time * 0.04, -time * 0.06) + 3.7);
+  float n3 = fbm(uv * 9.0 + vec2(-time * 0.03,  time * 0.08) + 7.3);
+  float organicSurface = n1 * 0.5 + n2 * 0.3 + n3 * 0.2;
+
+  // p sweeps from -0.05 to 1.05 to fully cover the 0–1 noise range
+  float p = progress * 1.1 - 0.05;
+
+  // Main bleed mask — sharp edge so the wipe front is clearly visible
+  float bleedMask = smoothstep(p - 0.04, p + 0.04, organicSurface);
+  // bleedMask = 1.0 → old scene (A), bleedMask = 0.0 → new scene (B)
+
   // ---- SAMPLE VIDEOS ----
   vec4 colorA = texture2D(textureA, uv);
   vec4 colorB = texture2D(textureB, uv);
-  
-  // Simple smooth crossfade
-  // progress goes from 0.0 (A) to 1.0 (B)
-  vec4 videoColor = mix(colorA, colorB, progress);
+  vec4 videoColor = mix(colorB, colorA, bleedMask);
 
   // ---- STRONG CINEMATIC OVERLAY ----
   // Deep gradient at the bottom so text is highly legible
-  vec3 cinematicTint = mix(overlayColorA, overlayColorB, progress);
+  vec3 cinematicTint = mix(overlayColorB, overlayColorA, bleedMask);
   
   // Create a strong vertical gradient (dark at bottom)
   float vertGrad = pow(1.0 - uv.y, 1.5); 
@@ -39,6 +76,15 @@ void main() {
   overlayStr = clamp(overlayStr, 0.0, 0.95);
 
   vec3 finalColor = mix(videoColor.rgb, cinematicTint, overlayStr);
+
+  // Only show the border during active transition
+  float transitionLife = smoothstep(0.0, 0.12, progress) * smoothstep(1.0, 0.88, progress);
+
+  // Crisp, Solid Black Border at the bleeding edge
+  // Using tight smoothsteps so it is a solid line rather than a blurry fade
+  float inkBand = smoothstep(p - 0.03, p - 0.02, organicSurface) - smoothstep(p + 0.02, p + 0.03, organicSurface);
+  // Pure black, 100% solid opacity
+  finalColor = mix(finalColor, vec3(0.0), inkBand * 1.0 * transitionLife);
 
   gl_FragColor = vec4(finalColor, 1.0);
 }
