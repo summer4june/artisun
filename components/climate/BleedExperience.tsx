@@ -59,9 +59,35 @@ export default function BleedExperience({ onProgress }: BleedExperienceProps = {
 
     gsap.registerPlugin(ScrollTrigger);
 
-    // Ensure we are in expanded state immediately
-    setIsExpanded(true);
-    isExpandedRef.current = true;
+    const entranceAnim = gsap.timeline({ paused: true });
+    entranceAnim.to(cardRef.current, {
+      width: '100vw',
+      height: '100vh',
+      borderRadius: '0px',
+      ease: "power2.inOut",
+      duration: 1
+    });
+
+    const entranceTrigger = ScrollTrigger.create({
+      trigger: containerRef.current,
+      start: "top bottom", 
+      end: "top top",
+      scrub: true, // changed from '1' to 'true' to instantly match scroll without lag
+      animation: entranceAnim,
+      onUpdate: (self) => {
+        if (self.progress < 0.99) {
+          if (isExpandedRef.current !== false) {
+            isExpandedRef.current = false;
+            setIsExpanded(false);
+          }
+        } else {
+          if (isExpandedRef.current !== true) {
+            isExpandedRef.current = true;
+            setIsExpanded(true);
+          }
+        }
+      }
+    });
 
     const trapTrigger = ScrollTrigger.create({
       trigger: containerRef.current,
@@ -75,7 +101,16 @@ export default function BleedExperience({ onProgress }: BleedExperienceProps = {
         delay: 0.1,
         ease: "power1.inOut"
       },
-
+      onEnter: () => {
+        gsap.set(cardRef.current, { width: '100vw', height: '100vh', borderRadius: '0px' });
+        isExpandedRef.current = true;
+        setIsExpanded(true);
+      },
+      onEnterBack: () => {
+        gsap.set(cardRef.current, { width: '100vw', height: '100vh', borderRadius: '0px' });
+        isExpandedRef.current = true;
+        setIsExpanded(true);
+      },
       onUpdate: (self) => {
         const targetIndex = Math.min(sections.length - 1, Math.round(self.progress * (sections.length - 1)));
         
@@ -88,6 +123,7 @@ export default function BleedExperience({ onProgress }: BleedExperienceProps = {
     });
 
     return () => {
+      entranceTrigger.kill();
       trapTrigger.kill();
     };
   }, []); 
@@ -104,7 +140,8 @@ export default function BleedExperience({ onProgress }: BleedExperienceProps = {
       
       <div 
         ref={cardRef} 
-        className="relative overflow-hidden bg-[#060504] flex-none w-screen h-screen rounded-none"
+        className="relative overflow-hidden bg-[#060504] flex-none"
+        style={{ width: '80%', height: '60vh', borderRadius: '32px' }}
       >
         {/* Inner Fixed Container (Always 100vw x 100vh). Centered so the image doesn't move as the mask expands! */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100vw] h-[100vh]">
