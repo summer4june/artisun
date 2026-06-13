@@ -97,7 +97,7 @@ export default function SolutionSection() {
         <div className="absolute bottom-[10%] left-4 md:left-[15%] w-full max-w-[300px] md:max-w-[400px] pointer-events-none z-20 font-editorial">
           <OnScrollTypography 
             text={p3}
-            effect="effect27"
+            effect="effect9"
             titleFont={{ fontFamily: "inherit", fontSize: "clamp(2rem, 4vw, 3.5rem)", fontWeight: 400, textAlign: "right" }}
             textColor="var(--brand-cream)"
             lineGap={10}
