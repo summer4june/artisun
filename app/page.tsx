@@ -14,13 +14,30 @@ export default function Home() {
   const [loadingComplete, setLoadingComplete] = useState(false);
   const [mediaProgress, setMediaProgress] = useState(0);
   const mainRef = useRef<HTMLElement>(null);
-  const gradientRef = useRef<HTMLDivElement>(null);
+  const bgRef = useRef<HTMLDivElement>(null);
   const instagramRef = useRef<HTMLAnchorElement>(null);
   const pinterestRightRef = useRef<HTMLAnchorElement>(null);
   const pinterestLeftRef = useRef<HTMLAnchorElement>(null);
   
   // Mouse Proxy for performance (no react state re-renders on mousemove)
   const mouseProxy = useRef({ x: 0, y: 0, px: 0, py: 0 });
+
+  // Exact scroll-driven parallax: translateY by up to -50vh as user scrolls 0→100%
+  useEffect(() => {
+    const bg = bgRef.current;
+    if (!bg) return;
+
+    const onScroll = () => {
+      const scrollY = window.scrollY;
+      const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+      const scrollPercent = Math.min(1, Math.max(0, scrollY / maxScroll));
+      const shiftAmount = scrollPercent * 50;
+      bg.style.transform = `translateY(-${shiftAmount}vh)`;
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -32,11 +49,10 @@ export default function Home() {
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
-
   // Entrance animations for Hero elements once loading is done
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
-    
+
     if (loadingComplete) {
       // Refresh ScrollTrigger to recalculate heights after loading screen goes away
       setTimeout(() => {
@@ -78,28 +94,7 @@ export default function Home() {
         )
       });
 
-      // ── GRADIENT PARALLAX ──────────────────────────────────────────────
-      // The gradient is positioned at circle at 50% 100% (bottom-center).
-      // As you scroll, we shift the background-position upward so the
-      // vivid orange glow "reveals" from the bottom.
-      // We animate backgroundPositionY from 0% (start = glow hidden at bottom)
-      // to -60% (deep into page = glow fully centered).
-      if (gradientRef.current) {
-        gsap.fromTo(
-          gradientRef.current,
-          { backgroundPositionY: '0%' },
-          {
-            backgroundPositionY: '-60%',
-            ease: 'none',
-            scrollTrigger: {
-              trigger: mainRef.current,
-              start: 'top top',
-              end: 'bottom bottom',
-              scrub: 2,
-            },
-          }
-        );
-      }
+      // ── GRADIENT PARALLAX removed – handled by native scroll listener above ──
 
       // Toggle Pinterest Right vs Left
       if (pinterestRightRef.current && pinterestLeftRef.current) {
@@ -133,30 +128,11 @@ export default function Home() {
   return (
     <main ref={mainRef} className="relative w-full min-h-screen overflow-clip">
 
-      {/*
-        ── GLOBAL BACKGROUND ──────────────────────────────────────────────────
-        One fixed radial gradient that covers the entire viewport.
-        The gradient origin is circle at 50% 150% (below the fold) so that
-        at page-top the view shows mostly deep dark.
-        As the user scrolls we animate backgroundPositionY upward (see GSAP above)
-        so the vivid crimson/orange glow gradually reveals itself.
-      */}
+      {/* ── GLOBAL BACKGROUND ── fixed, 150vh, molten-core gradient + grain + animated light */}
       <div
-        ref={gradientRef}
-        className="fixed inset-0 z-[-1]"
-        style={{
-          background: `radial-gradient(
-            circle at 50% 150%,
-            #FF8C22 0%,
-            #C1140F 25%,
-            #530007 55%,
-            #200004 80%,
-            #050505 100%
-          )`,
-          // Oversized so the parallax shift has room to move
-          backgroundSize: '100% 200%',
-          backgroundPositionY: '0%',
-        }}
+        id="global-bg"
+        ref={bgRef}
+        className="theme-molten-core"
       />
 
       {!loadingComplete && (
