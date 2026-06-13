@@ -1,17 +1,21 @@
 'use client';
 
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
+import gsap from 'gsap';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export default function HeroSection({ mouseProxy }: { mouseProxy: { current: { x: number; y: number; px: number; py: number } } }) {
+export default function HeroSection({ mouseProxy }: { mouseProxy: { current: { x: number; y: number, px: number, py: number } } }) {
   const textRef = useRef<HTMLDivElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
+  useEffect(() => {
+    // Empty effect to maintain consistent hook count if necessary
+  }, [mouseProxy]);
 
   return (
     <section className="relative w-full h-[100vh] flex items-center justify-center overflow-hidden z-[1]">
       {/* Hero Content Layer */}
       <div className="relative z-10 flex flex-col items-center justify-center text-center w-full h-full">
         <div ref={textRef} className="relative w-full max-w-[90vw] md:max-w-[680px]">
+          {/* Using aspect ratio and object-cover to crop out the invisible transparent padding around the logo text */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img 
             src="/logo.png" 
@@ -37,6 +41,7 @@ export default function HeroSection({ mouseProxy }: { mouseProxy: { current: { x
           </div>
         </div>
       </div>
+      
     </section>
   );
 }

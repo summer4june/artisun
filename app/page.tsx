@@ -8,36 +8,18 @@ import HeroSection from '../components/HeroSection';
 import Navbar from '../components/Navbar';
 import CustomCursor from '../components/CustomCursor';
 import TextRevealSection from '../components/TextRevealSection';
-import ClimateSection from '../components/climate/ClimateSection';
+import BleedExperience from '../components/climate/BleedExperience';
 
 export default function Home() {
   const [loadingComplete, setLoadingComplete] = useState(false);
   const [mediaProgress, setMediaProgress] = useState(0);
   const mainRef = useRef<HTMLElement>(null);
-  const bgRef = useRef<HTMLDivElement>(null);
   const instagramRef = useRef<HTMLAnchorElement>(null);
   const pinterestRightRef = useRef<HTMLAnchorElement>(null);
   const pinterestLeftRef = useRef<HTMLAnchorElement>(null);
   
   // Mouse Proxy for performance (no react state re-renders on mousemove)
   const mouseProxy = useRef({ x: 0, y: 0, px: 0, py: 0 });
-
-  // Exact scroll-driven parallax: translateY by up to -50vh as user scrolls 0→100%
-  useEffect(() => {
-    const bg = bgRef.current;
-    if (!bg) return;
-
-    const onScroll = () => {
-      const scrollY = window.scrollY;
-      const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-      const scrollPercent = Math.min(1, Math.max(0, scrollY / maxScroll));
-      const shiftAmount = scrollPercent * 50;
-      bg.style.transform = `translateY(-${shiftAmount}vh)`;
-    };
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -46,13 +28,15 @@ export default function Home() {
       mouseProxy.current.x = (e.clientX / window.innerWidth) * 2 - 1;
       mouseProxy.current.y = -(e.clientY / window.innerHeight) * 2 + 1;
     };
+    
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
+
   // Entrance animations for Hero elements once loading is done
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
-
+    
     if (loadingComplete) {
       // Refresh ScrollTrigger to recalculate heights after loading screen goes away
       setTimeout(() => {
@@ -82,11 +66,21 @@ export default function Home() {
         ease: 'power2.out'
       }, '-=0.4');
 
+      // Global background transition on scroll
+      // Parallax scroll logic: shift the background up to -50vh smoothly based on overall page scroll
+      ScrollTrigger.create({
+        trigger: document.body,
+        start: "top top",
+        end: "bottom bottom",
+        scrub: true,
+        animation: gsap.to('#global-bg', { y: '-50vh', ease: 'none' })
+      });
+
       // Scroll indicator fades out immediately upon scrolling down
       ScrollTrigger.create({
         trigger: mainRef.current,
         start: "top top",
-        end: "+=150",
+        end: "+=150", // fades out completely after scrolling 150px
         scrub: true,
         animation: gsap.fromTo('.scroll-indicator', 
           { opacity: 1 }, 
@@ -94,11 +88,9 @@ export default function Home() {
         )
       });
 
-      // ── GRADIENT PARALLAX removed – handled by native scroll listener above ──
-
       // Toggle Pinterest Right vs Left
       if (pinterestRightRef.current && pinterestLeftRef.current) {
-        gsap.set(pinterestLeftRef.current, { autoAlpha: 0 });
+        gsap.set(pinterestLeftRef.current, { autoAlpha: 0 }); // Ensure it's hidden initially
         
         ScrollTrigger.create({
           trigger: '#bleed-experience-section',
@@ -126,14 +118,9 @@ export default function Home() {
   }, [loadingComplete]);
 
   return (
-    <main ref={mainRef} className="relative w-full">
-
-      {/* ── GLOBAL BACKGROUND ── fixed, 150vh, molten-core gradient + grain + animated light */}
-      <div
-        id="global-bg"
-        ref={bgRef}
-        className="theme-molten-core"
-      />
+    <main ref={mainRef} className="relative w-full min-h-screen overflow-clip">
+      {/* Global Molten Core Background */}
+      <div id="global-bg" className="theme-molten-core" />
 
       {!loadingComplete && (
         <LoadingScreen progress={mediaProgress} onComplete={() => setLoadingComplete(true)} />
@@ -148,16 +135,18 @@ export default function Home() {
       
       <HeroSection mouseProxy={mouseProxy} />
       
-      {/* Spacer between Hero and Text Reveal */}
+      {/* Spacer to provide breathing room between Hero and Text Reveal */}
       <div className="section-spacer relative w-full h-[10vh] md:h-[15vh] bg-transparent pointer-events-none" />
       
       <TextRevealSection />
 
-      <ClimateSection onProgress={setMediaProgress} />
+      <div id="bleed-experience-section">
+        <BleedExperience onProgress={setMediaProgress} />
+      </div>
 
-      {/* Footer spacer */}
-      <div className="w-full h-screen flex items-center justify-center pointer-events-none relative z-10">
-        <h2 className="text-[#e8dfc5] font-editorial text-4xl md:text-6xl opacity-30">To be continued...</h2>
+      {/* Temporary Footer Spacer so we can actually scroll past the WebGL section! */}
+      <div className="w-full h-screen bg-[#081526] flex items-center justify-center pointer-events-none relative z-10">
+        <h2 className="text-[#e8dfc5] font-editorial text-4xl md:text-6xl opacity-50">To be continued...</h2>
       </div>
 
       {/* Globally Fixed Social Links */}

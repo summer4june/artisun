@@ -48,7 +48,6 @@ export default function BleedExperience({ onProgress }: BleedExperienceProps = {
     if (onProgress) onProgress(loadingProgress);
   }, [loadingProgress, onProgress]);
   const isLoading = loadingProgress < 100;
-  void isLoading; // kept for future use
 
   useEffect(() => {
     setExpandedState(isExpanded);
