@@ -28,23 +28,23 @@ export default function TextRevealSection() {
       }
     });
 
-    // 1. Line 1 activates word by word (gray -> white)
+    // 1. Line 1 activates word by word (subdued cream instead of pure white)
     tl.to(words1Ref.current, {
-      color: "rgba(255, 255, 255, 1)",
+      color: "rgba(232, 223, 197, 1)", // #e8dfc5
       stagger: 0.1,
       ease: "none",
     });
 
-    // 2. Line 2 appears (fade in as unactive gray)
+    // 2. Line 2 appears (fade in as unactive cream)
     tl.to(words2Ref.current, {
       opacity: 1,
       duration: 0.5,
       ease: "power2.inOut",
     });
 
-    // 3. Line 2 activates word by word (gray -> white)
+    // 3. Line 2 activates word by word
     tl.to(words2Ref.current, {
-      color: "rgba(255, 255, 255, 1)",
+      color: "rgba(232, 223, 197, 1)",
       stagger: 0.1,
       ease: "none",
     });
@@ -59,7 +59,7 @@ export default function TextRevealSection() {
 
   return (
     <section ref={containerRef} className="text-reveal-trigger relative w-full h-screen bg-transparent z-10 flex flex-col items-center justify-center px-6 md:px-20 lg:px-32">
-      <div ref={textRef} className="w-full max-w-[1200px] text-left font-editorial font-normal text-3xl md:text-5xl lg:text-7xl leading-[1.3] md:leading-[1.2] lg:leading-[1.1]">
+      <div ref={textRef} className="w-full max-w-[1000px] text-center md:text-left font-editorial font-normal text-2xl md:text-4xl lg:text-5xl leading-[1.4] md:leading-[1.3] lg:leading-[1.2] tracking-wide">
         
         {/* Line 1 */}
         <p className="mb-6 md:mb-10 flex flex-wrap justify-start gap-x-[0.25em] gap-y-[0.1em]">
@@ -67,7 +67,7 @@ export default function TextRevealSection() {
             <span 
               key={`l1-${i}`} 
               ref={el => { words1Ref.current[i] = el; }} 
-              className="text-[rgba(255,255,255,0.2)] will-change-[color]"
+              className="text-[rgba(232,223,197,0.15)] will-change-[color]"
             >
               {word}
             </span>
@@ -80,7 +80,7 @@ export default function TextRevealSection() {
             <span 
               key={`l2-${i}`} 
               ref={el => { words2Ref.current[i] = el; }} 
-              className="text-[rgba(255,255,255,0.2)] opacity-0 will-change-[color,opacity]"
+              className="text-[rgba(232,223,197,0.15)] opacity-0 will-change-[color,opacity]"
             >
               {word}
             </span>

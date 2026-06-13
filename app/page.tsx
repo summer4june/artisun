@@ -17,9 +17,6 @@ export default function Home() {
   const [loadingComplete, setLoadingComplete] = useState(false);
   const [mediaProgress, setMediaProgress] = useState(0);
   const mainRef = useRef<HTMLElement>(null);
-  const instagramRef = useRef<HTMLAnchorElement>(null);
-  const pinterestRightRef = useRef<HTMLAnchorElement>(null);
-  const pinterestLeftRef = useRef<HTMLAnchorElement>(null);
   
   // Mouse Proxy for performance (no react state re-renders on mousemove)
   const mouseProxy = useRef({ x: 0, y: 0, px: 0, py: 0 });
@@ -90,33 +87,6 @@ export default function Home() {
           { opacity: 0, ease: 'none' }
         )
       });
-
-      // Toggle Pinterest Right vs Left
-      if (pinterestRightRef.current && pinterestLeftRef.current) {
-        gsap.set(pinterestLeftRef.current, { autoAlpha: 0 }); // Ensure it's hidden initially
-        
-        ScrollTrigger.create({
-          trigger: '#bleed-experience-section',
-          start: 'top 50%',
-          end: 'bottom 50%',
-          onEnter: () => {
-            gsap.to(pinterestRightRef.current, { autoAlpha: 0, duration: 0.5 });
-            gsap.to(pinterestLeftRef.current, { autoAlpha: 1, duration: 0.5 });
-          },
-          onLeave: () => {
-            gsap.to(pinterestRightRef.current, { autoAlpha: 1, duration: 0.5 });
-            gsap.to(pinterestLeftRef.current, { autoAlpha: 0, duration: 0.5 });
-          },
-          onEnterBack: () => {
-            gsap.to(pinterestRightRef.current, { autoAlpha: 0, duration: 0.5 });
-            gsap.to(pinterestLeftRef.current, { autoAlpha: 1, duration: 0.5 });
-          },
-          onLeaveBack: () => {
-            gsap.to(pinterestRightRef.current, { autoAlpha: 1, duration: 0.5 });
-            gsap.to(pinterestLeftRef.current, { autoAlpha: 0, duration: 0.5 });
-          },
-        });
-      }
     }
   }, [loadingComplete]);
 
@@ -152,38 +122,6 @@ export default function Home() {
 
       {/* Main Footer */}
       <Footer />
-
-      {/* Globally Fixed Social Links */}
-      <div className={`fixed inset-0 pointer-events-none z-50 transition-opacity duration-1000 hidden md:block ${loadingComplete ? 'opacity-100' : 'opacity-0'}`}>
-        <a 
-          ref={instagramRef}
-          href="https://instagram.com" 
-          target="_blank" 
-          rel="noopener noreferrer" 
-          className="absolute top-[45%] md:top-1/2 -translate-y-1/2 left-8 md:left-12 pointer-events-auto font-suisse font-medium text-[11px] md:text-[13px] tracking-[0.12em] text-[#e8dfc5] uppercase border-b-[1px] border-[#e8dfc5] pb-[2px] hover:text-white hover:border-white transition-colors duration-300"
-        >
-          Instagram
-        </a>
-        <a 
-          ref={pinterestRightRef}
-          href="https://pinterest.com" 
-          target="_blank" 
-          rel="noopener noreferrer" 
-          className="absolute top-[45%] md:top-1/2 -translate-y-1/2 right-8 md:right-12 pointer-events-auto font-suisse font-medium text-[11px] md:text-[13px] tracking-[0.12em] text-[#e8dfc5] uppercase border-b-[1px] border-[#e8dfc5] pb-[2px] hover:text-white hover:border-white transition-colors duration-300"
-        >
-          Pinterest
-        </a>
-        <a 
-          ref={pinterestLeftRef}
-          href="https://pinterest.com" 
-          target="_blank" 
-          rel="noopener noreferrer" 
-          className="absolute top-[55%] md:top-[calc(50%+32px)] -translate-y-1/2 left-8 md:left-12 pointer-events-auto font-suisse font-medium text-[11px] md:text-[13px] tracking-[0.12em] text-[#e8dfc5] uppercase border-b-[1px] border-[#e8dfc5] pb-[2px] hover:text-white hover:border-white transition-colors duration-300"
-          style={{ opacity: 0, visibility: 'hidden' }}
-        >
-          Pinterest
-        </a>
-      </div>
     </main>
   );
 }

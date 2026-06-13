@@ -69,37 +69,37 @@ export default function SolutionSection() {
           </div>
         </div>
 
-        {/* Paragraph 1: Top Left (Right-aligned against the sun) */}
-        <div className="absolute top-[10%] left-4 md:left-[10%] w-full max-w-[280px] md:max-w-sm pointer-events-none z-20 font-editorial">
+        {/* Paragraph 1: Top Left - Delicate Introduction */}
+        <div className="absolute top-[15%] left-6 md:left-[10%] w-full max-w-[320px] pointer-events-none z-20 font-editorial italic">
           <OnScrollTypography 
             text={p1}
             effect="effect9"
-            titleFont={{ fontFamily: "inherit", fontSize: "clamp(1.5rem, 3vw, 2.5rem)", fontWeight: 400, textAlign: "right" }}
-            textColor="var(--brand-cream)"
-            lineGap={8}
+            titleFont={{ fontFamily: "inherit", fontSize: "clamp(1.25rem, 2vw, 1.75rem)", fontWeight: 300, textAlign: "left" }}
+            textColor="rgba(232, 223, 197, 0.7)" // #e8dfc5 at 70%
+            lineGap={6}
             isActive={activeIndex === 0}
           />
         </div>
         
-        {/* Paragraph 2: Middle Right (Left-aligned against the sun) */}
-        <div className="absolute top-1/2 -translate-y-1/2 right-4 md:right-[10%] w-full max-w-[280px] md:max-w-sm pointer-events-none z-20 font-editorial">
+        {/* Paragraph 2: Middle Right - Poetic Explanation */}
+        <div className="absolute top-[45%] -translate-y-1/2 right-6 md:right-[10%] w-full max-w-[320px] pointer-events-none z-20 font-editorial italic">
           <OnScrollTypography 
             text={p2}
             effect="effect9"
-            titleFont={{ fontFamily: "inherit", fontSize: "clamp(1.5rem, 3vw, 2.5rem)", fontWeight: 400, textAlign: "left" }}
-            textColor="var(--brand-cream)"
-            lineGap={8}
+            titleFont={{ fontFamily: "inherit", fontSize: "clamp(1.25rem, 2vw, 1.75rem)", fontWeight: 300, textAlign: "right" }}
+            textColor="rgba(232, 223, 197, 0.7)"
+            lineGap={6}
             isActive={activeIndex === 1}
           />
         </div>
         
-        {/* Paragraph 3: Bottom Left (Right-aligned against the sun) */}
-        <div className="absolute bottom-[10%] left-4 md:left-[15%] w-full max-w-[300px] md:max-w-sm pointer-events-none z-20 font-editorial">
+        {/* Paragraph 3: Bottom Center - Definitive Conclusion */}
+        <div className="absolute bottom-[15%] left-1/2 -translate-x-1/2 w-full max-w-[450px] pointer-events-none z-20 font-editorial">
           <OnScrollTypography 
             text={p3}
             effect="effect9"
-            titleFont={{ fontFamily: "inherit", fontSize: "clamp(1.5rem, 3vw, 2.5rem)", fontWeight: 400, textAlign: "right" }}
-            textColor="var(--brand-cream)"
+            titleFont={{ fontFamily: "inherit", fontSize: "clamp(1.75rem, 3vw, 2.5rem)", fontWeight: 400, textAlign: "center" }}
+            textColor="rgba(232, 223, 197, 0.95)"
             lineGap={8}
             isActive={activeIndex === 2}
           />
