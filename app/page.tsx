@@ -9,6 +9,7 @@ import Navbar from '../components/Navbar';
 import CustomCursor from '../components/CustomCursor';
 import TextRevealSection from '../components/TextRevealSection';
 import BleedExperience from '../components/climate/BleedExperience';
+import SolutionSection from '../components/SolutionSection';
 
 export default function Home() {
   const [loadingComplete, setLoadingComplete] = useState(false);
@@ -143,6 +144,8 @@ export default function Home() {
       <div id="bleed-experience-section">
         <BleedExperience onProgress={setMediaProgress} />
       </div>
+
+      <SolutionSection />
 
       {/* Temporary Footer Spacer so we can actually scroll past the WebGL section! */}
       <div className="w-full h-screen bg-[#081526] flex items-center justify-center pointer-events-none relative z-10">
