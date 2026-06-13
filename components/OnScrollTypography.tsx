@@ -42,6 +42,7 @@ type Props = {
     viewportAmount: number
     stagger: number
     textColor: string
+    isActive?: boolean
 }
 
 type CustomData = { index: number; total: number; angle?: number }
@@ -106,6 +107,7 @@ export default function OnScrollTypography(props: Props) {
         viewportAmount,
         stagger,
         textColor,
+        isActive,
     } = props
 
     const lines = text
@@ -502,11 +504,11 @@ export default function OnScrollTypography(props: Props) {
         <div style={containerStyle}>
             <motion.div
                 style={{ width: "100%" }}
-                initial={isCanvas || isStaticTarget ? "show" : "hidden"}
-                animate={isCanvas || isStaticTarget ? "show" : undefined}
-                whileInView={isCanvas || isStaticTarget ? undefined : "show"}
+                initial="hidden"
+                animate={isActive !== undefined ? (isActive ? "show" : "hidden") : (isCanvas || isStaticTarget ? "show" : undefined)}
+                whileInView={isActive !== undefined ? undefined : (isCanvas || isStaticTarget ? undefined : "show")}
                 viewport={
-                    isCanvas || isStaticTarget
+                    isActive !== undefined || isCanvas || isStaticTarget
                         ? undefined
                         : { amount: viewportAmount, once: triggerOnce }
                 }
