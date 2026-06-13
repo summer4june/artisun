@@ -8,7 +8,7 @@ import OnScrollTypography from './OnScrollTypography';
 export default function SolutionSection() {
   const containerRef = useRef<HTMLElement>(null);
   const sunRef = useRef<HTMLDivElement>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(-1);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -27,9 +27,11 @@ export default function SolutionSection() {
           gsap.set(sunRef.current, { rotation: p * 180 }); // 180 degree rotation over full scroll
         }
 
-        if (p < 0.33) {
+        if (p < 0.05) {
+          setActiveIndex(-1);
+        } else if (p < 0.38) {
           setActiveIndex(0);
-        } else if (p < 0.66) {
+        } else if (p < 0.71) {
           setActiveIndex(1);
         } else {
           setActiveIndex(2);
@@ -68,11 +70,11 @@ export default function SolutionSection() {
         </div>
 
         {/* Paragraph 1: Top Left (Right-aligned against the sun) */}
-        <div className="absolute top-[10%] left-4 md:left-[10%] w-full max-w-[280px] md:max-w-sm pointer-events-none z-20">
+        <div className="absolute top-[10%] left-4 md:left-[10%] w-full max-w-[280px] md:max-w-sm pointer-events-none z-20 font-editorial">
           <OnScrollTypography 
             text={p1}
             effect="effect9"
-            titleFont={{ fontFamily: "var(--font-editorial)", fontSize: "clamp(1.5rem, 3vw, 2.5rem)", fontWeight: 400, textAlign: "right" }}
+            titleFont={{ fontFamily: "inherit", fontSize: "clamp(1.5rem, 3vw, 2.5rem)", fontWeight: 400, textAlign: "right" }}
             textColor="var(--brand-cream)"
             lineGap={8}
             isActive={activeIndex === 0}
@@ -80,11 +82,11 @@ export default function SolutionSection() {
         </div>
         
         {/* Paragraph 2: Middle Right (Left-aligned against the sun) */}
-        <div className="absolute top-1/2 -translate-y-1/2 right-4 md:right-[10%] w-full max-w-[280px] md:max-w-[320px] pointer-events-none z-20">
+        <div className="absolute top-1/2 -translate-y-1/2 right-4 md:right-[10%] w-full max-w-[280px] md:max-w-[320px] pointer-events-none z-20 font-suisse tracking-wide">
           <OnScrollTypography 
             text={p2}
             effect="effect19"
-            titleFont={{ fontFamily: "var(--font-suisse)", fontSize: "clamp(1rem, 1.5vw, 1.25rem)", fontWeight: 400, lineHeight: 1.5, textAlign: "left" }}
+            titleFont={{ fontFamily: "inherit", fontSize: "clamp(1rem, 1.5vw, 1.25rem)", fontWeight: 400, lineHeight: 1.5, textAlign: "left" }}
             textColor="var(--brand-cream)"
             lineGap={6}
             isActive={activeIndex === 1}
@@ -92,11 +94,11 @@ export default function SolutionSection() {
         </div>
         
         {/* Paragraph 3: Bottom Left (Right-aligned against the sun) */}
-        <div className="absolute bottom-[10%] left-4 md:left-[15%] w-full max-w-[300px] md:max-w-[400px] pointer-events-none z-20">
+        <div className="absolute bottom-[10%] left-4 md:left-[15%] w-full max-w-[300px] md:max-w-[400px] pointer-events-none z-20 font-editorial">
           <OnScrollTypography 
             text={p3}
             effect="effect27"
-            titleFont={{ fontFamily: "var(--font-editorial)", fontSize: "clamp(2rem, 4vw, 3.5rem)", fontWeight: 400, textAlign: "right" }}
+            titleFont={{ fontFamily: "inherit", fontSize: "clamp(2rem, 4vw, 3.5rem)", fontWeight: 400, textAlign: "right" }}
             textColor="var(--brand-cream)"
             lineGap={10}
             isActive={activeIndex === 2}
