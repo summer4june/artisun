@@ -10,10 +10,10 @@ interface ClimateSectionProps {
 }
 
 export default function ClimateSection({ onProgress }: ClimateSectionProps) {
-  const outerRef   = useRef<HTMLDivElement>(null);
-  const panelRefs  = useRef<(HTMLDivElement | null)[]>([]);
-  const videoRefs  = useRef<(HTMLVideoElement | null)[]>([]);
-  const activeRef  = useRef(0);
+  const outerRef  = useRef<HTMLDivElement>(null);
+  const panelRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+  const activeRef = useRef(0);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -21,35 +21,20 @@ export default function ClimateSection({ onProgress }: ClimateSectionProps) {
 
     const total = sections.length;
 
-    // ── Initial state ──────────────────────────────────────────────────
-    // Panel 0 visible, all others invisible
+    // ── Initial state: panel 0 visible, all others hidden ──────────────
     panelRefs.current.forEach((p, i) => {
       if (!p) return;
-      gsap.set(p, { autoAlpha: i === 0 ? 1 : 0 });
+      p.style.opacity  = i === 0 ? '1' : '0';
+      p.style.visibility = 'visible'; // always visible so content is in DOM
     });
 
-    // Play first video immediately
+    // Start first video
     const v0 = videoRefs.current[0];
-    if (v0) v0.play().catch(() => {});
+    if (v0) { v0.playbackRate = 1; v0.play().catch(() => {}); }
 
-    // ── GSAP Timeline ──────────────────────────────────────────────────
-    // Each section-to-section transition = 1 "step" in the timeline.
-    // We give each step duration=1 so the total timeline length = (total-1).
-    const tl = gsap.timeline({ paused: true });
-
-    for (let i = 0; i < total - 1; i++) {
-      const curr = panelRefs.current[i];
-      const next = panelRefs.current[i + 1];
-      if (!curr || !next) continue;
-
-      // At position i: fade out current, fade in next (overlap = crossfade)
-      tl.to(curr, { autoAlpha: 0, duration: 1, ease: 'none' }, i);
-      tl.to(next, { autoAlpha: 1, duration: 1, ease: 'none' }, i);
-    }
-
-    // ── ScrollTrigger drives the timeline ──────────────────────────────
-    // Each panel gets 85vh of scroll distance to transition through.
-    const scrollDistance = (total - 1) * window.innerHeight * 0.85;
+    // ── Pin + update handler ────────────────────────────────────────────
+    // Each panel transition gets 80vh of scroll travel.
+    const scrollDistance = (total - 1) * window.innerHeight * 0.8;
 
     const st = ScrollTrigger.create({
       trigger: outerRef.current,
@@ -57,16 +42,29 @@ export default function ClimateSection({ onProgress }: ClimateSectionProps) {
       end: `+=${scrollDistance}`,
       pin: true,
       pinSpacing: true,
-      scrub: 1.5,          // smooth lag so it never feels jerky
-      animation: tl,       // this is the key: scrub drives the timeline
+      // NO scrub / NO animation — we drive opacity directly in onUpdate
       onUpdate(self) {
-        // Sync video playback to currently dominant panel
-        const rawIdx = self.progress * (total - 1);
-        const dominant = Math.min(total - 1, Math.round(rawIdx));
+        const progress = self.progress;
+        const rawIdx   = progress * (total - 1); // 0.0 → 4.0
+        const curr     = Math.floor(rawIdx);
+        const next     = Math.min(total - 1, curr + 1);
+        const t        = rawIdx - curr; // 0→1 within each segment
 
+        // Set opacity on every panel
+        panelRefs.current.forEach((panel, i) => {
+          if (!panel) return;
+          let alpha = 0;
+          if (i === curr) alpha = 1 - t;
+          if (i === next)  alpha = t;
+          // clamp 0–1
+          alpha = Math.max(0, Math.min(1, alpha));
+          panel.style.opacity = String(alpha.toFixed(3));
+        });
+
+        // Video: play dominant panel, pause others
+        const dominant = t > 0.5 ? next : curr;
         if (dominant !== activeRef.current) {
           activeRef.current = dominant;
-
           videoRefs.current.forEach((vid, i) => {
             if (!vid) return;
             if (i === dominant) {
@@ -82,10 +80,7 @@ export default function ClimateSection({ onProgress }: ClimateSectionProps) {
 
     if (onProgress) onProgress(100);
 
-    return () => {
-      tl.kill();
-      st.kill(); // only kill THIS section's trigger, not all triggers globally
-    };
+    return () => { st.kill(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -101,7 +96,8 @@ export default function ClimateSection({ onProgress }: ClimateSectionProps) {
           key={sec.id}
           ref={el => { panelRefs.current[idx] = el; }}
           className="absolute inset-0 w-full h-full"
-          style={{ willChange: 'opacity' }}
+          // opacity driven by JS; will-change tells GPU to pre-composite
+          style={{ opacity: idx === 0 ? 1 : 0, willChange: 'opacity' }}
         >
           {/* ── Media ─────────────────────────────────────────────────── */}
           {sec.mediaType === 'video' ? (
