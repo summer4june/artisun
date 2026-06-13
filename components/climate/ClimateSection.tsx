@@ -10,11 +10,10 @@ interface ClimateSectionProps {
 }
 
 export default function ClimateSection({ onProgress }: ClimateSectionProps) {
-  const outerRef    = useRef<HTMLDivElement>(null);
-  const panelRefs   = useRef<(HTMLDivElement | null)[]>([]);
-  const videoRefs   = useRef<(HTMLVideoElement | null)[]>([]);
-  const counterRef  = useRef<HTMLDivElement>(null);
-  const activeRef   = useRef(0);
+  const outerRef   = useRef<HTMLDivElement>(null);
+  const panelRefs  = useRef<(HTMLDivElement | null)[]>([]);
+  const videoRefs  = useRef<(HTMLVideoElement | null)[]>([]);
+  const activeRef  = useRef(0);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -22,22 +21,35 @@ export default function ClimateSection({ onProgress }: ClimateSectionProps) {
 
     const total = sections.length;
 
-    // ── Initial state: panel 0 fully opaque, rest invisible ──────────────────
+    // ── Initial state ──────────────────────────────────────────────────
+    // Panel 0 visible, all others invisible
     panelRefs.current.forEach((p, i) => {
       if (!p) return;
       gsap.set(p, { autoAlpha: i === 0 ? 1 : 0 });
     });
 
-    // Start first video playing
-    const firstVid = videoRefs.current[0];
-    if (firstVid) {
-      firstVid.play().catch(() => {});
+    // Play first video immediately
+    const v0 = videoRefs.current[0];
+    if (v0) v0.play().catch(() => {});
+
+    // ── GSAP Timeline ──────────────────────────────────────────────────
+    // Each section-to-section transition = 1 "step" in the timeline.
+    // We give each step duration=1 so the total timeline length = (total-1).
+    const tl = gsap.timeline({ paused: true });
+
+    for (let i = 0; i < total - 1; i++) {
+      const curr = panelRefs.current[i];
+      const next = panelRefs.current[i + 1];
+      if (!curr || !next) continue;
+
+      // At position i: fade out current, fade in next (overlap = crossfade)
+      tl.to(curr, { autoAlpha: 0, duration: 1, ease: 'none' }, i);
+      tl.to(next, { autoAlpha: 1, duration: 1, ease: 'none' }, i);
     }
 
-    // ── One ScrollTrigger pins the section and drives the reveal ─────────────
-    // Each section gets 100vh of scroll distance to transition through.
-    // Total scroll = (total - 1) × 100vh  (no scroll needed for last panel to hold)
-    const scrollDistance = (total - 1) * window.innerHeight;
+    // ── ScrollTrigger drives the timeline ──────────────────────────────
+    // Each panel gets 80vh of scroll distance to transition through.
+    const scrollDistance = (total - 1) * window.innerHeight * 0.85;
 
     ScrollTrigger.create({
       trigger: outerRef.current,
@@ -45,38 +57,19 @@ export default function ClimateSection({ onProgress }: ClimateSectionProps) {
       end: `+=${scrollDistance}`,
       pin: true,
       pinSpacing: true,
-      scrub: 1,
+      scrub: 1.5,          // smooth lag so it never feels jerky
+      animation: tl,       // this is the key: scrub drives the timeline
       onUpdate(self) {
-        // Raw floating index: 0.0 → (total-1).0
-        const rawIdx  = self.progress * (total - 1);
-        const current = Math.min(total - 1, Math.floor(rawIdx));
-        const next    = Math.min(total - 1, current + 1);
-        // t = 0→1 within each segment
-        const t       = rawIdx - current;
+        // Sync video playback to currently dominant panel
+        const rawIdx = self.progress * (total - 1);
+        const dominant = Math.min(total - 1, Math.round(rawIdx));
 
-        // Fade current out, next in — pure opacity, no movement
-        panelRefs.current.forEach((p, i) => {
-          if (!p) return;
-          let alpha = 0;
-          if (i === current) alpha = 1 - t;
-          if (i === next)    alpha = t;
-          // clamp
-          alpha = Math.max(0, Math.min(1, alpha));
-          gsap.set(p, { autoAlpha: alpha });
-        });
+        if (dominant !== activeRef.current) {
+          activeRef.current = dominant;
 
-        // Update counter text
-        const visibleIdx = t > 0.5 ? next : current;
-        if (visibleIdx !== activeRef.current) {
-          activeRef.current = visibleIdx;
-          if (counterRef.current) {
-            counterRef.current.textContent =
-              `0${visibleIdx + 1} / 0${total}`;
-          }
-          // Video management: play active, pause others
           videoRefs.current.forEach((vid, i) => {
             if (!vid) return;
-            if (i === visibleIdx) {
+            if (i === dominant) {
               vid.playbackRate = 1;
               if (vid.paused) vid.play().catch(() => {});
             } else {
@@ -90,28 +83,20 @@ export default function ClimateSection({ onProgress }: ClimateSectionProps) {
     if (onProgress) onProgress(100);
 
     return () => {
+      tl.kill();
       ScrollTrigger.getAll().forEach(st => st.kill());
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
-    /*
-      outerRef becomes the scroll pin spacer.
-      overflow-hidden is intentional — no child should ever bleed out.
-      z-10 pushes it above the fixed background.
-    */
     <div
       ref={outerRef}
       id="bleed-experience-section"
-      className="relative w-screen h-screen overflow-hidden z-10"
+      className="relative w-screen h-screen z-10"
+      style={{ overflow: 'hidden' }}
     >
       {sections.map((sec, idx) => (
-        /*
-          Every panel is absolute-positioned to cover the full parent.
-          They are stacked on top of each other — only opacity changes,
-          nothing ever moves.
-        */
         <div
           key={sec.id}
           ref={el => { panelRefs.current[idx] = el; }}
@@ -138,8 +123,8 @@ export default function ClimateSection({ onProgress }: ClimateSectionProps) {
             />
           )}
 
-          {/* ── Bottom vignette so text stays readable ───────────────── */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+          {/* ── Vignette ──────────────────────────────────────────────── */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
 
           {/* ── Content ───────────────────────────────────────────────── */}
           <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-full max-w-3xl px-8 text-center z-10">
@@ -164,19 +149,16 @@ export default function ClimateSection({ onProgress }: ClimateSectionProps) {
               {sec.description}
             </p>
           </div>
+
+          {/* ── Counter ───────────────────────────────────────────────── */}
+          <div className="absolute bottom-10 right-10 font-suisse text-[10px] tracking-[0.3em] text-white/35 pointer-events-none">
+            0{idx + 1}&nbsp;/&nbsp;0{sections.length}
+          </div>
         </div>
       ))}
 
-      {/* ── Counter (bottom-right, always on top) ─────────────────────── */}
-      <div
-        ref={counterRef}
-        className="absolute bottom-10 right-10 z-20 font-suisse text-[10px] tracking-[0.3em] text-white/35 pointer-events-none"
-      >
-        01 / 0{sections.length}
-      </div>
-
-      {/* ── Scroll hint (bottom-center) ────────────────────────────────── */}
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 pointer-events-none">
+      {/* ── Scroll hint ────────────────────────────────────────────────── */}
+      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
         <span className="font-suisse text-[9px] tracking-[0.25em] text-white/30 uppercase">
           Scroll to explore
         </span>
