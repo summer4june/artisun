@@ -31,17 +31,17 @@ type EffectId =
     | "effect27"
 
 type Props = {
-    width: number
-    height: number
-    text: string
-    effect: EffectId
-    titleFont: any
-    lineGap: number
-    padding: number
-    triggerOnce: boolean
-    viewportAmount: number
-    stagger: number
-    textColor: string
+    width?: number
+    height?: number
+    text?: string
+    effect?: EffectId
+    titleFont?: any
+    lineGap?: number
+    padding?: number
+    triggerOnce?: boolean
+    viewportAmount?: number
+    stagger?: number
+    textColor?: string
     isActive?: boolean
 }
 
@@ -112,7 +112,7 @@ export default function OnScrollTypography({
     isActive
 }: Props) {
 
-    const lines = text
+    const lines = (text || "")
         .split("\n")
         .map((l) => l.trim())
         .filter(Boolean)
