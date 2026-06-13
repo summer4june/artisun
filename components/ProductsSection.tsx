@@ -45,63 +45,64 @@ export default function ProductsSection() {
   useEffect(() => {
     if (!containerRef.current || !triggerRef.current) return;
 
-    // Reset positions initially for a dynamic 3D Isometric Camera Angle
-    gsap.set(bottle2Ref.current, { scale: 0.5, x: '25vw', y: '-5vh', z: -1200, rotationY: -35, opacity: 0, filter: 'blur(12px)' });
-    gsap.set(bottle1Ref.current, { scale: 1, x: '10vw', y: '0vh', z: 0, rotationY: -5, opacity: 1, filter: 'blur(0px)' });
+    const ctx = gsap.context(() => {
+      // Reset positions initially for a dynamic 3D Isometric Camera Angle
+      // Removed filter: blur() because animating blurs causes massive GPU lag/stutter on scroll
+      gsap.set(bottle2Ref.current, { scale: 0.5, x: '25vw', y: '-5vh', z: -1200, rotationY: -35, opacity: 0 });
+      gsap.set(bottle1Ref.current, { scale: 1, x: '10vw', y: '0vh', z: 0, rotationY: -5, opacity: 1 });
 
-    const tl = gsap.timeline({ paused: true });
+      const tl = gsap.timeline({ paused: true });
 
-    // The Veloretti True 3D Carousel Push
-    // Bottle 1 pushes back, rotates away, blurs, and fades OUT completely
-    tl.to(bottle1Ref.current, {
-      scale: 0.5,
-      x: '-5vw',
-      y: '-5vh',
-      z: -1200,
-      rotationY: 25,
-      opacity: 0,
-      filter: 'blur(12px)',
-      ease: 'power3.inOut',
-      duration: 1.5
-    }, 0);
+      // The Veloretti True 3D Carousel Push (Optimized)
+      tl.to(bottle1Ref.current, {
+        scale: 0.5,
+        x: '-5vw',
+        y: '-5vh',
+        z: -1200,
+        rotationY: 25,
+        opacity: 0,
+        ease: 'power2.inOut',
+        duration: 1.5
+      }, 0);
 
-    // Bottle 2 pulls forward from the right background into the hero focus, fading IN
-    tl.to(bottle2Ref.current, {
-      scale: 1,
-      x: '10vw',
-      y: '0vh',
-      z: 0,
-      rotationY: -5,
-      opacity: 1,
-      filter: 'blur(0px)',
-      ease: 'power3.inOut',
-      duration: 1.5
-    }, 0);
+      // Bottle 2 pulls forward
+      tl.to(bottle2Ref.current, {
+        scale: 1,
+        x: '10vw',
+        y: '0vh',
+        z: 0,
+        rotationY: -5,
+        opacity: 1,
+        ease: 'power2.inOut',
+        duration: 1.5
+      }, 0);
 
-    // Fade out text 1, fade in text 2
-    tl.to('.text-panel-0', { opacity: 0, y: -30, duration: 0.6, ease: 'power2.inOut' }, 0);
-    tl.fromTo('.text-panel-1', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.inOut' }, 0.9);
+      // Fade out text 1, fade in text 2
+      tl.to('.text-panel-0', { opacity: 0, y: -30, duration: 0.6, ease: 'power2.inOut' }, 0);
+      tl.fromTo('.text-panel-1', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.inOut' }, 0.9);
 
-    // Create the ScrollTrigger
-    stRef.current = ScrollTrigger.create({
-      trigger: triggerRef.current,
-      start: "top top",
-      end: "+=250%", // Extended scrolling duration for smoother camera action
-      pin: containerRef.current,
-      scrub: 1.5, // High scrub lag for buttery smooth cinematic inertia
-      animation: tl,
-      onUpdate: (self) => {
-        if (self.progress > 0.5 && activeIndexRef.current !== 1) {
-          activeIndexRef.current = 1;
-          setActiveIndex(1);
-        } else if (self.progress <= 0.5 && activeIndexRef.current !== 0) {
-          activeIndexRef.current = 0;
-          setActiveIndex(0);
+      // Create the ScrollTrigger
+      stRef.current = ScrollTrigger.create({
+        trigger: triggerRef.current,
+        start: "top top",
+        end: "+=200%", // Reduced scroll distance slightly for tighter control
+        pin: containerRef.current,
+        scrub: 0.5, // Reduced scrub lag from 1.5 to 0.5 to make it feel much more responsive and less rubber-bandy
+        animation: tl,
+        onUpdate: (self) => {
+          if (self.progress > 0.5 && activeIndexRef.current !== 1) {
+            activeIndexRef.current = 1;
+            setActiveIndex(1);
+          } else if (self.progress <= 0.5 && activeIndexRef.current !== 0) {
+            activeIndexRef.current = 0;
+            setActiveIndex(0);
+          }
         }
-      }
-    });
+      });
+    }, containerRef); // Scope to container for safety
 
     return () => {
+      ctx.revert(); // Proper React cleanup
       stRef.current?.kill();
     };
   }, []);
@@ -114,8 +115,8 @@ export default function ProductsSection() {
 
     gsap.to(window, {
       scrollTo: scrollPos,
-      duration: 1.5,
-      ease: "power4.inOut"
+      duration: 1.0,
+      ease: "power3.inOut"
     });
   };
 
@@ -131,10 +132,14 @@ export default function ProductsSection() {
         ref={containerRef} 
         className="w-full h-screen bg-[#111111] flex items-center justify-center overflow-hidden touch-none relative z-10"
       >
-        {/* Cinematic Lighting: A sharp radial glow behind the bottles */}
+        {/* Cinematic Lighting: Hardware-accelerated opacity fades instead of background-color transitions */}
         <div 
-          className="absolute top-1/2 left-[60%] -translate-x-1/2 -translate-y-1/2 w-[70vw] h-[70vw] max-w-[1000px] max-h-[1000px] rounded-full blur-[140px] transition-colors duration-[1500ms] ease-in-out z-0 pointer-events-none"
-          style={{ backgroundColor: activeIndex === 0 ? 'rgba(212, 64, 38, 0.12)' : 'rgba(138, 39, 24, 0.12)' }}
+          className="absolute top-1/2 left-[60%] -translate-x-1/2 -translate-y-1/2 w-[70vw] h-[70vw] max-w-[1000px] max-h-[1000px] rounded-full blur-[120px] pointer-events-none z-0 bg-[#D44026] transition-opacity duration-1000 ease-in-out"
+          style={{ opacity: activeIndex === 0 ? 0.12 : 0 }}
+        />
+        <div 
+          className="absolute top-1/2 left-[60%] -translate-x-1/2 -translate-y-1/2 w-[70vw] h-[70vw] max-w-[1000px] max-h-[1000px] rounded-full blur-[120px] pointer-events-none z-0 bg-[#8A2718] transition-opacity duration-1000 ease-in-out"
+          style={{ opacity: activeIndex === 1 ? 0.12 : 0 }}
         />
         
         {/* Floor Gradient to ground the 3D scene */}
