@@ -48,10 +48,10 @@ export default function ClimateSection({ onProgress }: ClimateSectionProps) {
     }
 
     // ── ScrollTrigger drives the timeline ──────────────────────────────
-    // Each panel gets 80vh of scroll distance to transition through.
+    // Each panel gets 85vh of scroll distance to transition through.
     const scrollDistance = (total - 1) * window.innerHeight * 0.85;
 
-    ScrollTrigger.create({
+    const st = ScrollTrigger.create({
       trigger: outerRef.current,
       start: 'top top',
       end: `+=${scrollDistance}`,
@@ -84,7 +84,7 @@ export default function ClimateSection({ onProgress }: ClimateSectionProps) {
 
     return () => {
       tl.kill();
-      ScrollTrigger.getAll().forEach(st => st.kill());
+      st.kill(); // only kill THIS section's trigger, not all triggers globally
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
