@@ -81,9 +81,13 @@ html.lenis, html.lenis body {
 .theme-molten-core {
     background: radial-gradient(circle at 50% 100vh, 
         #FF8C22 0vh,    /* Molten orange core at bottom of viewport */
+        #E05018 12.5vh, /* Intermediate stop for smoothness */
         #C1140F 25vh,   /* Bright red */
+        #8A0A0B 40vh,   /* Intermediate stop */
         #530007 55vh,   /* Deep crimson */
+        #390005 67.5vh, /* Intermediate stop */
         #200004 80vh,   /* Near black/red */
+        #120204 90vh,   /* Intermediate stop */
         #050505 100vh   /* Pure black at top */
     );
 }
@@ -96,8 +100,9 @@ html.lenis, html.lenis body {
     left: -10vw; 
     width: 120vw; /* Wider than the screen to allow panning */
     height: 100%;
-    /* 8% opacity soft orange light */
-    background: radial-gradient(ellipse at 50% 70vh, rgba(255,100,40,.08), transparent 60%);
+    /* 6% opacity soft orange light */
+    background: radial-gradient(ellipse at 50% 70vh, rgba(255,100,40,.06), transparent 60%);
+    mix-blend-mode: screen; /* Helps dither the gradient mathematically to prevent banding */
     animation: moveLightX 25s ease-in-out infinite;
     pointer-events: none;
     z-index: 1;
