@@ -85,7 +85,7 @@ export default function SolutionSection() {
         <div className="absolute top-1/2 -translate-y-1/2 right-4 md:right-[10%] w-full max-w-[280px] md:max-w-[320px] pointer-events-none z-20 font-suisse tracking-wide">
           <OnScrollTypography 
             text={p2}
-            effect="effect19"
+            effect="effect9"
             titleFont={{ fontFamily: "inherit", fontSize: "clamp(1rem, 1.5vw, 1.25rem)", fontWeight: 400, lineHeight: 1.5, textAlign: "left" }}
             textColor="var(--brand-cream)"
             lineGap={6}
