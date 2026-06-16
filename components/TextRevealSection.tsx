@@ -10,10 +10,15 @@ const line2 = "Especially in a country where climate changes everything.";
 export default function TextRevealSection() {
   const containerRef = useRef<HTMLElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
+  const line2ContainerRef = useRef<HTMLDivElement>(null);
   
   // We'll store refs to each word span here
   const words1Ref = useRef<(HTMLSpanElement | null)[]>([]);
   const words2Ref = useRef<(HTMLSpanElement | null)[]>([]);
+
+  // Clear refs on every render so they don't accumulate infinitely
+  words1Ref.current = [];
+  words2Ref.current = [];
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -28,15 +33,15 @@ export default function TextRevealSection() {
       }
     });
 
-    // 1. Line 1 activates word by word (subdued cream instead of pure white)
+    // 1. Line 1 activates word by word
     tl.to(words1Ref.current, {
-      color: "rgba(232, 223, 197, 1)", // #e8dfc5
+      opacity: 1,
       stagger: 0.1,
       ease: "none",
     });
 
-    // 2. Line 2 appears (fade in as unactive cream)
-    tl.to(words2Ref.current, {
+    // 2. Line 2 container fades in completely
+    tl.to(line2ContainerRef.current, {
       opacity: 1,
       duration: 0.5,
       ease: "power2.inOut",
@@ -44,7 +49,7 @@ export default function TextRevealSection() {
 
     // 3. Line 2 activates word by word
     tl.to(words2Ref.current, {
-      color: "rgba(232, 223, 197, 1)",
+      opacity: 1,
       stagger: 0.1,
       ease: "none",
     });
@@ -59,33 +64,33 @@ export default function TextRevealSection() {
 
   return (
     <section ref={containerRef} className="text-reveal-trigger relative w-full h-screen bg-transparent z-10 flex flex-col items-center justify-center px-6 md:px-20 lg:px-32">
-      <div ref={textRef} className="w-full max-w-[1000px] text-center md:text-left font-editorial font-normal text-2xl md:text-4xl lg:text-5xl leading-[1.4] md:leading-[1.3] lg:leading-[1.2] tracking-wide">
+      <div ref={textRef} className="w-full max-w-[90vw] md:max-w-[800px] lg:max-w-[1050px] mx-auto text-left font-editorial font-normal text-[26px] md:text-[38px] lg:text-[50px] leading-[1.3] tracking-wide text-[#e8dfc5]">
         
-        {/* Line 1 */}
-        <p className="mb-6 md:mb-10 flex flex-wrap justify-start gap-x-[0.25em] gap-y-[0.1em]">
-          {line1.split(" ").map((word, i) => (
+        {/* Line 1 Block */}
+        <div className="mb-[0.6em] flex flex-wrap justify-start gap-x-[0.25em] gap-y-[0.15em] w-full">
+          {line1.split(" ").map((word, wordIndex) => (
             <span 
-              key={`l1-${i}`} 
-              ref={el => { words1Ref.current[i] = el; }} 
-              className="text-[rgba(232,223,197,0.15)] will-change-[color]"
+              key={`l1-${wordIndex}`} 
+              ref={el => { if (el) words1Ref.current.push(el); }} 
+              className="opacity-15"
             >
               {word}
             </span>
           ))}
-        </p>
+        </div>
 
-        {/* Line 2 */}
-        <p className="flex flex-wrap justify-start gap-x-[0.25em] gap-y-[0.1em]">
-          {line2.split(" ").map((word, i) => (
+        {/* Line 2 Block */}
+        <div ref={line2ContainerRef} className="flex flex-wrap justify-start gap-x-[0.25em] gap-y-[0.15em] w-full opacity-0">
+          {line2.split(" ").map((word, wordIndex) => (
             <span 
-              key={`l2-${i}`} 
-              ref={el => { words2Ref.current[i] = el; }} 
-              className="text-[rgba(232,223,197,0.15)] opacity-0 will-change-[color,opacity]"
+              key={`l2-${wordIndex}`} 
+              ref={el => { if (el) words2Ref.current.push(el); }} 
+              className="opacity-15"
             >
               {word}
             </span>
           ))}
-        </p>
+        </div>
 
       </div>
     </section>

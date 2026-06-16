@@ -7,22 +7,23 @@ export default function CustomCursor({ mouseProxy }: { mouseProxy: { current: { 
   const dotRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Initial setup to ensure it is centered on the mouse
+    gsap.set(dotRef.current, { xPercent: -50, yPercent: -50 });
+
     const render = () => {
       const mx = mouseProxy.current.px;
       const my = mouseProxy.current.py;
-
-      if (dotRef.current) {
-        dotRef.current.style.transform = `translate3d(${mx}px, ${my}px, 0) translate(-50%, -50%)`;
-      }
+      // Fast, GPU-accelerated set bypassing CSS strings
+      gsap.set(dotRef.current, { x: mx, y: my });
     };
 
     gsap.ticker.add(render);
 
     const handleMouseDown = () => {
-      if (dotRef.current) dotRef.current.style.transform += ' scale(0.8)';
+      gsap.to(dotRef.current, { scale: 0.8, duration: 0.15, ease: 'power2.out' });
     };
     const handleMouseUp = () => {
-      if (dotRef.current) dotRef.current.style.transform = dotRef.current.style.transform.replace(' scale(0.8)', '');
+      gsap.to(dotRef.current, { scale: 1, duration: 0.15, ease: 'power2.out' });
     };
 
     window.addEventListener('mousedown', handleMouseDown);
@@ -38,9 +39,9 @@ export default function CustomCursor({ mouseProxy }: { mouseProxy: { current: { 
   useEffect(() => {
     const handleMouseOver = (e: MouseEvent) => {
       if ((e.target as HTMLElement).closest('a, button')) {
-        dotRef.current?.classList.add('scale-[1.8]');
+        gsap.to(dotRef.current, { scale: 1.8, duration: 0.2, ease: 'power2.out' });
       } else {
-        dotRef.current?.classList.remove('scale-[1.8]');
+        gsap.to(dotRef.current, { scale: 1, duration: 0.2, ease: 'power2.out' });
       }
     };
     window.addEventListener('mouseover', handleMouseOver);
@@ -50,7 +51,7 @@ export default function CustomCursor({ mouseProxy }: { mouseProxy: { current: { 
   return (
     <div 
       ref={dotRef}
-      className="fixed top-0 left-0 w-3 h-3 rounded-full pointer-events-none z-[100] bg-[var(--brand-cream)] shadow-[0_0_12px_2px_rgba(232,220,200,0.8),0_0_24px_5px_rgba(201,59,26,0.6)] transition-transform duration-200"
+      className="fixed top-0 left-0 w-3 h-3 rounded-full pointer-events-none z-[100] bg-[var(--brand-cream)] shadow-[0_0_12px_2px_rgba(232,220,200,0.8),0_0_24px_5px_rgba(201,59,26,0.6)]"
       aria-hidden="true"
     />
   );

@@ -5,10 +5,8 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import LoadingScreen from '../components/LoadingScreen';
 import HeroSection from '../components/HeroSection';
-import Navbar from '../components/Navbar';
 import CustomCursor from '../components/CustomCursor';
 import TextRevealSection from '../components/TextRevealSection';
-import BleedExperience from '../components/climate/BleedExperience';
 import SolutionSection from '../components/SolutionSection';
 import ProductsSection from '../components/ProductsSection';
 import Footer from '../components/Footer';
@@ -31,6 +29,20 @@ export default function Home() {
     
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
     return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  // Fake loading progress since BleedExperience was removed
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setMediaProgress(p => {
+        if (p >= 100) {
+          clearInterval(timer);
+          return 100;
+        }
+        return p + 5; // Finish in roughly 2 seconds
+      });
+    }, 100);
+    return () => clearInterval(timer);
   }, []);
 
   // Entrance animations for Hero elements once loading is done
@@ -58,6 +70,14 @@ export default function Home() {
         duration: 1.0,
         ease: 'power2.out'
       }, '-=0.6');
+
+      // Top Header (Logo, Bottles, Cart) fade in
+      tl.to('.hero-header', {
+        opacity: 1,
+        y: 0,
+        duration: 1.0,
+        ease: 'power2.out'
+      }, '-=0.8');
 
       // Scroll indicator fade in
       tl.to('.scroll-indicator', {
@@ -101,21 +121,12 @@ export default function Home() {
       
       <CustomCursor mouseProxy={mouseProxy} />
       
-      {/* Navbar fades in after load */}
-      <div className={`transition-opacity duration-1000 ${loadingComplete ? 'opacity-100' : 'opacity-0'}`}>
-        <Navbar showIcon={loadingComplete} />
-      </div>
-      
       <HeroSection mouseProxy={mouseProxy} />
       
       {/* Spacer to provide breathing room between Hero and Text Reveal */}
       <div className="section-spacer relative w-full h-[10vh] md:h-[15vh] bg-transparent pointer-events-none" />
       
       <TextRevealSection />
-
-      <div id="bleed-experience-section">
-        <BleedExperience onProgress={setMediaProgress} />
-      </div>
 
       <SolutionSection />
       <ProductsSection />
