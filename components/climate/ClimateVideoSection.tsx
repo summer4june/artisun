@@ -258,6 +258,8 @@ export default function ClimateVideoSection() {
       });
     };
 
+    let scrollTimeout: any = null;
+
     // ── ScrollTrigger Logic ──
     st = ScrollTrigger.create({
       trigger: containerRef.current,
@@ -278,30 +280,31 @@ export default function ClimateVideoSection() {
         } else if (raw < activeIdx - 0.05 && activeIdx > 0) {
           triggerTransition(activeIdx, activeIdx - 1);
         }
-      },
-      onScrollEnd: (self: any) => {
-        if (isAnimating) return;
 
-        // Snap back to the current activeIdx scroll position to prevent sticking
-        const targetScroll = st.start + (activeIdx / (N - 1)) * (st.end - st.start);
-        const scrollObj = { y: st.scroll() };
-        if (Math.abs(scrollObj.y - targetScroll) > 2) {
-          isAnimating = true;
-          gsap.to(scrollObj, {
-            y: targetScroll,
-            duration: 0.3,
-            ease: "power2.out",
-            overwrite: "auto",
-            onUpdate: () => {
-              st.scroll(scrollObj.y);
-            },
-            onComplete: () => {
-              isAnimating = false;
-            }
-          });
-        }
+        // Debounced snap-back for minor scrolls
+        if (scrollTimeout) clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+          if (isAnimating || !st) return;
+          const targetScroll = st.start + (activeIdx / (N - 1)) * (st.end - st.start);
+          const scrollObj = { y: st.scroll() };
+          if (Math.abs(scrollObj.y - targetScroll) > 2) {
+            isAnimating = true;
+            gsap.to(scrollObj, {
+              y: targetScroll,
+              duration: 0.3,
+              ease: "power2.out",
+              overwrite: "auto",
+              onUpdate: () => {
+                st.scroll(scrollObj.y);
+              },
+              onComplete: () => {
+                isAnimating = false;
+              }
+            });
+          }
+        }, 150);
       }
-    } as any);
+    });
 
     // Set initial activeIdx based on starting scroll position
     activeIdx = Math.min(N - 1, Math.max(0, Math.round(st.progress * (N - 1))));

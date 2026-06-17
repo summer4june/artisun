@@ -9,6 +9,7 @@ import CustomCursor from '../components/CustomCursor';
 import TextRevealSection from '../components/TextRevealSection';
 import ClimateVideoSection from '../components/climate/ClimateVideoSection';
 import EvolutionSection from '../components/EvolutionSection';
+import EarthScrollSection from '../components/EarthScrollSection';
 import SuncareShiftSection from '../components/SuncareShiftSection';
 import ClothingSection from '../components/ClothingSection';
 import SkinProtectionSection from '../components/SkinProtectionSection';
@@ -139,6 +140,9 @@ export default function Home() {
 
       {/* New evolution text section */}
       <EvolutionSection />
+
+      {/* Earth scroll globe rotation section */}
+      <EarthScrollSection />
 
       {/* Unified cinematic crossfade section */}
       <SuncareShiftSection />

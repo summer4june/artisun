@@ -60,7 +60,7 @@ export default function EvolutionSection() {
       <div className="absolute inset-0 bg-[#530007] opacity-60 pointer-events-none" />
 
       {/* Background Embossed Logo */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[180%] md:w-[120vw] lg:w-[1000px] h-[1000px] flex items-center justify-center opacity-[0.35] pointer-events-none mix-blend-multiply z-[1]">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] h-[90vw] md:w-[120vw] md:h-[120vw] lg:w-[1000px] lg:h-[1000px] flex items-center justify-center opacity-[0.35] pointer-events-none mix-blend-multiply z-[1]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img 
           src="/logo-artisun.svg" 
