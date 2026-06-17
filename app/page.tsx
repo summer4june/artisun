@@ -7,9 +7,15 @@ import LoadingScreen from '../components/LoadingScreen';
 import HeroSection from '../components/HeroSection';
 import CustomCursor from '../components/CustomCursor';
 import TextRevealSection from '../components/TextRevealSection';
-import SolutionSection from '../components/SolutionSection';
+import ClimateVideoSection from '../components/climate/ClimateVideoSection';
+import EvolutionSection from '../components/EvolutionSection';
+import SuncareShiftSection from '../components/SuncareShiftSection';
+import ClothingSection from '../components/ClothingSection';
+import SkinProtectionSection from '../components/SkinProtectionSection';
+import KeyholeSection from '../components/KeyholeSection';
 import ProductsSection from '../components/ProductsSection';
 import Footer from '../components/Footer';
+import GlobalHeader from '../components/GlobalHeader';
 
 export default function Home() {
   const [loadingComplete, setLoadingComplete] = useState(false);
@@ -121,6 +127,7 @@ export default function Home() {
       
       <CustomCursor mouseProxy={mouseProxy} />
       
+      <GlobalHeader />
       <HeroSection mouseProxy={mouseProxy} />
       
       {/* Spacer to provide breathing room between Hero and Text Reveal */}
@@ -128,7 +135,23 @@ export default function Home() {
       
       <TextRevealSection />
 
-      <SolutionSection />
+      <ClimateVideoSection />
+
+      {/* New evolution text section */}
+      <EvolutionSection />
+
+      {/* Unified cinematic crossfade section */}
+      <SuncareShiftSection />
+
+      {/* Clothing text reveal section with video background */}
+      <ClothingSection />
+
+      {/* Skin protection text reveal with cinematic focus pull */}
+      <SkinProtectionSection />
+
+      {/* Cinematic zoom-through Keyhole transition */}
+      <KeyholeSection />
+
       <ProductsSection />
 
       {/* Main Footer */}
