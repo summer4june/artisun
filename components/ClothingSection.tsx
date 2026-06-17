@@ -43,8 +43,8 @@ export default function ClothingSection() {
     tl.to({}, { duration: 0.5 });
 
     const timeoutId = setTimeout(() => {
-      ScrollTrigger.refresh();
-    }, 150);
+      // Intentionally removed to prevent layout thrashing
+    }, 0);
 
     return () => {
       clearTimeout(timeoutId);

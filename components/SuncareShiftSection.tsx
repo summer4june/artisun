@@ -54,8 +54,8 @@ export default function SuncareShiftSection() {
     tl.to({}, { duration: 1.5 });
 
     const timeoutId = setTimeout(() => {
-      ScrollTrigger.refresh();
-    }, 150);
+      // Intentionally removed to prevent layout thrashing
+    }, 0);
 
     return () => {
       clearTimeout(timeoutId);

@@ -371,8 +371,8 @@ export default function ClimateVideoSection() {
     videoElements[0].play().catch(() => {});
 
     const timeoutId = setTimeout(() => {
-      ScrollTrigger.refresh();
-    }, 150);
+      // Intentionally removed to prevent layout thrashing
+    }, 0);
 
     return () => {
       window.removeEventListener('resize', updateSize);

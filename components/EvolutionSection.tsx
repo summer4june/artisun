@@ -41,8 +41,8 @@ export default function EvolutionSection() {
     }, "+=0.2");
 
     const timeoutId = setTimeout(() => {
-      ScrollTrigger.refresh();
-    }, 150);
+      // Intentionally removed to prevent layout thrashing
+    }, 0);
 
     return () => {
       clearTimeout(timeoutId);
