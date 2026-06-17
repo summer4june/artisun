@@ -61,7 +61,7 @@ export default function KeyholeSection() {
   }, []);
 
   return (
-    <section ref={containerRef} className="relative w-full h-screen bg-gradient-to-b from-[#8b1414] to-[#3a0000] z-10 flex flex-col items-center justify-center overflow-hidden">
+    <section ref={containerRef} className="relative w-full h-screen bg-transparent z-10 flex flex-col items-center justify-center overflow-hidden">
 
       {/* 
         The landscape image layer. 

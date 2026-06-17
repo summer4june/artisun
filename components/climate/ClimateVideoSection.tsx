@@ -60,121 +60,46 @@ export default function ClimateVideoSection() {
     `;
 
     const fragSrc = `
-      precision highp float;
-      varying vec2 vUv;
+  precision highp float;
+  varying vec2 vUv;
 
-      uniform sampler2D uTexA;
-      uniform sampler2D uTexB;
-      uniform float     uProgress;
-      uniform float     uAspect;
-      uniform int       uTransType;
+  uniform sampler2D uTexA;
+  uniform sampler2D uTexB;
+  uniform float     uProgress;   
+  uniform float     uAspect;     
+  uniform float     uAspectA;
+  uniform float     uAspectB;
 
-      float rand(vec2 co){
-        return fract(sin(dot(co,vec2(12.9898,78.233)))*43758.5453);
-      }
+  vec2 coverUV(vec2 uv, float imgAspect){
+    float vAspect = uAspect;
+    vec2 scale = vec2(1.0);
+    if(vAspect > imgAspect){
+      scale.y = imgAspect / vAspect;
+    } else {
+      scale.x = vAspect / imgAspect;
+    }
+    return (uv - 0.5) * scale + 0.5;
+  }
 
-      float noise(vec2 p){
-        vec2 i = floor(p);
-        vec2 f = fract(p);
-        f = f*f*(3.0-2.0*f);
-        float a=rand(i);
-        float b=rand(i+vec2(1,0));
-        float c=rand(i+vec2(0,1));
-        float d=rand(i+vec2(1,1));
-        return mix(mix(a,b,f.x),mix(c,d,f.x),f.y);
-      }
+  void main(){
+    float p  = clamp(uProgress, 0.0, 1.0);
+    vec2  uv = vUv;
 
-      float fbm(vec2 p){
-        float v=0.0, a=0.5;
-        for(int i=0;i<5;i++){
-          v+=a*noise(p);
-          p*=2.1;
-          a*=0.5;
-        }
-        return v;
-      }
+    vec2 uvA = coverUV(uv, uAspectA);
+    vec2 uvB = coverUV(uv, uAspectB);
 
-      vec2 coverUV(vec2 uv, float imgAspect){
-        float vAspect = uAspect;
-        vec2 scale = vec2(1.0);
-        if(vAspect > imgAspect){
-          scale.y = imgAspect / vAspect;
-        } else {
-          scale.x = vAspect / imgAspect;
-        }
-        return (uv - 0.5) / scale + 0.5;
-      }
+    vec4 cA = texture2D(uTexA, clamp(uvA,0.0,1.0));
+    vec4 cB = texture2D(uTexB, clamp(uvB,0.0,1.0));
 
-      void main(){
-        float p  = clamp(uProgress, 0.0, 1.0);
-        vec2  uv = vUv;
+    // Pure, simple crossfade
+    vec4 finalCol = mix(cA, cB, p);
+    
+    // Darken slightly for text readability
+    finalCol.rgb *= 0.85;
 
-        // Video aspect ratio
-        float imgAspect = 16.0/9.0;
-        vec2 uvA = coverUV(uv, imgAspect);
-        vec2 uvB = coverUV(uv, imgAspect);
-
-        vec4 colA = texture2D(uTexA, clamp(uvA,0.0,1.0));
-        vec4 colB = texture2D(uTexB, clamp(uvB,0.0,1.0));
-
-        vec2 vig = (uv - 0.5) * 2.0;
-        float vigF = 1.0 - dot(vig*0.5, vig*0.5);
-        vigF = pow(max(vigF,0.0), 0.4); // Made vignette slightly softer than the dark original
-
-        // Lighter bottom gradient so videos pop more
-        float grad = 1.0 - smoothstep(0.4, 1.0, uv.y);
-        float darken = 1.0 - grad * 0.4;
-
-        vec4 finalCol;
-
-        if(uTransType == 0){
-          float n  = fbm(uv * 3.5 + p * 0.8);
-          float n2 = fbm(uv * 6.0 - p * 1.2 + 42.0);
-          float noise_val = (n * 0.7 + n2 * 0.3);
-
-          float edge     = p;
-          float softness = 0.28;
-          float mask     = smoothstep(edge - softness, edge + softness, noise_val);
-
-          float scaleA = 1.0 + p * 0.08;
-          float scaleB = 1.0 + (1.0-p) * 0.06;
-          vec2 uvA2 = (uvA - 0.5) / scaleA + 0.5;
-          vec2 uvB2 = (uvB - 0.5) / scaleB + 0.5;
-          vec4 cA = texture2D(uTexA, clamp(uvA2,0.0,1.0));
-          vec4 cB = texture2D(uTexB, clamp(uvB2,0.0,1.0));
-
-          float edgeDark = smoothstep(0.0,0.15, abs(mask - 0.5));
-          float burnMix  = (1.0 - edgeDark) * 0.7 * sin(p*3.14159);
-
-          finalCol = mix(cA, cB, mask);
-          finalCol.rgb *= (1.0 - burnMix * 0.85);
-          finalCol.rgb *= darken;
-
-        } else if(uTransType == 1){
-          float burn = sin(p * 3.14159);
-          vec4 cross = mix(colA, colB, smoothstep(0.0,1.0,p));
-          cross.rgb += burn * 0.35;
-          float sc = 1.0 + p * 0.1;
-          vec2 uvAz = (uvA - 0.5)/sc + 0.5;
-          vec4 cAz = texture2D(uTexA, clamp(uvAz,0.0,1.0));
-          finalCol = mix(cAz, colB, smoothstep(0.2,0.8,p));
-          finalCol.rgb += burn * 0.2;
-          finalCol.rgb *= darken;
-
-        } else {
-          float diag = uv.x * 0.5 + (1.0-uv.y) * 0.5;
-          float n = fbm(uv * 4.0) * 0.15;
-          float mask = smoothstep(p - 0.25, p + 0.25, diag + n);
-          float edgeDark = 1.0 - smoothstep(0.0, 0.1, abs((diag+n) - p));
-          finalCol = mix(colA, colB, 1.0-mask);
-          finalCol.rgb *= (1.0 - edgeDark * 0.7 * sin(p*3.14159));
-          finalCol.rgb *= darken;
-        }
-
-        finalCol.rgb *= vigF * 1.08;
-        gl_FragColor = vec4(finalCol.rgb, 1.0);
-      }
-    `;
+    gl_FragColor = finalCol;
+  }
+`;
 
     mat = new THREE.ShaderMaterial({
       vertexShader: vertSrc,
@@ -184,8 +109,11 @@ export default function ClimateVideoSection() {
         uTexB: { value: null },
         uProgress: { value: 0.0 },
         uAspect: { value: window.innerWidth / window.innerHeight },
-        uTransType: { value: 0 },
-      }
+        uAspectA: { value: 16.0 / 9.0 },
+        uAspectB: { value: 16.0 / 9.0 },
+      },
+      depthWrite: false,
+      depthTest: false
     });
 
     const geo = new THREE.PlaneGeometry(2, 2);
@@ -193,27 +121,40 @@ export default function ClimateVideoSection() {
     scene.add(quad);
     updateSize();
 
+    let activeIdx = 0;
+    let isAnimating = false;
+    let st: any = null;
+
     // ── Setup Video Textures ──
     const videoElements: HTMLVideoElement[] = [];
     const textures: THREE.VideoTexture[] = [];
-    
-    // Fallback images incase video fails or while loading
-    const loader = new THREE.TextureLoader();
-    const fallbackTex = loader.load('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=');
+    const aspectRatios = new Array(N).fill(16.0 / 9.0);
 
-    URLS.forEach((url) => {
+    URLS.forEach((url, idx) => {
       const vid = document.createElement('video');
       vid.src = url;
       vid.muted = true;
       vid.loop = true;
       vid.crossOrigin = "anonymous";
       vid.playsInline = true;
-      // We explicitly DO NOT autoplay them here to save heavy background CPU
+      vid.preload = "auto";
+      
+      vid.addEventListener('loadedmetadata', () => {
+        aspectRatios[idx] = vid.videoWidth / vid.videoHeight || 16.0 / 9.0;
+        if (idx === activeIdx && mat) {
+          mat.uniforms.uAspectA.value = aspectRatios[idx];
+        }
+        if (idx === Math.min(activeIdx + 1, N - 1) && mat) {
+          mat.uniforms.uAspectB.value = aspectRatios[idx];
+        }
+      });
+
       videoElements.push(vid);
       
       const tex = new THREE.VideoTexture(vid);
       tex.minFilter = THREE.LinearFilter;
       tex.magFilter = THREE.LinearFilter;
+      tex.generateMipmaps = false;
       textures.push(tex);
     });
 
@@ -228,145 +169,183 @@ export default function ClimateVideoSection() {
     };
     animate();
 
+    const triggerTransition = (fromIdx: number, toIdx: number) => {
+      if (!st) return;
+      isAnimating = true;
+
+      // Hide old text instantly
+      const oldEl = textRefs.current[fromIdx];
+      if (oldEl) {
+        oldEl.style.opacity = "0";
+        oldEl.style.transform = "translateY(30px)";
+        const chars = oldEl.querySelectorAll('.char-span');
+        gsap.killTweensOf(chars);
+        chars.forEach(c => ((c as HTMLElement).style.opacity = "0"));
+        oldEl.dataset.typing = "false";
+      }
+
+      // Sync WebGL
+      mat.uniforms.uTexA.value = textures[fromIdx];
+      mat.uniforms.uAspectA.value = aspectRatios[fromIdx];
+      mat.uniforms.uTexB.value = textures[toIdx];
+      mat.uniforms.uAspectB.value = aspectRatios[toIdx];
+      mat.uniforms.uProgress.value = 0.0;
+
+      // Sync Videos
+      videoElements.forEach((vid, i) => {
+        if (i === fromIdx || i === toIdx) {
+          if (vid.paused && vid.readyState >= 2) vid.play().catch(()=>{});
+        } else {
+          if (!vid.paused) vid.pause();
+        }
+      });
+
+      // Quick visual swap (fade of 0.05s to look sleek but feel instant)
+      gsap.to(mat.uniforms.uProgress, {
+        value: 1.0,
+        duration: 0.05,
+        ease: "none"
+      });
+
+      // Animate the scroll position to target slide scroll position
+      const targetScroll = st.start + (toIdx / (N - 1)) * (st.end - st.start);
+      const scrollObj = { y: st.scroll() };
+
+      gsap.to(scrollObj, {
+        y: targetScroll,
+        duration: 0.5,
+        ease: "power2.out",
+        overwrite: "auto",
+        onUpdate: () => {
+          st.scroll(scrollObj.y);
+        },
+        onComplete: () => {
+          activeIdx = toIdx;
+
+          // Trigger new text
+          const newEl = textRefs.current[toIdx];
+          if (newEl) {
+            newEl.style.opacity = "1";
+            newEl.style.transform = "translateY(0px)";
+            const chars = newEl.querySelectorAll('.char-span');
+            gsap.killTweensOf(chars);
+            gsap.fromTo(chars, 
+              { opacity: 0, x: -5 }, 
+              { opacity: 1, x: 0, duration: 0.15, stagger: 0.015, ease: "power2.out", overwrite: true }
+            );
+            newEl.dataset.typing = "true";
+          }
+
+          // Update dots
+          dotsRef.current.forEach((dot, i) => {
+             if (!dot) return;
+             if (i === toIdx) {
+               dot.style.opacity = "1";
+               dot.style.transform = "scale(1.5)";
+               dot.style.boxShadow = '0 0 10px rgba(166,42,44,0.8)';
+             } else {
+               dot.style.opacity = "0.3";
+               dot.style.transform = "scale(1)";
+               dot.style.boxShadow = 'none';
+             }
+          });
+
+          // Cooldown to absorb residual trackpad/mouse scroll momentum
+          setTimeout(() => {
+            isAnimating = false;
+          }, 150);
+        }
+      });
+    };
+
     // ── ScrollTrigger Logic ──
-    const st = ScrollTrigger.create({
+    st = ScrollTrigger.create({
       trigger: containerRef.current,
       pin: true,
       start: "top top",
-      end: "+=800%", // Provides 800vh of scroll distance
-      scrub: true,
-      snap: {
-        snapTo: (value) => {
-          const parts = N * 2 - 1; // 9
-          const rawPart = value * parts;
-          const phase = Math.floor(rawPart);
-          
-          if (value >= 1) return 1;
-          if (value <= 0) return 0;
-
-          if (phase % 2 === 0) {
-            return value;
-          } else {
-            return Math.round(rawPart) / parts;
-          }
-        },
-        duration: { min: 0.3, max: 0.8 },
-        delay: 0.15,
-        ease: "power2.inOut"
-      },
-      onUpdate: (self) => {
+      end: "+=500%", 
+      scrub: false, // CRITICAL: Disable scrub. We animate everything independently now!
+      onUpdate: (self: any) => {
         const t = self.progress;
-        
-        // 9 mathematical scroll phases
-        const parts = N * 2 - 1;
-        const rawPart = t * parts;
-        let phase = Math.floor(rawPart);
-        const phaseFrac = rawPart - phase;
+        const total = N - 1;
+        const raw = t * total;
 
-        if (phase >= parts) phase = parts - 1;
+        if (isAnimating) return;
 
-        let fromIdx = 0, toIdx = 0, frac = 0;
-
-        if (phase % 2 === 0) {
-          const idx = phase / 2;
-          fromIdx = idx; toIdx = idx; frac = 0;
-        } else {
-          const idx = (phase - 1) / 2;
-          fromIdx = idx; toIdx = idx + 1; frac = phaseFrac;
+        // A tiny 5% scroll instantly triggers a full premium transition
+        if (raw > activeIdx + 0.05 && activeIdx < N - 1) {
+          triggerTransition(activeIdx, activeIdx + 1);
+        } else if (raw < activeIdx - 0.05 && activeIdx > 0) {
+          triggerTransition(activeIdx, activeIdx - 1);
         }
-        
-        if (fromIdx >= N) fromIdx = N - 1;
-        if (toIdx >= N) toIdx = N - 1;
+      },
+      onScrollEnd: (self: any) => {
+        if (isAnimating) return;
 
-        // Sync WebGL
-        mat.uniforms.uTexA.value = textures[fromIdx];
-        mat.uniforms.uTexB.value = textures[toIdx];
-        mat.uniforms.uProgress.value = (fromIdx === toIdx) ? 0.0 : frac;
-        mat.uniforms.uTransType.value = TRANS_TYPES[fromIdx] || 0;
+        // Snap back to the current activeIdx scroll position to prevent sticking
+        const targetScroll = st.start + (activeIdx / (N - 1)) * (st.end - st.start);
+        const scrollObj = { y: st.scroll() };
+        if (Math.abs(scrollObj.y - targetScroll) > 2) {
+          isAnimating = true;
+          gsap.to(scrollObj, {
+            y: targetScroll,
+            duration: 0.3,
+            ease: "power2.out",
+            overwrite: "auto",
+            onUpdate: () => {
+              st.scroll(scrollObj.y);
+            },
+            onComplete: () => {
+              isAnimating = false;
+            }
+          });
+        }
+      }
+    } as any);
 
-        // Sync Videos
-        videoElements.forEach((vid, i) => {
-          if (i === fromIdx || i === toIdx) {
-            if (vid.paused && vid.readyState >= 2) vid.play().catch(() => {});
-          } else {
-            if (!vid.paused) vid.pause();
-          }
-        });
+    // Set initial activeIdx based on starting scroll position
+    activeIdx = Math.min(N - 1, Math.max(0, Math.round(st.progress * (N - 1))));
 
-        // ── Direct DOM Sync for Typography & UI (Tied 100% to Scroll Pixel) ──
-        
-        textRefs.current.forEach((el, i) => {
-          if (!el) return;
-          const chars = el.querySelectorAll('.char-span');
-          const totalChars = chars.length;
-          const holdPhase = i * 2;
-          
-          if (phase === holdPhase) {
-            // Active slide holding steady
+    // Initialize first textures and aspects
+    mat.uniforms.uTexA.value = textures[activeIdx];
+    mat.uniforms.uAspectA.value = aspectRatios[activeIdx];
+    mat.uniforms.uTexB.value = textures[Math.min(activeIdx + 1, N - 1)];
+    mat.uniforms.uAspectB.value = aspectRatios[Math.min(activeIdx + 1, N - 1)];
+
+    // Initialize text and dot based on starting activeIdx
+    setTimeout(() => {
+      // Hide all other text elements first to make sure there is no overlay
+      textRefs.current.forEach((el, idx) => {
+        if (el) {
+          if (idx === activeIdx) {
             el.style.opacity = "1";
             el.style.transform = "translateY(0px)";
-            chars.forEach((c) => ((c as HTMLElement).style.opacity = "1"));
-          } else if (phase === holdPhase - 1) {
-            // Typing IN during the second half of the previous video's transition
-            if (frac > 0.5) {
-              const localFrac = (frac - 0.5) * 2; // 0 to 1
-              el.style.opacity = "1";
-              el.style.transform = `translateY(${30 * (1 - localFrac)}px)`;
-              
-              chars.forEach((c, idx) => {
-                 const start = idx / totalChars;
-                 const end = (idx + 1) / totalChars;
-                 let charOp = (localFrac - start) / (end - start);
-                 if (charOp < 0) charOp = 0;
-                 if (charOp > 1) charOp = 1;
-                 (c as HTMLElement).style.opacity = charOp.toString();
-              });
-            } else {
-              el.style.opacity = "0";
-            }
-          } else if (phase === holdPhase + 1) {
-            // Fading OUT entirely during the first half of the current video's transition
-            if (frac < 0.5) {
-              const localFrac = frac * 2; // 0 to 1
-              const blockOp = 1 - localFrac;
-              el.style.opacity = blockOp.toString();
-              el.style.transform = `translateY(${-30 * localFrac}px)`;
-              chars.forEach((c) => ((c as HTMLElement).style.opacity = "1"));
-            } else {
-              el.style.opacity = "0";
-            }
+            const chars = el.querySelectorAll('.char-span');
+            gsap.to(chars, { opacity: 1, x: 0, duration: 0.15, stagger: 0.015 });
+            el.dataset.typing = "true";
           } else {
             el.style.opacity = "0";
+            el.style.transform = "translateY(30px)";
+            const chars = el.querySelectorAll('.char-span');
+            chars.forEach(c => ((c as HTMLElement).style.opacity = "0"));
+            el.dataset.typing = "false";
           }
-        });
+        }
+      });
 
-        dotsRef.current.forEach((dot, i) => {
-           if (!dot) return;
-           const holdPhase = i * 2;
-           let dotOp = 0.3;
-           let dotScale = 1;
-           
-           if (phase === holdPhase) {
-             dotOp = 1;
-             dotScale = 1.5;
-           } else if (phase === holdPhase - 1) {
-             dotOp = 0.3 + (0.7 * frac);
-             dotScale = 1 + (0.5 * frac);
-           } else if (phase === holdPhase + 1) {
-             dotOp = 1 - (0.7 * frac);
-             dotScale = 1.5 - (0.5 * frac);
-           }
-           
-           dot.style.opacity = dotOp.toString();
-           dot.style.transform = `scale(${dotScale})`;
-           if (dotOp > 0.8) {
-             dot.style.boxShadow = '0 0 10px rgba(166,42,44,0.8)';
-           } else {
-             dot.style.boxShadow = 'none';
-           }
-        });
-      }
-    });
+      dotsRef.current.forEach((dot, i) => {
+         if (!dot) return;
+         if (i === activeIdx) {
+           dot.style.opacity = "1";
+           dot.style.transform = "scale(1.5)";
+           dot.style.boxShadow = '0 0 10px rgba(166,42,44,0.8)';
+         } else {
+           dot.style.opacity = "0.3";
+           dot.style.transform = "scale(1)";
+           dot.style.boxShadow = 'none';
+         }
+      });
+    }, 100);
 
     videoElements[0].play().catch(() => {});
 
