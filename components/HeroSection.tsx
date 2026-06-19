@@ -11,7 +11,7 @@ export default function HeroSection({ mouseProxy }: { mouseProxy: { current: { x
   }, [mouseProxy]);
 
   return (
-    <section className="relative w-full h-[100vh] flex flex-col items-center justify-center overflow-hidden z-[1]">
+    <section className="relative w-full h-[100vh] flex flex-col items-center justify-center overflow-visible z-[1]">
       
       {/* Header moved to GlobalHeader component */}
 

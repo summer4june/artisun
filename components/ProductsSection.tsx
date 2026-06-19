@@ -238,7 +238,8 @@ export default function ProductsSection() {
           </div>
 
         </div>
-      </section>
+        <div className="absolute inset-x-0 bottom-0 h-[15vh] bg-gradient-to-t from-black to-transparent z-[30] pointer-events-none" />
+    </section>
     </div>
   );
 }
