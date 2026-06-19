@@ -153,7 +153,7 @@ export default function Home() {
       <div
         id="global-color-shift"
         className="fixed top-0 left-0 w-full h-full z-[-1] pointer-events-none"
-        style={{ opacity: 0, background: 'radial-gradient(ellipse at 50% 80%, rgba(10,0,0,0.7) 0%, transparent 70%)' }}
+        style={{ opacity: 0, background: 'rgba(5, 0, 0, 0.6)' }}
       />
 
       {!loadingComplete && (

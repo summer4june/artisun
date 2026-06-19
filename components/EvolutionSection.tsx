@@ -57,10 +57,10 @@ export default function EvolutionSection() {
     <section ref={containerRef} className="relative w-full h-screen bg-transparent z-10 flex flex-col items-center justify-center px-6 md:px-20 overflow-hidden">
       
       {/* Replaces the hard red overlay — use a softer, globally consistent treatment */}
-      <div className="absolute inset-0 bg-black/50 pointer-events-none z-[1]" />
+      <div className="absolute inset-0 bg-black/50 pointer-events-none z-[0]" />
 
       {/* Background Embossed Logo */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] h-[90vw] md:w-[120vw] md:h-[120vw] lg:w-[1000px] lg:h-[1000px] flex items-center justify-center opacity-[0.35] pointer-events-none mix-blend-multiply z-[1]">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] h-[90vw] md:w-[120vw] md:h-[120vw] lg:w-[1000px] lg:h-[1000px] flex items-center justify-center opacity-[0.35] pointer-events-none mix-blend-multiply z-[2]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img 
           src="/logo-artisun.svg" 
@@ -70,7 +70,7 @@ export default function EvolutionSection() {
       </div>
 
       {/* Foreground Text */}
-      <div className="relative z-10 w-full max-w-[90vw] md:max-w-[800px] lg:max-w-[1200px] mx-auto text-center font-editorial font-normal text-[32px] md:text-[54px] lg:text-[72px] leading-[1.1] tracking-[-0.02em] text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
+      <div className="relative z-[3] w-full max-w-[90vw] md:max-w-[800px] lg:max-w-[1200px] mx-auto text-center font-editorial font-normal text-[32px] md:text-[54px] lg:text-[72px] leading-[1.1] tracking-[-0.02em] text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
         
         {/* Line 1 */}
         <div className="mb-[0.2em] flex flex-wrap justify-center gap-x-[0.25em] gap-y-[0.15em] w-full">
@@ -100,8 +100,8 @@ export default function EvolutionSection() {
 
       </div>
 
-      <div className="absolute inset-x-0 top-0 h-[100px] bg-gradient-to-b from-black/80 to-transparent z-[2] pointer-events-none" />
-      <div className="absolute inset-x-0 bottom-0 h-[100px] bg-gradient-to-t from-black/80 to-transparent z-[2] pointer-events-none" />
+      <div className="absolute inset-x-0 top-0 h-[100px] bg-gradient-to-b from-black/80 to-transparent z-[4] pointer-events-none" />
+      <div className="absolute inset-x-0 bottom-0 h-[100px] bg-gradient-to-t from-black/80 to-transparent z-[4] pointer-events-none" />
     </section>
   );
 }

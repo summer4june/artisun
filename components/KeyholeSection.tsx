@@ -124,7 +124,7 @@ export default function KeyholeSection() {
         </svg>
       </div>
 
-        <div className="absolute inset-x-0 bottom-0 h-[25vh] bg-gradient-to-t from-[#111111] to-transparent z-[25] pointer-events-none" />
+        <div className="absolute inset-x-0 bottom-0 h-[15vh] bg-gradient-to-t from-black to-transparent z-[15] pointer-events-none" />
 
     </section>
   );

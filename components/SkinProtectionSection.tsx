@@ -33,8 +33,8 @@ export default function SkinProtectionSection() {
     // Creative Background Animation: Focus pull & subtle zoom out
     // It starts very blurred and zoomed in, and resolves to slightly blurred as requested.
     tl.to(bgRef.current, {
-      filter: "blur(4px)",
-      scale: 1.02,
+      filter: "blur(0px)",
+      scale: 1.0,
       duration: 1,
       ease: "power2.out"
     }, 0);
@@ -61,8 +61,7 @@ export default function SkinProtectionSection() {
 
   return (
     <section ref={containerRef} className="relative w-full h-screen bg-transparent z-10 flex flex-col items-center justify-center px-6 md:px-20 lg:px-32 overflow-hidden">
-      
-      <div className="absolute inset-0 bg-black/50 pointer-events-none z-[-1]" />
+
 
       {/* Background Image Layer */}
       <div className="absolute inset-0 z-0">
@@ -110,8 +109,8 @@ export default function SkinProtectionSection() {
 
       </div>
 
-      <div className="absolute inset-x-0 top-0 h-[100px] bg-gradient-to-b from-black to-transparent z-[15] pointer-events-none" />
-      <div className="absolute inset-x-0 bottom-0 h-[100px] bg-gradient-to-t from-black to-transparent z-[15] pointer-events-none" />
+      <div className="absolute inset-x-0 top-0 h-[160px] bg-gradient-to-b from-black to-transparent z-[15] pointer-events-none" />
+      <div className="absolute inset-x-0 bottom-0 h-[160px] bg-gradient-to-t from-black to-transparent z-[15] pointer-events-none" />
     </section>
   );
 }

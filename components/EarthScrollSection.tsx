@@ -118,7 +118,7 @@ export default function EarthScrollSection() {
       </div>
 
       {/* Bottom Vignette Overlay to merge with next section background */}
-      <div className="absolute inset-x-0 bottom-0 h-[40vh] bg-gradient-to-t from-[#1a0a00] to-transparent z-[4] pointer-events-none" />
+      <div className="absolute inset-x-0 bottom-0 h-[40vh] bg-gradient-to-t from-black to-transparent z-[4] pointer-events-none" />
       </div>
     </section>
   );
