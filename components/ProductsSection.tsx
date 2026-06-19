@@ -145,6 +145,9 @@ export default function ProductsSection() {
         {/* Floor Gradient to ground the 3D scene */}
         <div className="absolute bottom-0 left-0 w-full h-[30vh] bg-gradient-to-t from-black to-transparent z-0 pointer-events-none" />
 
+        {/* Top entry dissolve matching keyhole exit */}
+        <div className="absolute inset-x-0 top-0 h-[15vh] bg-gradient-to-b from-[#111111] to-transparent z-[5] pointer-events-none" />
+
         <div className="relative w-full max-w-[1400px] h-full flex items-center justify-between px-8 md:px-16 pt-20 z-10 perspective-[1500px]">
           
           {/* Left Text Panel - Exactly aligned with Veloretti */}

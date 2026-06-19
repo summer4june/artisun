@@ -62,6 +62,8 @@ export default function KeyholeSection() {
 
   return (
     <section ref={containerRef} className="relative w-full h-screen bg-transparent z-10 flex flex-col items-center justify-center overflow-hidden">
+      
+      <div className="absolute inset-x-0 top-0 h-[100px] bg-gradient-to-b from-black to-transparent z-[5] pointer-events-none" />
 
       {/* 
         The landscape image layer. 
@@ -121,6 +123,8 @@ export default function KeyholeSection() {
           <rect width="100%" height="100%" fill="url(#keyholeGrad)" mask="url(#keyholeMask)" />
         </svg>
       </div>
+
+        <div className="absolute inset-x-0 bottom-0 h-[25vh] bg-gradient-to-t from-[#111111] to-transparent z-[25] pointer-events-none" />
 
     </section>
   );

@@ -20,6 +20,9 @@ export default function EarthScrollSection() {
   return (
     <section ref={containerRef} className="relative w-full h-[200vh] bg-black z-10">
       <div className="sticky top-0 w-full h-screen overflow-hidden flex flex-col items-center justify-center">
+      {/* Top dissolve — bleeds into previous section */}
+      <div className="absolute inset-x-0 top-0 h-[15vh] bg-gradient-to-b from-black to-transparent z-[4] pointer-events-none" />
+
       {/* Background stars / ambient space overlay */}
       <div className="absolute inset-0 bg-transparent pointer-events-none z-0 opacity-40 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.15)_0%,rgba(0,0,0,0)_80%)]" />
 
@@ -115,7 +118,7 @@ export default function EarthScrollSection() {
       </div>
 
       {/* Bottom Vignette Overlay to merge with next section background */}
-      <div className="absolute inset-x-0 bottom-0 h-[30vh] bg-gradient-to-t from-black to-transparent z-[4] pointer-events-none" />
+      <div className="absolute inset-x-0 bottom-0 h-[40vh] bg-gradient-to-t from-[#1a0a00] to-transparent z-[4] pointer-events-none" />
       </div>
     </section>
   );

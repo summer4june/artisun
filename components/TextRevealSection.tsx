@@ -64,7 +64,10 @@ export default function TextRevealSection() {
 
   return (
     <section ref={containerRef} className="text-reveal-trigger relative w-full h-screen bg-transparent z-10 flex flex-col items-center justify-center px-6 md:px-20 lg:px-32">
-      <div ref={textRef} className="w-full max-w-[90vw] md:max-w-[800px] lg:max-w-[1050px] mx-auto text-left font-editorial font-normal text-[26px] md:text-[38px] lg:text-[50px] leading-[1.3] tracking-wide text-[#e8dfc5]">
+      {/* Keep bg-transparent, just add a darkening vignette so text pops */}
+      <div className="absolute inset-0 bg-black/40 pointer-events-none z-[1]" />
+
+      <div ref={textRef} className="relative z-[2] w-full max-w-[90vw] md:max-w-[800px] lg:max-w-[1050px] mx-auto text-left font-editorial font-normal text-[26px] md:text-[38px] lg:text-[50px] leading-[1.3] tracking-wide text-[#e8dfc5]">
         
         {/* Line 1 Block */}
         <div className="mb-[0.6em] flex flex-wrap justify-start gap-x-[0.25em] gap-y-[0.15em] w-full">

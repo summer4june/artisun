@@ -457,6 +457,11 @@ export default function ClimateVideoSection() {
         </div>
 
       </div>
+
+      {/* Top dissolve — bleeds into previous section */}
+      <div className="absolute inset-x-0 top-0 h-[120px] bg-gradient-to-b from-black to-transparent z-[5] pointer-events-none" />
+      {/* Bottom dissolve — bleeds into next section */}
+      <div className="absolute inset-x-0 bottom-0 h-[120px] bg-gradient-to-t from-black to-transparent z-[5] pointer-events-none" />
     </section>
   );
 }

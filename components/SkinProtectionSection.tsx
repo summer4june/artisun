@@ -60,8 +60,10 @@ export default function SkinProtectionSection() {
   }, []);
 
   return (
-    <section ref={containerRef} className="relative w-full h-screen bg-black z-10 flex flex-col items-center justify-center px-6 md:px-20 lg:px-32 overflow-hidden">
+    <section ref={containerRef} className="relative w-full h-screen bg-transparent z-10 flex flex-col items-center justify-center px-6 md:px-20 lg:px-32 overflow-hidden">
       
+      <div className="absolute inset-0 bg-black/50 pointer-events-none z-[-1]" />
+
       {/* Background Image Layer */}
       <div className="absolute inset-0 z-0">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -107,6 +109,9 @@ export default function SkinProtectionSection() {
         </div>
 
       </div>
+
+      <div className="absolute inset-x-0 top-0 h-[100px] bg-gradient-to-b from-black to-transparent z-[15] pointer-events-none" />
+      <div className="absolute inset-x-0 bottom-0 h-[100px] bg-gradient-to-t from-black to-transparent z-[15] pointer-events-none" />
     </section>
   );
 }

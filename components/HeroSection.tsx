@@ -15,6 +15,19 @@ export default function HeroSection({ mouseProxy }: { mouseProxy: { current: { x
       
       {/* Header moved to GlobalHeader component */}
 
+      {/* Ambient breathing sun — lives behind the logo */}
+      <div
+        className="absolute bottom-[-10vh] left-1/2 -translate-x-1/2 pointer-events-none z-0"
+        style={{
+          width: 'clamp(400px, 80vw, 900px)',
+          height: 'clamp(400px, 80vw, 900px)',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(255,140,34,0.18) 0%, rgba(201,59,26,0.10) 35%, rgba(83,0,7,0.05) 60%, transparent 75%)',
+          animation: 'heroPulse 6s ease-in-out infinite',
+          willChange: 'transform, opacity',
+        }}
+      />
+
       {/* Hero Content Layer */}
       <div className="relative z-10 flex flex-col items-center justify-center text-center w-full h-full mt-8 md:mt-12">
         <div ref={textRef} className="relative w-full max-w-[85vw] md:max-w-[750px]">
