@@ -54,10 +54,9 @@ export default function EvolutionSection() {
   }, []);
 
   return (
-    <section ref={containerRef} className="relative w-full h-screen bg-transparent z-10 flex flex-col items-center justify-center px-6 md:px-20 overflow-hidden">
+    <section ref={containerRef} className="relative w-full h-screen bg-black z-10 flex flex-col items-center justify-center px-6 md:px-20 overflow-hidden">
       
       {/* Replaces the hard red overlay — use a softer, globally consistent treatment */}
-      <div className="absolute inset-0 bg-black/50 pointer-events-none z-[0]" />
 
       {/* Background Embossed Logo */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] h-[90vw] md:w-[120vw] md:h-[120vw] lg:w-[1000px] lg:h-[1000px] flex items-center justify-center opacity-[0.35] pointer-events-none mix-blend-multiply z-[2]">

@@ -166,9 +166,7 @@ export default function Home() {
       <HeroSection mouseProxy={mouseProxy} />
       
       {/* Spacer to provide breathing room between Hero and Text Reveal */}
-      <div className="section-spacer relative w-full h-[15vh] md:h-[20vh] pointer-events-none overflow-hidden">
-        <div className="absolute inset-x-0 top-0 h-full bg-gradient-to-b from-black/30 to-transparent" />
-      </div>
+      <div className="section-spacer relative w-full h-[8vh] pointer-events-none" />
       
       <TextRevealSection />
 

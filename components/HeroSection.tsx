@@ -46,7 +46,13 @@ export default function HeroSection({ mouseProxy }: { mouseProxy: { current: { x
           A new language of Suncare
         </p>
       </div>
-      
+      {/* Bottom dissolve — fades hero into the section below */}
+      <div
+        className="absolute inset-x-0 bottom-0 h-[25vh] pointer-events-none z-[5]"
+        style={{
+          background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%)'
+        }}
+      />
     </section>
   );
 }

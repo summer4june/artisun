@@ -65,12 +65,7 @@ export default function TextRevealSection() {
   return (
     <section ref={containerRef} className="text-reveal-trigger relative w-full h-screen bg-transparent z-10 flex flex-col items-center justify-center px-6 md:px-20 lg:px-32">
       {/* Keep bg-transparent, just add a darkening vignette so text pops */}
-      <div
-        className="absolute inset-0 pointer-events-none z-[1]"
-        style={{
-          background: 'radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.55) 100%)'
-        }}
-      />
+      <div className="absolute inset-0 bg-black/30 pointer-events-none z-[1]" />
 
       <div ref={textRef} className="relative z-[2] w-full max-w-[90vw] md:max-w-[800px] lg:max-w-[1050px] mx-auto text-left font-editorial font-normal text-[26px] md:text-[38px] lg:text-[50px] leading-[1.3] tracking-wide text-[#e8dfc5]">
         
@@ -102,7 +97,7 @@ export default function TextRevealSection() {
 
       </div>
 
-      <div className="absolute inset-x-0 top-0 h-[120px] bg-gradient-to-b from-black/60 to-transparent z-[2] pointer-events-none" />
+      <div className="absolute inset-x-0 top-0 h-[80px] bg-gradient-to-b from-black/40 to-transparent z-[2] pointer-events-none" />
       <div className="absolute inset-x-0 bottom-0 h-[120px] bg-gradient-to-t from-black/60 to-transparent z-[2] pointer-events-none" />
     </section>
   );

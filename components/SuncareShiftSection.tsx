@@ -69,7 +69,7 @@ export default function SuncareShiftSection() {
   return (
     <section ref={containerRef} className="relative w-full h-screen bg-black z-10 flex flex-col items-center justify-center px-6 md:px-20 lg:px-32 overflow-hidden">
       
-      <div className="absolute inset-x-0 top-0 h-[40vh] bg-gradient-to-b from-black to-transparent z-[15] pointer-events-none" />
+      <div className="absolute inset-x-0 top-0 h-[45vh] bg-gradient-to-b from-black via-black/60 to-transparent z-[15] pointer-events-none" />
 
       {/* Background Image Layer 1: Blurred */}
       <div className="absolute inset-0 z-0">

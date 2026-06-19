@@ -51,6 +51,8 @@ export default function Footer() {
 
   return (
     <footer ref={containerRef} className="relative w-full min-h-screen flex flex-col justify-between px-8 md:px-16 pb-10 overflow-hidden bg-transparent z-10">
+      {/* Add this FIRST, before the existing backdrop-blur div: */}
+      <div className="absolute inset-0 bg-black pointer-events-none z-[-1]" />
       {/* 
         Dark Frosted Glass Overlay:
         Starts at pure black to seamlessly blend with the Product Section.
