@@ -9,7 +9,7 @@ import CustomCursor from '../components/CustomCursor';
 import TextRevealSection from '../components/TextRevealSection';
 import ClimateVideoSection from '../components/climate/ClimateVideoSection';
 import EvolutionSection from '../components/EvolutionSection';
-import EarthScrollSection from '../components/EarthScrollSection';
+import EarthSection from '../components/EarthSection';
 import SuncareShiftSection from '../components/SuncareShiftSection';
 import ClothingSection from '../components/ClothingSection';
 import SkinProtectionSection from '../components/SkinProtectionSection';
@@ -17,7 +17,6 @@ import KeyholeSection from '../components/KeyholeSection';
 import ProductsSection from '../components/ProductsSection';
 import Footer from '../components/Footer';
 import GlobalHeader from '../components/GlobalHeader';
-import ScrollProgressBar from '../components/ScrollProgressBar';
 
 export default function Home() {
   const [loadingComplete, setLoadingComplete] = useState(false);
@@ -115,46 +114,13 @@ export default function Home() {
           { opacity: 0, ease: 'none' }
         )
       });
-
-      // Color temperature shift as narrative progresses
-      // Hero -> Climate (warm) -> Globe -> Products (cool/dark) -> Footer (neutral)
-      const colorShift = document.getElementById('global-color-shift');
-      if (colorShift) {
-        ScrollTrigger.create({
-          trigger: document.body,
-          start: 'top top',
-          end: 'bottom bottom',
-          scrub: 2,
-          onUpdate: (self) => {
-            const p = self.progress;
-            let opacity = 0;
-            if (p < 0.3) {
-              opacity = 0; // warm phase — let the molten core breathe
-            } else if (p < 0.6) {
-              opacity = ((p - 0.3) / 0.3) * 0.5; // ramp up to 50%
-            } else if (p < 0.85) {
-              opacity = 0.5; // deep dark phase
-            } else {
-              opacity = 0.5 * (1 - ((p - 0.85) / 0.15)); // fade back out for footer
-            }
-            colorShift.style.opacity = String(opacity);
-          }
-        });
-      }
     }
   }, [loadingComplete]);
 
   return (
     <main ref={mainRef} className="relative w-full min-h-screen overflow-clip">
-      <ScrollProgressBar />
       {/* Global Molten Core Background */}
       <div id="global-bg" className="theme-molten-core" />
-      {/* Global Color Shift Overlay */}
-      <div
-        id="global-color-shift"
-        className="fixed top-0 left-0 w-full h-full z-[-1] pointer-events-none"
-        style={{ opacity: 0, background: 'rgba(5, 0, 0, 0.6)' }}
-      />
 
       {!loadingComplete && (
         <LoadingScreen progress={mediaProgress} onComplete={() => setLoadingComplete(true)} />
@@ -166,7 +132,7 @@ export default function Home() {
       <HeroSection mouseProxy={mouseProxy} />
       
       {/* Spacer to provide breathing room between Hero and Text Reveal */}
-      <div className="section-spacer relative w-full h-[8vh] pointer-events-none" />
+      <div className="section-spacer relative w-full h-[10vh] md:h-[15vh] bg-transparent pointer-events-none" />
       
       <TextRevealSection />
 
@@ -175,8 +141,7 @@ export default function Home() {
       {/* New evolution text section */}
       <EvolutionSection />
 
-      {/* Earth scroll globe rotation section */}
-      <EarthScrollSection />
+      <EarthSection />
 
       {/* Unified cinematic crossfade section */}
       <SuncareShiftSection />

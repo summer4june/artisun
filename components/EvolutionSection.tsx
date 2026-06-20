@@ -9,57 +9,75 @@ const line2 = "and Artisun begins with this understanding.";
 
 export default function EvolutionSection() {
   const containerRef = useRef<HTMLElement>(null);
-  const words1Ref = useRef<(HTMLSpanElement | null)[]>([]);
-  const words2Ref = useRef<(HTMLSpanElement | null)[]>([]);
-
-  words1Ref.current = [];
-  words2Ref.current = [];
+  const line1Ref = useRef<HTMLDivElement>(null);
+  const line2Ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
+    // 1. Text Reveal (Effect 27 from OnScrollTypography)
+    // We delay the trigger by 100vh ("bottom top" for a 100vh container) 
+    // so it starts exactly when the Climate section finishes sliding up.
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: containerRef.current,
-        start: "top top",
-        end: "+=120%",
-        pin: true,
-        scrub: 0.5,
+        start: "bottom top", 
+        toggleActions: "play none none reverse"
       }
     });
 
-    tl.to(words1Ref.current, {
+    tl.fromTo(line1Ref.current, {
+      opacity: 0,
+      scale: 0.7,
+      y: 50
+    }, {
       opacity: 1,
-      stagger: 0.1,
-      ease: "none",
+      scale: 1,
+      y: 0,
+      duration: 0.95,
+      ease: "back.out(1.5)",
+      delay: 0.1 
     });
 
-    tl.to(words2Ref.current, {
+    tl.fromTo(line2Ref.current, {
+      opacity: 0,
+      scale: 0.7,
+      y: 50
+    }, {
       opacity: 1,
-      stagger: 0.1,
-      ease: "none",
-    }, "+=0.2");
+      scale: 1,
+      y: 0,
+      duration: 0.95,
+      ease: "back.out(1.5)",
+    }, "-=0.83");
 
-    const timeoutId = setTimeout(() => {
-      // Intentionally removed to prevent layout thrashing
-    }, 0);
+    // 2. Pin the container so it stays perfectly glued to the screen
+    // while the previous section natively scrolls up like a curtain!
+    const pinSt = ScrollTrigger.create({
+      trigger: containerRef.current,
+      start: "top top",
+      end: "+=150%", // 100vh curtain slide + 50vh reading time
+      pin: true,
+    });
 
     return () => {
-      clearTimeout(timeoutId);
-      if (tl.scrollTrigger) {
-        tl.scrollTrigger.kill();
-      }
+      if (tl.scrollTrigger) tl.scrollTrigger.kill();
+      if (pinSt) pinSt.kill();
       tl.kill();
     };
   }, []);
 
   return (
-    <section ref={containerRef} className="relative w-full h-screen bg-black z-10 flex flex-col items-center justify-center px-6 md:px-20 overflow-hidden">
+    <section 
+      ref={containerRef} 
+      className="relative w-full h-screen bg-transparent z-10 -mt-[100vh] flex flex-col items-center justify-center px-6 md:px-20 overflow-hidden"
+    >
       
-      {/* Replaces the hard red overlay — use a softer, globally consistent treatment */}
+      {/* Dark Red Overlay */}
+      <div className="absolute inset-0 bg-[#530007] opacity-60 pointer-events-none" />
 
       {/* Background Embossed Logo */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] h-[90vw] md:w-[120vw] md:h-[120vw] lg:w-[1000px] lg:h-[1000px] flex items-center justify-center opacity-[0.35] pointer-events-none mix-blend-multiply z-[2]">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] h-[90vw] md:w-[120vw] md:h-[120vw] lg:w-[1000px] lg:h-[1000px] flex items-center justify-center opacity-[0.1] pointer-events-none z-[1]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img 
           src="/logo-artisun.svg" 
@@ -69,38 +87,19 @@ export default function EvolutionSection() {
       </div>
 
       {/* Foreground Text */}
-      <div className="relative z-[3] w-full max-w-[90vw] md:max-w-[800px] lg:max-w-[1200px] mx-auto text-center font-editorial font-normal text-[32px] md:text-[54px] lg:text-[72px] leading-[1.1] tracking-[-0.02em] text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
+      <div className="relative z-10 w-full max-w-[90vw] md:max-w-[800px] lg:max-w-[1200px] mx-auto text-center font-editorial font-normal text-[32px] md:text-[54px] lg:text-[72px] leading-[1.1] tracking-[-0.02em] text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
         
         {/* Line 1 */}
-        <div className="mb-[0.2em] flex flex-wrap justify-center gap-x-[0.25em] gap-y-[0.15em] w-full">
-          {line1.split(" ").map((word, wordIndex) => (
-            <span 
-              key={`l1-${wordIndex}`} 
-              ref={el => { if (el) words1Ref.current.push(el); }} 
-              className="opacity-15"
-            >
-              {word}
-            </span>
-          ))}
+        <div ref={line1Ref} className="mb-[0.2em] w-full" style={{ willChange: "transform, opacity" }}>
+          {line1}
         </div>
 
         {/* Line 2 */}
-        <div className="flex flex-wrap justify-center gap-x-[0.25em] gap-y-[0.15em] w-full">
-          {line2.split(" ").map((word, wordIndex) => (
-            <span 
-              key={`l2-${wordIndex}`} 
-              ref={el => { if (el) words2Ref.current.push(el); }} 
-              className="opacity-15"
-            >
-              {word}
-            </span>
-          ))}
+        <div ref={line2Ref} className="w-full" style={{ willChange: "transform, opacity" }}>
+          {line2}
         </div>
 
       </div>
-
-      <div className="absolute inset-x-0 top-0 h-[100px] bg-gradient-to-b from-black/80 to-transparent z-[4] pointer-events-none" />
-      <div className="absolute inset-x-0 bottom-0 h-[100px] bg-gradient-to-t from-black/80 to-transparent z-[4] pointer-events-none" />
     </section>
   );
 }

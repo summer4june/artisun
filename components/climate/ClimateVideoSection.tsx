@@ -25,8 +25,10 @@ const SLIDE_TEXTS = [
 
 export default function ClimateVideoSection() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  
+
   // Refs for direct GSAP DOM manipulation (bypassing React state for 60fps scrubbing)
   const textRefs = useRef<(HTMLDivElement | null)[]>([]);
   const dotsRef = useRef<(HTMLDivElement | null)[]>([]);
@@ -39,7 +41,7 @@ export default function ClimateVideoSection() {
 
     const renderer = new THREE.WebGLRenderer({ canvas: canvasRef.current, antialias: false, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    
+
     let mat: THREE.ShaderMaterial;
 
     const updateSize = () => {
@@ -138,7 +140,7 @@ export default function ClimateVideoSection() {
       vid.crossOrigin = "anonymous";
       vid.playsInline = true;
       vid.preload = "auto";
-      
+
       vid.addEventListener('loadedmetadata', () => {
         aspectRatios[idx] = vid.videoWidth / vid.videoHeight || 16.0 / 9.0;
         if (idx === activeIdx && mat) {
@@ -150,7 +152,7 @@ export default function ClimateVideoSection() {
       });
 
       videoElements.push(vid);
-      
+
       const tex = new THREE.VideoTexture(vid);
       tex.minFilter = THREE.LinearFilter;
       tex.magFilter = THREE.LinearFilter;
@@ -169,20 +171,51 @@ export default function ClimateVideoSection() {
     };
     animate();
 
+    const showSlideText = (idx: number) => {
+      const el = textRefs.current[idx];
+      if (el && el.dataset.typing !== "true") {
+        el.style.opacity = "1";
+        el.style.transform = "translateY(0px)";
+        const chars = el.querySelectorAll('.char-span');
+        gsap.killTweensOf(chars);
+        gsap.fromTo(chars,
+          { opacity: 0, x: -5 },
+          { opacity: 1, x: 0, duration: 0.15, stagger: 0.015, ease: "power2.out", overwrite: true }
+        );
+        el.dataset.typing = "true";
+      }
+      const dot = dotsRef.current[idx];
+      if (dot) {
+        dot.style.opacity = "1";
+        dot.style.transform = "scale(1.5)";
+        dot.style.boxShadow = '0 0 10px rgba(166,42,44,0.8)';
+      }
+    };
+
+    const hideSlideText = (idx: number) => {
+      const el = textRefs.current[idx];
+      if (el && el.dataset.typing !== "false") {
+        el.style.opacity = "0";
+        el.style.transform = "translateY(30px)";
+        const chars = el.querySelectorAll('.char-span');
+        gsap.killTweensOf(chars);
+        chars.forEach(c => ((c as HTMLElement).style.opacity = "0"));
+        el.dataset.typing = "false";
+      }
+      const dot = dotsRef.current[idx];
+      if (dot) {
+        dot.style.opacity = "0.3";
+        dot.style.transform = "scale(1)";
+        dot.style.boxShadow = 'none';
+      }
+    };
+
     const triggerTransition = (fromIdx: number, toIdx: number) => {
       if (!st) return;
       isAnimating = true;
 
       // Hide old text instantly
-      const oldEl = textRefs.current[fromIdx];
-      if (oldEl) {
-        oldEl.style.opacity = "0";
-        oldEl.style.transform = "translateY(30px)";
-        const chars = oldEl.querySelectorAll('.char-span');
-        gsap.killTweensOf(chars);
-        chars.forEach(c => ((c as HTMLElement).style.opacity = "0"));
-        oldEl.dataset.typing = "false";
-      }
+      hideSlideText(fromIdx);
 
       // Sync WebGL
       mat.uniforms.uTexA.value = textures[fromIdx];
@@ -194,13 +227,13 @@ export default function ClimateVideoSection() {
       // Sync Videos
       videoElements.forEach((vid, i) => {
         if (i === fromIdx || i === toIdx) {
-          if (vid.paused && vid.readyState >= 2) vid.play().catch(()=>{});
+          if (vid.paused && vid.readyState >= 2) vid.play().catch(() => { });
         } else {
           if (!vid.paused) vid.pause();
         }
       });
 
-      // Quick visual swap (fade of 0.05s to look sleek but feel instant)
+      // Quick visual swap
       gsap.to(mat.uniforms.uProgress, {
         value: 1.0,
         duration: 0.05,
@@ -221,36 +254,8 @@ export default function ClimateVideoSection() {
         },
         onComplete: () => {
           activeIdx = toIdx;
+          showSlideText(toIdx);
 
-          // Trigger new text
-          const newEl = textRefs.current[toIdx];
-          if (newEl) {
-            newEl.style.opacity = "1";
-            newEl.style.transform = "translateY(0px)";
-            const chars = newEl.querySelectorAll('.char-span');
-            gsap.killTweensOf(chars);
-            gsap.fromTo(chars, 
-              { opacity: 0, x: -5 }, 
-              { opacity: 1, x: 0, duration: 0.15, stagger: 0.015, ease: "power2.out", overwrite: true }
-            );
-            newEl.dataset.typing = "true";
-          }
-
-          // Update dots
-          dotsRef.current.forEach((dot, i) => {
-             if (!dot) return;
-             if (i === toIdx) {
-               dot.style.opacity = "1";
-               dot.style.transform = "scale(1.5)";
-               dot.style.boxShadow = '0 0 10px rgba(166,42,44,0.8)';
-             } else {
-               dot.style.opacity = "0.3";
-               dot.style.transform = "scale(1)";
-               dot.style.boxShadow = 'none';
-             }
-          });
-
-          // Cooldown to absorb residual trackpad/mouse scroll momentum
           setTimeout(() => {
             isAnimating = false;
           }, 150);
@@ -260,12 +265,48 @@ export default function ClimateVideoSection() {
 
     let scrollTimeout: any = null;
 
+    // ── Entrance Animation ──
+    // MUST be created before the pinning ScrollTrigger below to avoid pin-spacer offset bugs!
+    const entranceSt = ScrollTrigger.create({
+      trigger: containerRef.current,
+      start: "top bottom",
+      end: "top top",
+      scrub: 1,
+      onUpdate: (self) => {
+        const p = self.progress; // Linear scrub ensures it ONLY hits 100% when exactly at the top
+        const s = 0.5 + (0.5 * p);
+        const invS = 1 / s;
+        const radius = 60 * (1 - p);
+
+        if (wrapperRef.current) {
+          wrapperRef.current.style.transform = `scale(${s})`;
+          wrapperRef.current.style.borderRadius = `${radius}px`;
+        }
+        if (innerRef.current) {
+          innerRef.current.style.transform = `scale(${invS})`;
+        }
+
+        // Logic for Poster vs Video+Text
+        if (!isAnimating) {
+          if (p >= 0.99 && textRefs.current[activeIdx]?.dataset.typing !== "true") {
+            // Fully expanded! Show text and play video.
+            showSlideText(activeIdx);
+            videoElements[activeIdx]?.play().catch(() => { });
+          } else if (p < 0.99 && textRefs.current[activeIdx]?.dataset.typing === "true") {
+            // Not fully expanded! Hide text and pause video (show poster).
+            hideSlideText(activeIdx);
+            videoElements[activeIdx]?.pause();
+          }
+        }
+      }
+    });
+
     // ── ScrollTrigger Logic ──
     st = ScrollTrigger.create({
       trigger: containerRef.current,
       pin: true,
       start: "top top",
-      end: "+=500%", 
+      end: "+=500%",
       scrub: false, // CRITICAL: Disable scrub. We animate everything independently now!
       onUpdate: (self: any) => {
         const t = self.progress;
@@ -317,40 +358,18 @@ export default function ClimateVideoSection() {
 
     // Initialize text and dot based on starting activeIdx
     setTimeout(() => {
-      // Hide all other text elements first to make sure there is no overlay
-      textRefs.current.forEach((el, idx) => {
-        if (el) {
-          if (idx === activeIdx) {
-            el.style.opacity = "1";
-            el.style.transform = "translateY(0px)";
-            const chars = el.querySelectorAll('.char-span');
-            gsap.to(chars, { opacity: 1, x: 0, duration: 0.15, stagger: 0.015 });
-            el.dataset.typing = "true";
-          } else {
-            el.style.opacity = "0";
-            el.style.transform = "translateY(30px)";
-            const chars = el.querySelectorAll('.char-span');
-            chars.forEach(c => ((c as HTMLElement).style.opacity = "0"));
-            el.dataset.typing = "false";
-          }
-        }
-      });
+      // Force GSAP to recalculate offsets now that all pinned sections above us are mounted
+      ScrollTrigger.refresh();
 
-      dotsRef.current.forEach((dot, i) => {
-         if (!dot) return;
-         if (i === activeIdx) {
-           dot.style.opacity = "1";
-           dot.style.transform = "scale(1.5)";
-           dot.style.boxShadow = '0 0 10px rgba(166,42,44,0.8)';
-         } else {
-           dot.style.opacity = "0.3";
-           dot.style.transform = "scale(1)";
-           dot.style.boxShadow = 'none';
-         }
-      });
-    }, 100);
+      // Hide all text elements by default so it looks like a clean poster!
+      textRefs.current.forEach((_, idx) => hideSlideText(idx));
 
-    videoElements[0].play().catch(() => {});
+      // ONLY show and play if we load the page already scrolled into the pinned area!
+      if (st && st.progress > 0 && st.progress < 1) {
+        showSlideText(activeIdx);
+        videoElements[activeIdx]?.play().catch(() => { });
+      }
+    }, 150);
 
     const timeoutId = setTimeout(() => {
       // Intentionally removed to prevent layout thrashing
@@ -361,6 +380,7 @@ export default function ClimateVideoSection() {
       clearTimeout(timeoutId);
       cancelAnimationFrame(reqId);
       if (st) st.kill();
+      if (entranceSt) entranceSt.kill();
       renderer.dispose();
       geo.dispose();
       mat.dispose();
@@ -375,93 +395,90 @@ export default function ClimateVideoSection() {
   }, []);
 
   return (
-    <section ref={containerRef} className="relative w-full h-screen bg-black z-10">
-      <div className="relative w-full h-screen overflow-hidden z-0">
-        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full block" />
-        
-        <div className="absolute inset-0 bg-gradient-to-t from-[rgba(0,0,0,0.5)] via-transparent to-[rgba(0,0,0,0.2)] pointer-events-none" />
+    <section ref={containerRef} className="relative w-full h-screen bg-transparent z-20">
+      <div ref={wrapperRef} className="relative w-full h-screen overflow-hidden z-0 bg-black origin-center" style={{ willChange: 'transform, border-radius' }}>
+        <div ref={innerRef} className="relative w-full h-full origin-center" style={{ willChange: 'transform' }}>
+          <canvas ref={canvasRef} className="absolute inset-0 w-full h-full block" />
 
-        <div className="absolute inset-0 z-10 pointer-events-none">
-          {SLIDE_TEXTS.map((text, i) => {
-            let lines = [text];
-            if (i === 0) lines = ["In Shimla,", "your skin feels dry, tight and flaky"];
-            else if (i === 1) lines = ["In Jaipur, the very same skin", "turns oily, sticky and pigmented"];
-            else if (i === 2) lines = ["Bangalore’s heat and", "humidity cling to you all day."];
-            else if (i === 3) lines = ["While sudden showers in Mumbai", "make it greasy and unpredictable."];
-            else if (i === 4) lines = ["And through all these climates,", "the sun never leaves your side."];
+          <div className="absolute inset-0 bg-gradient-to-t from-[rgba(0,0,0,0.5)] via-transparent to-[rgba(0,0,0,0.2)] pointer-events-none" />
 
-            let positionClasses = "";
-            let textAlignment = "";
-            
-            if (i === 0 || i === 2) { 
-              positionClasses = "justify-start items-start pt-[18vh] md:pt-[22vh] pl-[8vw] md:pl-[12vw]";
-              textAlignment = "text-left";
-            } else if (i === 1 || i === 3) { 
-              positionClasses = "justify-start items-end pt-[18vh] md:pt-[22vh] pr-[8vw] md:pr-[12vw]";
-              textAlignment = "text-right";
-            } else { 
-              positionClasses = "justify-center items-center";
-              textAlignment = "text-center";
-            }
+          <div className="absolute inset-0 z-10 pointer-events-none">
+            {SLIDE_TEXTS.map((text, i) => {
+              let lines = [text];
+              if (i === 0) lines = ["In Shimla,", "your skin feels dry, tight and flaky"];
+              else if (i === 1) lines = ["In Jaipur, the very same skin", "turns oily, sticky and pigmented"];
+              else if (i === 2) lines = ["Bangalore’s heat and", "humidity cling to you all day."];
+              else if (i === 3) lines = ["While sudden showers in Mumbai", "make it greasy and unpredictable."];
+              else if (i === 4) lines = ["And through all these climates,", "the sun never leaves your side."];
 
-            return (
-              <div 
+              let positionClasses = "";
+              let textAlignment = "";
+
+              if (i === 0 || i === 2) {
+                positionClasses = "justify-start items-start pt-[18vh] md:pt-[22vh] pl-[8vw] md:pl-[12vw]";
+                textAlignment = "text-left";
+              } else if (i === 1 || i === 3) {
+                positionClasses = "justify-start items-end pt-[18vh] md:pt-[22vh] pr-[8vw] md:pr-[12vw]";
+                textAlignment = "text-right";
+              } else {
+                positionClasses = "justify-center items-center";
+                textAlignment = "text-center";
+              }
+
+              return (
+                <div
+                  key={i}
+                  ref={el => { textRefs.current[i] = el; }}
+                  className={`absolute inset-0 flex flex-col ${positionClasses} ${textAlignment}`}
+                  style={{ opacity: i === 0 ? 1 : 0, transform: i === 0 ? 'translateY(0)' : 'translateY(30px)' }}
+                >
+                  <h2 className="font-editorial font-normal text-[clamp(16px,4vw,50px)] leading-[1.15] tracking-[-0.01em] text-[#a62a2c]">
+                    {(() => {
+                      let cumulativeCharCount = 0;
+                      return lines.map((line, idx) => {
+                        const lineStartDelay = cumulativeCharCount;
+                        cumulativeCharCount += line.length;
+
+                        return (
+                          <span key={idx} className="block whitespace-nowrap drop-shadow-[0_4px_16px_rgba(255,255,255,0.6)]">
+                            {line.split('').map((char, charIdx) => {
+                              return (
+                                <span
+                                  key={charIdx}
+                                  className="char-span inline-block"
+                                  style={{ opacity: i === 0 ? 1 : 0 }}
+                                >
+                                  {char === ' ' ? '\u00A0' : char}
+                                </span>
+                              );
+                            })}
+                          </span>
+                        );
+                      });
+                    })()}
+                  </h2>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="absolute right-10 top-1/2 -translate-y-1/2 flex flex-col items-center gap-3 z-10">
+            {URLS.map((_, i) => (
+              <div
                 key={i}
-                ref={el => { textRefs.current[i] = el; }}
-                className={`absolute inset-0 flex flex-col ${positionClasses} ${textAlignment}`}
-                style={{ opacity: i === 0 ? 1 : 0, transform: i === 0 ? 'translateY(0)' : 'translateY(30px)' }}
-              >
-                <h2 className="font-editorial font-normal text-[clamp(16px,4vw,50px)] leading-[1.15] tracking-[-0.01em] text-[#a62a2c]">
-                  {(() => {
-                    let cumulativeCharCount = 0;
-                    return lines.map((line, idx) => {
-                      const lineStartDelay = cumulativeCharCount;
-                      cumulativeCharCount += line.length;
-                      
-                      return (
-                        <span key={idx} className="block whitespace-nowrap drop-shadow-[0_4px_16px_rgba(255,255,255,0.6)]">
-                          {line.split('').map((char, charIdx) => {
-                            return (
-                              <span
-                                key={charIdx}
-                                className="char-span inline-block"
-                                style={{ opacity: i === 0 ? 1 : 0 }}
-                              >
-                                {char === ' ' ? '\u00A0' : char}
-                              </span>
-                            );
-                          })}
-                        </span>
-                      );
-                    });
-                  })()}
-                </h2>
-              </div>
-            );
-          })}
-        </div>
+                ref={el => { dotsRef.current[i] = el; }}
+                className="w-2.5 h-2.5 rounded-full bg-[#a62a2c]"
+                style={{
+                  opacity: i === 0 ? 1 : 0.3,
+                  transform: i === 0 ? 'scale(1.5)' : 'scale(1)',
+                  boxShadow: i === 0 ? '0 0 10px rgba(166,42,44,0.8)' : 'none'
+                }}
+              />
+            ))}
+          </div>
 
-        <div className="absolute right-10 top-1/2 -translate-y-1/2 flex flex-col items-center gap-3 z-10">
-          {URLS.map((_, i) => (
-            <div 
-              key={i}
-              ref={el => { dotsRef.current[i] = el; }}
-              className="w-2.5 h-2.5 rounded-full bg-[#a62a2c]"
-              style={{
-                opacity: i === 0 ? 1 : 0.3,
-                transform: i === 0 ? 'scale(1.5)' : 'scale(1)',
-                boxShadow: i === 0 ? '0 0 10px rgba(166,42,44,0.8)' : 'none'
-              }}
-            />
-          ))}
         </div>
-
       </div>
-
-      {/* Top dissolve — bleeds from TextRevealSection above */}
-      <div className="absolute inset-x-0 top-0 h-[140px] bg-gradient-to-b from-black to-transparent z-[20] pointer-events-none" />
-      {/* Bottom dissolve — melts into EvolutionSection below */}
-      <div className="absolute inset-x-0 bottom-0 h-[140px] bg-gradient-to-t from-black to-transparent z-[20] pointer-events-none" />
     </section>
   );
 }

@@ -56,9 +56,9 @@ export default function ClothingSection() {
   }, []);
 
   return (
-    <section ref={containerRef} className="relative w-full h-screen bg-transparent z-10 flex flex-col items-center justify-center px-6 md:px-20 lg:px-32 overflow-hidden">
+    <section ref={containerRef} className="relative w-full h-screen bg-black z-10 flex flex-col items-center justify-center px-6 md:px-20 lg:px-32 overflow-hidden">
 
-      {/* Background Video Layer — sits at z-0, NO overlay on top of it */}
+      {/* Background Video Layer */}
       <div className="absolute inset-0 z-0">
         <video
           ref={videoRef}
@@ -70,8 +70,8 @@ export default function ClothingSection() {
         >
           <source src="/6th-vid.mp4" type="video/mp4" />
         </video>
-        {/* Single light dark overlay so text is readable — but video still breathes through */}
-        <div className="absolute inset-0 bg-black/35"></div>
+        {/* Darkening overlay just in case the video needs dimming for text readability */}
+        <div className="absolute inset-0 bg-black/20"></div>
       </div>
 
       {/* Foreground Text */}
@@ -104,12 +104,6 @@ export default function ClothingSection() {
         </div>
 
       </div>
-
-      {/* Top dissolve — 200px tall, bleeds from SuncareShiftSection */}
-      <div className="absolute inset-x-0 top-0 h-[200px] bg-gradient-to-b from-black to-transparent z-[15] pointer-events-none" />
-      {/* Bottom dissolve — 200px tall, melts into SkinProtectionSection */}
-      <div className="absolute inset-x-0 bottom-0 h-[200px] bg-gradient-to-t from-black to-transparent z-[15] pointer-events-none" />
-
     </section>
   );
 }

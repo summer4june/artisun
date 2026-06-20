@@ -15,6 +15,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${ppEditorialNew.variable} ${suisseIntl.variable}`}>
       <body>
+        <div id="global-bg" />
         {children}
       </body>
     </html>

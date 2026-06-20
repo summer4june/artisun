@@ -117,8 +117,15 @@ export default function OnScrollTypography({
         .map((l) => l.trim())
         .filter(Boolean)
 
+    // Deterministic per-line "randomness" seeded by index/text length, rather than Math.random(),
+    // so server and client render the same angle and don't trigger a hydration mismatch.
     const randomAngles = React.useMemo(
-        () => lines.map(() => Math.random() * 40 - 20),
+        () =>
+            lines.map((line, i) => {
+                const seed = Math.sin(i * 12.9898 + line.length * 78.233) * 43758.5453
+                const frac = seed - Math.floor(seed)
+                return frac * 40 - 20
+            }),
         [text]
     )
 
