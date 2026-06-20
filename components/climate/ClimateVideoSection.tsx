@@ -13,8 +13,6 @@ const URLS = [
   '/videos/climate/5.mp4',
 ];
 
-const TRANS_TYPES = [0, 2, 1, 0, 2];
-
 const SLIDE_TEXTS = [
   "In Shimla, your skin feels dry, tight and flaky",
   "In Jaipur, the very same skin turns oily, sticky and pigmented",
@@ -67,15 +65,21 @@ export default function ClimateVideoSection() {
 
   uniform sampler2D uTexA;
   uniform sampler2D uTexB;
-  uniform float     uProgress;   
-  uniform float     uAspect;     
+  uniform float     uProgress;
+  uniform float     uAspect;
   uniform float     uAspectA;
   uniform float     uAspectB;
+  uniform float     uTime;
 
-  vec2 coverUV(vec2 uv, float imgAspect){
+  // Hash noise for film grain
+  float hash(vec2 p) {
+    return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+  }
+
+  vec2 coverUV(vec2 uv, float imgAspect) {
     float vAspect = uAspect;
     vec2 scale = vec2(1.0);
-    if(vAspect > imgAspect){
+    if (vAspect > imgAspect) {
       scale.y = imgAspect / vAspect;
     } else {
       scale.x = vAspect / imgAspect;
@@ -83,23 +87,87 @@ export default function ClimateVideoSection() {
     return (uv - 0.5) * scale + 0.5;
   }
 
-  void main(){
-    float p  = clamp(uProgress, 0.0, 1.0);
-    vec2  uv = vUv;
+  void main() {
+    float p = clamp(uProgress, 0.0, 1.0);
+    vec2 uv = vUv;
 
-    vec2 uvA = coverUV(uv, uAspectA);
-    vec2 uvB = coverUV(uv, uAspectB);
+    // ── Phase calculations ──
+    // Phase 1: Solar Overwhelm  (p 0.00 → 0.35)
+    // Phase 2: The Blind Spot   (p 0.35 → 0.55)
+    // Phase 3: Iris Recovery    (p 0.55 → 1.00)
 
-    vec4 cA = texture2D(uTexA, clamp(uvA,0.0,1.0));
-    vec4 cB = texture2D(uTexB, clamp(uvB,0.0,1.0));
+    float chromaAmount = 0.0;
+    float exposure     = 0.0;
+    float grainAmount  = 0.0;
+    float zoomAmount   = 0.0;
+    float showB        = 0.0;
 
-    // Pure, simple crossfade
-    vec4 finalCol = mix(cA, cB, p);
-    
-    // Darken slightly for text readability
-    finalCol.rgb *= 0.85;
+    if (p < 0.35) {
+      float t = p / 0.35;
+      float s = t * t * (3.0 - 2.0 * t);  // smoothstep
+      chromaAmount = s * 0.018;
+      exposure     = s;
+      grainAmount  = 0.0;
+      zoomAmount   = s * 0.03;
+      showB        = 0.0;
+    } else if (p < 0.55) {
+      float t = (p - 0.35) / 0.2;
+      chromaAmount = mix(0.018, 0.012, t);
+      exposure     = 1.0;
+      grainAmount  = sin(t * 3.14159) * 0.04;
+      zoomAmount   = 0.03;
+      showB        = step(0.5, t);  // hard swap at p=0.45, invisible under gold
+    } else {
+      float t = (p - 0.55) / 0.45;
+      float s = t * t * (3.0 - 2.0 * t);
+      chromaAmount = mix(0.012, 0.0, s);
+      exposure     = mix(1.0, 0.0, s);
+      grainAmount  = mix(0.03, 0.0, s);
+      zoomAmount   = mix(0.03, 0.0, s);
+      showB        = 1.0;
+    }
 
-    gl_FragColor = finalCol;
+    // ── Radial zoom from center ──
+    vec2 center = vec2(0.5);
+    vec2 zUV = center + (uv - center) / (1.0 + zoomAmount);
+
+    // ── Chromatic aberration: shift R left, B right ──
+    vec2 chromaOff = vec2(chromaAmount, 0.0);
+
+    // ── Sample the active texture ──
+    vec4 color;
+    if (showB < 0.5) {
+      vec2 uvA   = coverUV(zUV, uAspectA);
+      vec2 uvA_r = coverUV(zUV - chromaOff, uAspectA);
+      vec2 uvA_b = coverUV(zUV + chromaOff, uAspectA);
+      color.r = texture2D(uTexA, clamp(uvA_r, 0.0, 1.0)).r;
+      color.g = texture2D(uTexA, clamp(uvA,   0.0, 1.0)).g;
+      color.b = texture2D(uTexA, clamp(uvA_b, 0.0, 1.0)).b;
+      color.a = 1.0;
+    } else {
+      vec2 uvB   = coverUV(zUV, uAspectB);
+      vec2 uvB_r = coverUV(zUV - chromaOff, uAspectB);
+      vec2 uvB_b = coverUV(zUV + chromaOff, uAspectB);
+      color.r = texture2D(uTexB, clamp(uvB_r, 0.0, 1.0)).r;
+      color.g = texture2D(uTexB, clamp(uvB,   0.0, 1.0)).g;
+      color.b = texture2D(uTexB, clamp(uvB_b, 0.0, 1.0)).b;
+      color.a = 1.0;
+    }
+
+    // ── Overexposure toward warm sun gold ──
+    vec3 sunGold = vec3(1.0, 0.933, 0.733);
+    color.rgb = mix(color.rgb, sunGold, exposure * 0.92);
+
+    // ── Film grain (Phase 2 only) ──
+    if (grainAmount > 0.001) {
+      float grain = (hash(uv * vec2(1920.0, 1080.0) + uTime * 137.0) - 0.5) * grainAmount;
+      color.rgb += grain;
+    }
+
+    // ── Darken for text readability (suppressed during overexposure) ──
+    color.rgb *= mix(0.85, 1.0, exposure);
+
+    gl_FragColor = color;
   }
 `;
 
@@ -113,6 +181,7 @@ export default function ClimateVideoSection() {
         uAspect: { value: window.innerWidth / window.innerHeight },
         uAspectA: { value: 16.0 / 9.0 },
         uAspectB: { value: 16.0 / 9.0 },
+        uTime: { value: 0.0 },
       },
       depthWrite: false,
       depthTest: false
@@ -164,9 +233,11 @@ export default function ClimateVideoSection() {
     mat.uniforms.uTexA.value = textures[0];
     mat.uniforms.uTexB.value = textures[1];
 
+    const clock = new THREE.Clock();
     let reqId: number;
     const animate = () => {
       reqId = requestAnimationFrame(animate);
+      mat.uniforms.uTime.value = clock.getElapsedTime();
       renderer.render(scene, camera);
     };
     animate();
@@ -214,51 +285,94 @@ export default function ClimateVideoSection() {
       if (!st) return;
       isAnimating = true;
 
-      // Hide old text instantly
-      hideSlideText(fromIdx);
+      // ── Phase 1 choreography: fade out old text (floats up as sun overwhelms) ──
+      const oldEl = textRefs.current[fromIdx];
+      if (oldEl) {
+        gsap.to(oldEl, {
+          opacity: 0,
+          y: -20,
+          duration: 0.35,
+          ease: "power2.in"
+        });
+        const chars = oldEl.querySelectorAll('.char-span');
+        gsap.to(chars, {
+          opacity: 0,
+          duration: 0.25,
+          stagger: 0.008,
+          ease: "power2.in"
+        });
+        oldEl.dataset.typing = "false";
+      }
 
-      // Sync WebGL
+      // ── Sync WebGL textures ──
       mat.uniforms.uTexA.value = textures[fromIdx];
       mat.uniforms.uAspectA.value = aspectRatios[fromIdx];
       mat.uniforms.uTexB.value = textures[toIdx];
       mat.uniforms.uAspectB.value = aspectRatios[toIdx];
       mat.uniforms.uProgress.value = 0.0;
 
-      // Sync Videos
+      // ── Sync videos ──
       videoElements.forEach((vid, i) => {
         if (i === fromIdx || i === toIdx) {
-          if (vid.paused && vid.readyState >= 2) vid.play().catch(() => { });
+          if (vid.paused && vid.readyState >= 2) vid.play().catch(() => {});
         } else {
           if (!vid.paused) vid.pause();
         }
       });
 
-      // Quick visual swap
+      // ── Solar Overwhelm: 1.0s transition with power2.inOut ease ──
       gsap.to(mat.uniforms.uProgress, {
         value: 1.0,
-        duration: 0.05,
-        ease: "none"
+        duration: 1.0,
+        ease: "power2.inOut"
       });
 
-      // Animate the scroll position to target slide scroll position
+      // ── Phase 3 choreography: reveal new text + update dots at 650ms ──
+      gsap.delayedCall(0.65, () => {
+        const newEl = textRefs.current[toIdx];
+        if (newEl) {
+          newEl.style.opacity = "1";
+          newEl.style.transform = "translateY(0px)";
+          const chars = newEl.querySelectorAll('.char-span');
+          gsap.killTweensOf(chars);
+          gsap.fromTo(chars,
+            { opacity: 0, x: -5 },
+            { opacity: 1, x: 0, duration: 0.15, stagger: 0.015, ease: "power2.out", overwrite: true }
+          );
+          newEl.dataset.typing = "true";
+        }
+
+        // Dots animate smoothly (not instant snap)
+        dotsRef.current.forEach((dot, i) => {
+          if (!dot) return;
+          if (i === toIdx) {
+            gsap.to(dot, { opacity: 1, scale: 1.5, duration: 0.3, ease: "power2.out" });
+            dot.style.boxShadow = '0 0 10px rgba(166,42,44,0.8)';
+          } else {
+            gsap.to(dot, { opacity: 0.3, scale: 1, duration: 0.3, ease: "power2.out" });
+            dot.style.boxShadow = 'none';
+          }
+        });
+      });
+
+      // ── Scroll position sync (matches transition duration) ──
       const targetScroll = st.start + (toIdx / (N - 1)) * (st.end - st.start);
       const scrollObj = { y: st.scroll() };
 
       gsap.to(scrollObj, {
         y: targetScroll,
-        duration: 0.5,
-        ease: "power2.out",
+        duration: 1.0,
+        ease: "power2.inOut",
         overwrite: "auto",
         onUpdate: () => {
           st.scroll(scrollObj.y);
         },
         onComplete: () => {
           activeIdx = toIdx;
-          showSlideText(toIdx);
-
+          // Extended cooldown: 1.0s transition + 300ms momentum absorption
           setTimeout(() => {
             isAnimating = false;
-          }, 150);
+          }, 300);
         }
       });
     };
