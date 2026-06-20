@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import ScrollProgressBar from '../components/ScrollProgressBar';
 import LoadingScreen from '../components/LoadingScreen';
 import HeroSection from '../components/HeroSection';
 import CustomCursor from '../components/CustomCursor';
@@ -119,6 +120,8 @@ export default function Home() {
 
   return (
     <main ref={mainRef} className="relative w-full min-h-screen overflow-clip">
+      <ScrollProgressBar />
+
       {/* Global Molten Core Background */}
       <div id="global-bg" className="theme-molten-core" />
 
