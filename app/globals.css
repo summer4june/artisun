@@ -79,16 +79,13 @@ html.lenis, html.lenis body {
 }
 /* 2. The Molten Core Gradient Curve */
 .theme-molten-core {
-    background: radial-gradient(circle at 50% 100vh, 
-        #FF8C22 0vh,    /* Molten orange core at bottom of viewport */
-        #E05018 12.5vh, /* Intermediate stop for smoothness */
-        #C1140F 25vh,   /* Bright red */
-        #8A0A0B 40vh,   /* Intermediate stop */
-        #530007 55vh,   /* Deep crimson */
-        #390005 67.5vh, /* Intermediate stop */
-        #200004 80vh,   /* Near black/red */
-        #120204 90vh,   /* Intermediate stop */
-        #050505 100vh   /* Pure black at top */
+    background: radial-gradient(circle at 50% 110vh,
+        #E8601A  0vh,
+        #B52010  30vh,
+        #7A0808  55vh,
+        #3D0305  75vh,
+        #180102  90vh,
+        #050505  110vh
     );
 }
 
