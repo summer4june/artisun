@@ -26,11 +26,20 @@ export default function HeroSection({ mouseProxy }: { mouseProxy: { current: { x
           />
         </div>
         
-        <p 
+        <p
           ref={subtitleRef}
-          className="relative z-10 font-editorial font-normal text-xl md:text-[30px] text-[var(--brand-cream)] hero-subtitle opacity-0 translate-y-4 mt-2 md:mt-4"
+          className="relative z-10 font-editorial font-normal text-xl md:text-[30px] text-[var(--brand-cream)] mt-2 md:mt-4 flex flex-wrap justify-center"
+          style={{ gap: '0 0.3em' }}
         >
-          A new language of Suncare
+          {["A", "new", "language", "of", "Suncare"].map((word, i) => (
+            <span
+              key={i}
+              className="hero-subtitle-word inline-block opacity-0"
+              style={{ willChange: 'transform, opacity, filter' }}
+            >
+              {word}
+            </span>
+          ))}
         </p>
       </div>
       

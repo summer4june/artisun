@@ -71,13 +71,22 @@ export default function Home() {
         { opacity: 1, scale: 1, y: 0, duration: 1.2, ease: 'power3.out' }
       );
       
-      // Hero Subtitle float in
-      tl.to('.hero-subtitle', {
-        opacity: 1,
-        y: 0,
-        duration: 1.0,
-        ease: 'power2.out'
-      }, '-=0.6');
+      // Hero Subtitle — word by word entrance (Effect 9 adapted, half-intensity)
+      // Each word materialises from a slight atmospheric haze — 6 words, 0.09s apart.
+      // Calmer and more effortless than the section word reveals.
+      // The blur is 3px (not 12px) — a whisper of haze, not a dramatic reveal.
+      tl.fromTo('.hero-subtitle-word',
+        { opacity: 0, y: 20, filter: 'blur(3px)' },
+        {
+          opacity: 1,
+          y: 0,
+          filter: 'blur(0px)',
+          stagger: 0.09,
+          duration: 1.0,
+          ease: 'power4.out',
+        },
+        '-=0.6'   // keeps the same overlap with the logo animation as before
+      );
 
       // Top Header (Logo, Bottles, Cart) fade in
       tl.to('.hero-header', {
