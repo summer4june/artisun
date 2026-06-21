@@ -35,11 +35,27 @@ export function preloadAll(onProgress: (progress: number) => void): Promise<void
     let loadedCount = 0;
     const totalAssets = IMAGES.length + VIDEOS.length + MODELS.length;
 
+    let isResolved = false;
+
+    const forceResolve = () => {
+      if (isResolved) return;
+      isResolved = true;
+      onProgress(100);
+      resolve();
+    };
+
+    // Fallback timeout: If network is slow or an asset silently hangs, 
+    // let the user through after 8 seconds.
+    setTimeout(() => {
+      forceResolve();
+    }, 8000);
+
     const updateProgress = () => {
+      if (isResolved) return;
       loadedCount++;
       onProgress(Math.floor((loadedCount / totalAssets) * 100));
-      if (loadedCount === totalAssets) {
-        resolve();
+      if (loadedCount >= totalAssets) {
+        forceResolve();
       }
     };
 
@@ -54,6 +70,7 @@ export function preloadAll(onProgress: (progress: number) => void): Promise<void
       const img = new Image();
       img.onload = updateProgress;
       img.onerror = updateProgress;
+      img.onabort = updateProgress;
       img.src = src;
       preloadedAssets.images[src] = img;
     });
