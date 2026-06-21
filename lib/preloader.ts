@@ -75,19 +75,27 @@ export function preloadAll(onProgress: (progress: number) => void): Promise<void
       preloadedAssets.images[src] = img;
     });
 
-    // Preload Videos as Blob URLs
+    // Preload Videos by buffering metadata/cache, NOT blob()
+    // Fetching large MP4 blobs consumes excessive RAM and crashes mobile browsers.
     VIDEOS.forEach((src) => {
-      fetch(src)
-        .then(response => response.blob())
-        .then(blob => {
-          preloadedAssets.videos[src] = URL.createObjectURL(blob);
-          updateProgress();
-        })
-        .catch(err => {
-          console.error("Failed to preload video:", src, err);
-          preloadedAssets.videos[src] = src; // fallback to original src
-          updateProgress();
-        });
+      const vid = document.createElement('video');
+      vid.preload = 'auto';
+      vid.muted = true;
+      vid.playsInline = true;
+      
+      const handleVideoLoaded = () => {
+        vid.oncanplay = null;
+        vid.onloadedmetadata = null;
+        preloadedAssets.videos[src] = src; // Browser has it cached now
+        updateProgress();
+      };
+      
+      vid.oncanplay = handleVideoLoaded;
+      vid.onloadedmetadata = handleVideoLoaded;
+      vid.onerror = handleVideoLoaded; // even if it errors, we must progress
+      
+      vid.src = src;
+      vid.load(); // trigger fetch
     });
 
     // Preload Models

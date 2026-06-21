@@ -57,6 +57,11 @@ export default function LoadingScreen({ onComplete, progress = 0 }: { onComplete
   }, [progress]);
 
   // 3. Completion Trigger
+  const onCompleteRef = useRef(onComplete);
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
+
   useEffect(() => {
     if (progress >= 100 && pathRef.current && captionRef.current && overlayRef.current) {
       const tl = gsap.timeline();
@@ -87,13 +92,13 @@ export default function LoadingScreen({ onComplete, progress = 0 }: { onComplete
 
       // Final Cleanup and Reveal
       tl.add(() => {
-        onComplete();
         gsap.to(overlayRef.current, {
           y: '-100%',
           duration: 1.2,
           ease: 'expo.inOut',
           delay: 0.1,
           onComplete: () => {
+            onCompleteRef.current();
             if (containerRef.current) {
                containerRef.current.style.display = 'none';
             }
@@ -105,7 +110,7 @@ export default function LoadingScreen({ onComplete, progress = 0 }: { onComplete
         tl.kill();
       };
     }
-  }, [progress, onComplete]);
+  }, [progress]);
 
   return (
     <div ref={containerRef} className="fixed inset-0 z-[1000] bg-[#f6efe4] flex items-center justify-center">
