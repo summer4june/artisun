@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { Timer } from 'three/src/core/Timer.js';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -114,7 +115,7 @@ export default function EarthSection() {
 
     let mixer: THREE.AnimationMixer | null = null;
     let globeModel: THREE.Object3D | null = null;
-    const clock = new THREE.Clock();
+    const timer = new Timer();
     let frameId = 0;
     let isVisible = false;
     let isLoaded = false;
@@ -340,7 +341,10 @@ export default function EarthSection() {
 
     const tick = () => {
       frameId = requestAnimationFrame(tick);
-      if (isVisible && isLoaded) renderFrame(clock.getDelta());
+      if (isVisible && isLoaded) {
+        timer.update();
+        renderFrame(timer.getDelta());
+      }
     };
     frameId = requestAnimationFrame(tick);
 

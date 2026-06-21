@@ -170,12 +170,18 @@ export default function Home() {
       
       <TextRevealSection />
 
-      <ClimateVideoSection />
+      {/* Wrapper added to fix Next.js / GSAP DOM mismatch on dynamic components */}
+      <div className="relative w-full">
+        <ClimateVideoSection />
+      </div>
 
       {/* New evolution text section */}
       <EvolutionSection />
 
-      <EarthSection />
+      {/* Wrapper added to fix Next.js / GSAP DOM mismatch on dynamic components */}
+      <div className="relative w-full">
+        <EarthSection />
+      </div>
 
       {/* Unified cinematic crossfade section */}
       <SuncareShiftSection />
@@ -189,7 +195,10 @@ export default function Home() {
       {/* Cinematic zoom-through Keyhole transition */}
       <KeyholeSection />
 
-      <ProductsSection />
+      {/* Wrapper added to fix Next.js / GSAP DOM mismatch on dynamic components */}
+      <div className="relative w-full">
+        <ProductsSection />
+      </div>
 
       {/* Main Footer */}
       <Footer />

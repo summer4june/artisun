@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { Timer } from 'three/src/core/Timer.js';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
 import { preloadedAssets } from '../../lib/preloader';
@@ -254,11 +255,15 @@ export default function ClimateVideoSection() {
     mat.uniforms.uTexA.value = textures[0];
     mat.uniforms.uTexB.value = textures[1];
 
-    const clock = new THREE.Clock();
+    const timer = new Timer();
     let reqId: number;
+
     const animate = () => {
       reqId = requestAnimationFrame(animate);
-      mat.uniforms.uTime.value = clock.getElapsedTime();
+      timer.update();
+      if (mat) {
+        mat.uniforms.uTime.value = timer.getElapsed();
+      }
       renderer.render(scene, camera);
     };
     animate();
