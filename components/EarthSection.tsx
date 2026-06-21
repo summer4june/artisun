@@ -240,6 +240,28 @@ export default function EarthSection() {
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(container);
 
+    // ── ENTRY: Globe Emergence ──
+    // The entire section rises from below with a slight scale-up.
+    // The Earth literally emerges into frame — earned, cinematic.
+    gsap.set(sectionRef.current, {
+      opacity: 0,
+      y: 60,
+      scale: 0.97,
+    });
+
+    ScrollTrigger.create({
+      trigger: sectionRef.current,
+      start: 'top 85%',
+      end: 'top 25%',
+      scrub: 2,
+      animation: gsap.to(sectionRef.current, {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        ease: 'power3.out',
+      }),
+    });
+
     const handleVisibilityChange = () => {
       if (document.hidden) isVisible = false;
     };

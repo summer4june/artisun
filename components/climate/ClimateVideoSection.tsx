@@ -26,6 +26,7 @@ export default function ClimateVideoSection() {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const irisRef = useRef<HTMLDivElement>(null);
 
   // Refs for direct GSAP DOM manipulation (bypassing React state for 60fps scrubbing)
   const textRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -36,6 +37,24 @@ export default function ClimateVideoSection() {
 
     const N = URLS.length;
     if (!canvasRef.current || !containerRef.current) return;
+
+    // ── ENTRY: Solar Iris ──
+    // A black circular mask shrinks from covering the whole screen down to nothing.
+    // Reveals the video beneath like an eye/iris opening. Runs before the section pins.
+    gsap.set(irisRef.current, {
+      clipPath: 'circle(150% at 50% 50%)',   // fully covers the section
+    });
+
+    ScrollTrigger.create({
+      trigger: containerRef.current,
+      start: 'top 90%',       // starts when Climate is 90% into viewport from below
+      end: 'top top',         // ends when Climate hits the top (pin activates here)
+      scrub: 2,
+      animation: gsap.to(irisRef.current, {
+        clipPath: 'circle(0% at 50% 50%)',   // contracts to nothing, fully revealed
+        ease: 'power2.inOut',
+      }),
+    });
 
     const renderer = new THREE.WebGLRenderer({ canvas: canvasRef.current, antialias: false, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -593,6 +612,14 @@ export default function ClimateVideoSection() {
 
         </div>
       </div>
+
+      {/* Solar Iris Entry Overlay — contracts from black to reveal video on entry */}
+      {/* z-[50] sits above canvas, dots, text — cleared before pin activates */}
+      <div
+        ref={irisRef}
+        className="absolute inset-0 bg-black pointer-events-none z-[50]"
+        style={{ willChange: 'clip-path' }}
+      />
     </section>
   );
 }

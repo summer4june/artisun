@@ -39,7 +39,7 @@ export default function CustomCursor({ mouseProxy }: { mouseProxy: { current: { 
   useEffect(() => {
     const handleMouseOver = (e: MouseEvent) => {
       if ((e.target as HTMLElement).closest('a, button')) {
-        gsap.to(dotRef.current, { scale: 1.8, duration: 0.2, ease: 'power2.out' });
+        gsap.to(dotRef.current, { scale: 2.5, duration: 0.2, ease: 'power2.out' });
       } else {
         gsap.to(dotRef.current, { scale: 1, duration: 0.2, ease: 'power2.out' });
       }
@@ -49,9 +49,10 @@ export default function CustomCursor({ mouseProxy }: { mouseProxy: { current: { 
   }, []);
 
   return (
-    <div 
+    <div
       ref={dotRef}
-      className="fixed top-0 left-0 w-3 h-3 rounded-full pointer-events-none z-[100] bg-[var(--brand-cream)] shadow-[0_0_12px_2px_rgba(232,220,200,0.8),0_0_24px_5px_rgba(201,59,26,0.6)]"
+      className="fixed top-0 left-0 w-4 h-4 rounded-full pointer-events-none z-[9999] bg-[var(--brand-cream)] shadow-[0_0_14px_3px_rgba(232,220,200,0.85),0_0_28px_6px_rgba(201,59,26,0.65)]"
+      style={{ mixBlendMode: 'exclusion' }}
       aria-hidden="true"
     />
   );

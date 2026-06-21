@@ -51,6 +51,25 @@ export default function ProductsSection() {
       gsap.set(bottle2Ref.current, { scale: 0.5, x: '25vw', y: '-5vh', z: -1200, rotationY: -35, opacity: 0 });
       gsap.set(bottle1Ref.current, { scale: 1, x: '10vw', y: '0vh', z: 0, rotationY: -5, opacity: 1 });
 
+      // ── ENTRY: Stage Rise ──
+      // Section rises from the bottom edge of the screen like a theater curtain.
+      // Products is the payoff of the entire site narrative — deserves a theatrical entry.
+      // polygon animates from a collapsed bottom line to a full rectangle.
+      gsap.set(containerRef.current, {
+        clipPath: 'polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%)',
+      });
+
+      ScrollTrigger.create({
+        trigger: containerRef.current,
+        start: 'top 90%',
+        end: 'top top',
+        scrub: 2,
+        animation: gsap.to(containerRef.current, {
+          clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)',
+          ease: 'power2.inOut',
+        }),
+      });
+
       const tl = gsap.timeline({ paused: true });
 
       // The Veloretti True 3D Carousel Push (Optimized)

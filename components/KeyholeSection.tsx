@@ -13,6 +13,25 @@ export default function KeyholeSection() {
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
+    // ── ENTRY: Horizontal Tear ──
+    // Section appears as a 4% horizontal slit at center of screen.
+    // Expands outward — top half rises, bottom half drops — a tear.
+    // The most dramatic entry on the site. Earns the keyhole reveal.
+    gsap.set(containerRef.current, {
+      clipPath: 'inset(48% 0% 48% 0%)',
+    });
+
+    ScrollTrigger.create({
+      trigger: containerRef.current,
+      start: 'top 90%',
+      end: 'top top',
+      scrub: 2,
+      animation: gsap.to(containerRef.current, {
+        clipPath: 'inset(0% 0% 0% 0%)',
+        ease: 'power3.inOut',
+      }),
+    });
+
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: containerRef.current,
@@ -25,7 +44,7 @@ export default function KeyholeSection() {
 
     // 1. Zoom the keyhole massively so the viewer "enters" it
     tl.to(svgRef.current, {
-      scale: 50, // Scale it up until the transparent hole covers the entire screen
+      scale: 40, // Scale it up until the transparent hole covers the entire screen
       duration: 3,
       ease: "power2.inOut",
     }, 0); // Start at absolute time 0
@@ -74,7 +93,7 @@ export default function KeyholeSection() {
           alt="Keyhole View"
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-black/20"></div>
+        <div className="absolute inset-0 bg-black/50"></div>
       </div>
 
       {/* The new text content. Appears after the image fades out. */}
@@ -85,7 +104,7 @@ export default function KeyholeSection() {
         <h2 className="font-editorial font-normal text-[40px] md:text-[64px] lg:text-[80px] text-white leading-tight tracking-wide">
           Welcome to Climate-smart Skinwear™
         </h2>
-        <p className="font-inter font-normal text-white mt-4 text-[20px] md:text-[28px]">
+        <p className="font-editorial font-normal text-white/80 mt-4 text-[20px] md:text-[28px] tracking-wide">
           Clothing for your skin, built for daily life.
         </p>
       </div>

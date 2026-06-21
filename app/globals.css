@@ -110,3 +110,17 @@ html.lenis, html.lenis body {
     50% { transform: translateX(5vw); }
     100% { transform: translateX(-5vw); }
 }
+
+/* Scroll indicator — vertical line pulse */
+@keyframes scrollLinePulse {
+  0%, 100% { opacity: 0.25; }
+  50%       { opacity: 0.85; }
+}
+
+/* Scroll indicator — dot falls down the line */
+@keyframes scrollDotDrop {
+  0%   { transform: translateY(-10px); opacity: 0;   }
+  30%  { opacity: 0.8; }
+  70%  { opacity: 0.6; }
+  100% { transform: translateY(10px);  opacity: 0;   }
+}

@@ -23,6 +23,25 @@ export default function SuncareShiftSection() {
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
+    // ── ENTRY: Blade Reveal ──
+    // Section is hidden behind a left-edge clip. A blade sweeps right,
+    // revealing the lifestyle photo. The "shift" begins with a decisive cut.
+    // Runs during the 90vh scroll window before the section pins.
+    gsap.set(containerRef.current, {
+      clipPath: 'polygon(0% 0%, 0% 0%, 0% 100%, 0% 100%)',
+    });
+
+    ScrollTrigger.create({
+      trigger: containerRef.current,
+      start: 'top 90%',
+      end: 'top top',
+      scrub: 2,
+      animation: gsap.to(containerRef.current, {
+        clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)',
+        ease: 'power2.inOut',
+      }),
+    });
+
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: containerRef.current,
@@ -93,7 +112,7 @@ export default function SuncareShiftSection() {
           alt="A New Language of Suncare Blurred" 
           className="w-full h-full object-cover scale-[1.05]"
         />
-        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="absolute inset-0 bg-black/30"></div>
       </div>
 
       {/* Background Image Layer 2: Sharp (Starts Hidden) */}
@@ -104,7 +123,7 @@ export default function SuncareShiftSection() {
           alt="A New Language of Suncare Sharp" 
           className="w-full h-full object-cover scale-[1.05]"
         />
-        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="absolute inset-0 bg-black/20"></div>
       </div>
 
       {/* Foreground Text */}

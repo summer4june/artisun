@@ -124,6 +124,20 @@ export default function Home() {
           { opacity: 0, ease: 'none' }
         )
       });
+      // ── Hero EXIT: Gravity Pull ──
+      // As user scrolls past the hero, content drifts up and fades.
+      // The logo and subtitle float away — camera falls into the story.
+      ScrollTrigger.create({
+        trigger: '.hero-content-inner',
+        start: 'top top',
+        end: '+=220',
+        scrub: 1.5,
+        animation: gsap.to('.hero-content-inner', {
+          y: -50,
+          opacity: 0,
+          ease: 'none',
+        }),
+      });
     }
   }, [loadingComplete]);
 

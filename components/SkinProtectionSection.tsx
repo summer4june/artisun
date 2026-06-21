@@ -81,7 +81,7 @@ export default function SkinProtectionSection() {
           src="/a-new-language-of-suncare-3.png" 
           alt="Skin Protection Multiple Forms" 
           // Starts highly blurred and zoomed in. GSAP will animate this down to blur-4px and scale-1.02
-          className="w-full h-full object-cover scale-[1.15] blur-[16px]"
+          className="w-full h-full object-cover scale-[1.08] blur-[16px]"
           style={{ willChange: 'transform, filter' }}
         />
         {/* Cinematic darkening overlay to make the bright white text pop perfectly */}

@@ -10,6 +10,7 @@ const line2 = "occasions and environments,";
 export default function ClothingSection() {
   const containerRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const slashRef = useRef<HTMLDivElement>(null);
 
   const words1Ref = useRef<(HTMLSpanElement | null)[]>([]);
   const words2Ref = useRef<(HTMLSpanElement | null)[]>([]);
@@ -20,10 +21,31 @@ export default function ClothingSection() {
   useEffect(() => {
     // Reduce video playback speed by 30%
     if (videoRef.current) {
-      videoRef.current.playbackRate = 0.3;
+      videoRef.current.playbackRate = 0.6;
     }
 
     gsap.registerPlugin(ScrollTrigger);
+
+    // ── ENTRY: Diagonal Slash ──
+    // A rotated black panel translates off to the right at 12°.
+    // The section is revealed at an angle — fashion editorial, distinctive.
+    // The 200% width ensures the rotated panel has no gaps at screen edges.
+    gsap.set(slashRef.current, {
+      x: '-5%',
+      rotate: 12,
+    });
+
+    ScrollTrigger.create({
+      trigger: containerRef.current,
+      start: 'top 90%',
+      end: 'top top',
+      scrub: 2,
+      animation: gsap.to(slashRef.current, {
+        x: '160%',
+        rotate: 12,
+        ease: 'power2.inOut',
+      }),
+    });
 
     const tl = gsap.timeline({
       scrollTrigger: {
@@ -83,7 +105,7 @@ export default function ClothingSection() {
           <source src="/6th-vid.mp4" type="video/mp4" />
         </video>
         {/* Darkening overlay just in case the video needs dimming for text readability */}
-        <div className="absolute inset-0 bg-black/20"></div>
+        <div className="absolute inset-0 bg-black/40"></div>
       </div>
 
       {/* Foreground Text */}
@@ -118,6 +140,22 @@ export default function ClothingSection() {
         </div>
 
       </div>
+
+      {/* Diagonal Slash Entry Overlay */}
+      {/* A rotated black panel that translates off to the right as section enters */}
+      <div
+        ref={slashRef}
+        className="absolute pointer-events-none z-[25]"
+        style={{
+          top: '-50%',
+          left: '-50%',
+          width: '200%',
+          height: '200%',
+          background: '#030101',
+          transformOrigin: 'center center',
+          willChange: 'transform',
+        }}
+      />
     </section>
   );
 }
