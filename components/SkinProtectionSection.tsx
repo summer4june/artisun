@@ -30,18 +30,29 @@ export default function SkinProtectionSection() {
       }
     });
 
-    // Creative Background Animation: Focus pull & subtle zoom out
-    // It starts very blurred and zoomed in, and resolves to slightly blurred as requested.
+    // Fix: image resolves to fully sharp (blur 0px, not 4px)
+    // The whole section is about "skin protection in multiple forms" — it should be CLEAR
     tl.to(bgRef.current, {
-      filter: "blur(4px)",
-      scale: 1.02,
+      filter: "blur(0px)",
+      scale: 1.0,
       duration: 1,
       ease: "power2.out"
     }, 0);
 
-    // Reveal Line 1 and 2 concurrently with the background focus pull
-    tl.to(words1Ref.current, { opacity: 1, stagger: 0.05, ease: "none" }, 0);
-    tl.to(words2Ref.current, { opacity: 1, stagger: 0.05, ease: "none" }, 0.2);
+    // words1 — Effect 9: blur dissolve from below
+    // Image sharpens, words sharpen — unified visual language
+    tl.fromTo(words1Ref.current,
+      { opacity: 0, y: 40, filter: "blur(12px)" },
+      { opacity: 1, y: 0, filter: "blur(0px)", stagger: 0.05, ease: "power3.out" },
+      0
+    );
+
+    // words2 — same effect, slight offset
+    tl.fromTo(words2Ref.current,
+      { opacity: 0, y: 40, filter: "blur(12px)" },
+      { opacity: 1, y: 0, filter: "blur(0px)", stagger: 0.05, ease: "power3.out" },
+      0.2
+    );
 
     // Hold the final frame briefly before unpinning
     tl.to({}, { duration: 0.5 });
@@ -83,10 +94,11 @@ export default function SkinProtectionSection() {
         {/* Line 1 */}
         <div className="mb-[0.2em] flex flex-wrap justify-start gap-x-[0.25em] gap-y-[0.15em] w-full">
           {line1.split(" ").map((word, wordIndex) => (
-            <span 
-              key={`l1-${wordIndex}`} 
-              ref={el => { if (el) words1Ref.current.push(el); }} 
-              className="opacity-15"
+            <span
+              key={`l1-${wordIndex}`}
+              ref={el => { if (el) words1Ref.current.push(el); }}
+              className="opacity-0"
+              style={{ willChange: 'transform, opacity, filter', display: 'inline-block' }}
             >
               {word}
             </span>
@@ -96,10 +108,11 @@ export default function SkinProtectionSection() {
         {/* Line 2 */}
         <div className="flex flex-wrap justify-start gap-x-[0.25em] gap-y-[0.15em] w-full">
           {line2.split(" ").map((word, wordIndex) => (
-            <span 
-              key={`l2-${wordIndex}`} 
-              ref={el => { if (el) words2Ref.current.push(el); }} 
-              className="opacity-15"
+            <span
+              key={`l2-${wordIndex}`}
+              ref={el => { if (el) words2Ref.current.push(el); }}
+              className="opacity-0"
+              style={{ willChange: 'transform, opacity, filter', display: 'inline-block' }}
             >
               {word}
             </span>

@@ -34,8 +34,19 @@ export default function SuncareShiftSection() {
     });
 
     // 1. Reveal Line 1 and 2
-    tl.to(words1Ref.current, { opacity: 1, stagger: 0.05, ease: "none" });
-    tl.to(words2Ref.current, { opacity: 1, stagger: 0.05, ease: "none" }, "+=0.1");
+    // words1 — Effect 9: blur dissolve from below
+    // Text starts blurry and hazy, sharpens as you scroll — mirrors the image's blur mechanic
+    tl.fromTo(words1Ref.current,
+      { opacity: 0, y: 40, filter: "blur(12px)" },
+      { opacity: 1, y: 0, filter: "blur(0px)", stagger: 0.05, ease: "power3.out" }
+    );
+
+    // words2 — same effect, offset start
+    tl.fromTo(words2Ref.current,
+      { opacity: 0, y: 40, filter: "blur(12px)" },
+      { opacity: 1, y: 0, filter: "blur(0px)", stagger: 0.05, ease: "power3.out" },
+      "+=0.1"
+    );
 
     // 2. Tiny pause
     tl.to({}, { duration: 0.2 });
@@ -48,7 +59,12 @@ export default function SuncareShiftSection() {
     tl.to({}, { duration: 0.2 });
 
     // 5. Reveal Line 3
-    tl.to(words3Ref.current, { opacity: 1, stagger: 0.05, ease: "none" });
+    // words3 — Effect 9 with reduced blur (8px not 12px)
+    // Image is already sharp at this point. Only a light atmospheric haze on the new text.
+    tl.fromTo(words3Ref.current,
+      { opacity: 0, y: 30, filter: "blur(8px)" },
+      { opacity: 1, y: 0, filter: "blur(0px)", stagger: 0.05, ease: "power3.out" }
+    );
 
     // 6. Hold the final frame so it feels stuck for a moment before scrolling away
     tl.to({}, { duration: 1.5 });
@@ -97,10 +113,11 @@ export default function SuncareShiftSection() {
         {/* Line 1 */}
         <div className="mb-[0.2em] flex flex-wrap justify-start gap-x-[0.25em] gap-y-[0.15em] w-full">
           {line1.split(" ").map((word, wordIndex) => (
-            <span 
-              key={`l1-${wordIndex}`} 
-              ref={el => { if (el) words1Ref.current.push(el); }} 
-              className="opacity-15"
+            <span
+              key={`l1-${wordIndex}`}
+              ref={el => { if (el) words1Ref.current.push(el); }}
+              className="opacity-0"
+              style={{ willChange: 'transform, opacity, filter', display: 'inline-block' }}
             >
               {word}
             </span>
@@ -110,10 +127,11 @@ export default function SuncareShiftSection() {
         {/* Line 2 */}
         <div className="mb-[0.2em] flex flex-wrap justify-start gap-x-[0.25em] gap-y-[0.15em] w-full">
           {line2.split(" ").map((word, wordIndex) => (
-            <span 
-              key={`l2-${wordIndex}`} 
-              ref={el => { if (el) words2Ref.current.push(el); }} 
-              className="opacity-15"
+            <span
+              key={`l2-${wordIndex}`}
+              ref={el => { if (el) words2Ref.current.push(el); }}
+              className="opacity-0"
+              style={{ willChange: 'transform, opacity, filter', display: 'inline-block' }}
             >
               {word}
             </span>
@@ -123,10 +141,11 @@ export default function SuncareShiftSection() {
         {/* Line 3 */}
         <div className="flex flex-wrap justify-start gap-x-[0.25em] gap-y-[0.15em] w-full">
           {line3.split(" ").map((word, wordIndex) => (
-            <span 
-              key={`l3-${wordIndex}`} 
-              ref={el => { if (el) words3Ref.current.push(el); }} 
-              className="opacity-15"
+            <span
+              key={`l3-${wordIndex}`}
+              ref={el => { if (el) words3Ref.current.push(el); }}
+              className="opacity-0"
+              style={{ willChange: 'transform, opacity, filter', display: 'inline-block' }}
             >
               {word}
             </span>

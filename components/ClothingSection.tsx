@@ -36,8 +36,20 @@ export default function ClothingSection() {
     });
 
     // Reveal Line 1 and 2
-    tl.to(words1Ref.current, { opacity: 1, stagger: 0.05, ease: "none" });
-    tl.to(words2Ref.current, { opacity: 1, stagger: 0.05, ease: "none" }, "+=0.1");
+    // words1 — Effect 10: editorial skew entrance
+    // Words arrive at 8° skew and scale 0.8, straighten and expand to full size.
+    // Fashion-forward arrival suited to the slow atmospheric video environment.
+    tl.fromTo(words1Ref.current,
+      { opacity: 0, y: 40, scale: 0.8, skewY: 8 },
+      { opacity: 1, y: 0, scale: 1, skewY: 0, stagger: 0.05, ease: "power3.out" }
+    );
+
+    // words2 — same effect, offset
+    tl.fromTo(words2Ref.current,
+      { opacity: 0, y: 40, scale: 0.8, skewY: 8 },
+      { opacity: 1, y: 0, scale: 1, skewY: 0, stagger: 0.05, ease: "power3.out" },
+      "+=0.1"
+    );
 
     // Hold the final frame briefly
     tl.to({}, { duration: 0.5 });
@@ -83,7 +95,8 @@ export default function ClothingSection() {
             <span
               key={`l1-${wordIndex}`}
               ref={el => { if (el) words1Ref.current.push(el); }}
-              className="opacity-15"
+              className="opacity-0"
+              style={{ willChange: 'transform, opacity', display: 'inline-block' }}
             >
               {word}
             </span>
@@ -96,7 +109,8 @@ export default function ClothingSection() {
             <span
               key={`l2-${wordIndex}`}
               ref={el => { if (el) words2Ref.current.push(el); }}
-              className="opacity-15"
+              className="opacity-0"
+              style={{ willChange: 'transform, opacity', display: 'inline-block' }}
             >
               {word}
             </span>
