@@ -119,7 +119,7 @@ export default function SuncareShiftSection() {
       <div ref={sharpBgRef} className="absolute inset-0 z-[1] opacity-0">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img 
-          src="/a-new-language-of-suncare-2.png" 
+          src="/a-new-language-of-suncare-2.webp" 
           alt="A New Language of Suncare Sharp" 
           className="w-full h-full object-cover scale-[1.05]"
         />

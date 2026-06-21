@@ -80,8 +80,8 @@ export default function SkinProtectionSection() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img 
           ref={bgRef}
-          src="/a-new-language-of-suncare-3.png" 
-          alt="Skin Protection Multiple Forms" 
+          src="/a-new-language-of-suncare-3.webp" 
+          alt="Model side profile" 
           // Starts highly blurred and zoomed in. GSAP will animate this down to blur-0px and scale-1.0
           className="w-full h-full object-cover blur-[16px]"
           style={{ willChange: 'transform, filter' }}

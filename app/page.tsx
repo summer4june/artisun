@@ -9,14 +9,28 @@ import LoadingScreen from '../components/LoadingScreen';
 import HeroSection from '../components/HeroSection';
 import CustomCursor from '../components/CustomCursor';
 import TextRevealSection from '../components/TextRevealSection';
-import ClimateVideoSection from '../components/climate/ClimateVideoSection';
+import dynamic from 'next/dynamic';
+
+const ClimateVideoSection = dynamic(
+  () => import('../components/climate/ClimateVideoSection'),
+  { ssr: false }
+);
+
+const EarthSection = dynamic(
+  () => import('../components/EarthSection'),
+  { ssr: false }
+);
+
+const ProductsSection = dynamic(
+  () => import('../components/ProductsSection'),
+  { ssr: false }
+);
+
 import EvolutionSection from '../components/EvolutionSection';
-import EarthSection from '../components/EarthSection';
 import SuncareShiftSection from '../components/SuncareShiftSection';
 import ClothingSection from '../components/ClothingSection';
 import SkinProtectionSection from '../components/SkinProtectionSection';
 import KeyholeSection from '../components/KeyholeSection';
-import ProductsSection from '../components/ProductsSection';
 import Footer from '../components/Footer';
 import GlobalHeader from '../components/GlobalHeader';
 

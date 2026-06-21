@@ -1,11 +1,11 @@
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 const IMAGES = [
-  '/earth_back.png',
-  '/keyhole-bg.jpg',
+  '/earth_back.webp',
+  '/keyhole-bg.webp',
   '/a-new-language-of-suncare.png',
-  '/a-new-language-of-suncare-2.png',
-  '/a-new-language-of-suncare-3.png',
+  '/a-new-language-of-suncare-2.webp',
+  '/a-new-language-of-suncare-3.webp',
   '/logo.png'
 ];
 
@@ -14,11 +14,10 @@ const VIDEOS = [
   '/videos/climate/2.mp4',
   '/videos/climate/3.mp4',
   '/videos/climate/4.mp4',
-  '/videos/climate/5.mp4',
-  '/6th-vid.mp4'
+  '/videos/climate/5.mp4'
 ];
 
-const MODELS = ['/planet_earth.glb'];
+const MODELS: string[] = [];
 
 export const preloadedAssets: {
   images: Record<string, HTMLImageElement>;
@@ -75,28 +74,33 @@ export function preloadAll(onProgress: (progress: number) => void): Promise<void
       preloadedAssets.images[src] = img;
     });
 
-    // Preload Videos by buffering metadata/cache, NOT blob()
-    // Fetching large MP4 blobs consumes excessive RAM and crashes mobile browsers.
-    VIDEOS.forEach((src) => {
+    // Preload Videos by buffering metadata/cache
+    // Use staggered loading so bandwidth isn't saturated simultaneously
+    const loadVideoStaggered = (videos: string[], index: number) => {
+      if (index >= videos.length) return;
+      const src = videos[index];
       const vid = document.createElement('video');
       vid.preload = 'auto';
       vid.muted = true;
       vid.playsInline = true;
-      
-      const handleVideoLoaded = () => {
+
+      const handleLoaded = () => {
         vid.oncanplay = null;
         vid.onloadedmetadata = null;
-        preloadedAssets.videos[src] = src; // Browser has it cached now
+        preloadedAssets.videos[src] = src;
         updateProgress();
+        // Load next video 150ms after this one starts buffering
+        setTimeout(() => loadVideoStaggered(videos, index + 1), 150);
       };
-      
-      vid.oncanplay = handleVideoLoaded;
-      vid.onloadedmetadata = handleVideoLoaded;
-      vid.onerror = handleVideoLoaded; // even if it errors, we must progress
-      
+
+      vid.oncanplay = handleLoaded;
+      vid.onloadedmetadata = handleLoaded;
+      vid.onerror = () => { updateProgress(); loadVideoStaggered(videos, index + 1); };
       vid.src = src;
-      vid.load(); // trigger fetch
-    });
+      vid.load();
+    };
+
+    loadVideoStaggered(VIDEOS, 0);
 
     // Preload Models
     MODELS.forEach((src) => {

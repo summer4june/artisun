@@ -23,9 +23,21 @@ export default function ClothingSection() {
     // Reduce video playback speed by 30%
     if (videoRef.current) {
       videoRef.current.playbackRate = 0.6;
-      if (preloadedAssets.videos['/6th-vid.mp4']) {
-        videoRef.current.src = preloadedAssets.videos['/6th-vid.mp4'];
-      }
+    }
+
+    const videoEl = videoRef.current;
+    if (videoEl) {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            videoEl.preload = 'auto';
+            videoEl.load();
+            observer.disconnect();
+          }
+        },
+        { rootMargin: '50% 0px' }  // starts loading when 50vh away from viewport
+      );
+      observer.observe(videoEl);
     }
 
     gsap.registerPlugin(ScrollTrigger);
@@ -104,9 +116,11 @@ export default function ClothingSection() {
           loop
           muted
           playsInline
+          preload="none"
           className="w-full h-full object-cover scale-[1.05]"
-          src="/6th-vid.mp4"
-        />
+        >
+          <source src="/6th-vid.mp4" type="video/mp4" />
+        </video>
         {/* Darkening overlay just in case the video needs dimming for text readability */}
         <div className="absolute inset-0 bg-black/40"></div>
       </div>

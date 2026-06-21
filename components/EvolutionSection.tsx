@@ -172,7 +172,7 @@ export default function EvolutionSection() {
       </div>
 
       {/* Warm Breath — Earth’s warmth bleeding up from below as crimson dissolves */}
-      {/* Color matches earth_back.png cream top. Pointer-events-none, z below text. */}
+      {/* Color matches earth_back.webp cream top. Pointer-events-none, z below text. */}
       <div
         ref={warmBreathRef}
         className="absolute inset-x-0 bottom-0 pointer-events-none z-[2]"

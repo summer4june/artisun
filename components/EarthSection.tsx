@@ -462,11 +462,11 @@ export default function EarthSection() {
         style={{ opacity: 0.7 }}
       />
 
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/earth_back.png"
-        alt=""
-        className="absolute inset-0 w-full h-full object-cover z-[2]"
+        {/* Warm cream background matching the transition */}
+        <img
+          src="/earth_back.webp"
+          alt="Earth Background"
+          className="absolute top-0 left-0 w-[100vw] h-auto object-cover opacity-80 z-[2]"
       />
 
       {/* Dual Atmosphere Glow — warm India side + cool opposite side */}
