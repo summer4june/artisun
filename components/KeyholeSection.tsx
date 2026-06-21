@@ -5,6 +5,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 export default function KeyholeSection() {
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const imageLayerRef = useRef<HTMLDivElement>(null);
@@ -21,7 +22,7 @@ export default function KeyholeSection() {
       clipPath: 'inset(48% 0% 48% 0%)',
     });
 
-    ScrollTrigger.create({
+    const entrySt = ScrollTrigger.create({
       trigger: containerRef.current,
       start: 'top 90%',
       end: 'top top',
@@ -34,7 +35,7 @@ export default function KeyholeSection() {
 
     const tl = gsap.timeline({
       scrollTrigger: {
-        trigger: containerRef.current,
+        trigger: wrapperRef.current,
         start: "top top",
         end: "+=200%", // Drastically shortened scroll length so it happens very quickly
         pin: true,
@@ -76,11 +77,13 @@ export default function KeyholeSection() {
         tl.scrollTrigger.kill();
       }
       tl.kill();
+      entrySt.kill();
     };
   }, []);
 
   return (
-    <section ref={containerRef} className="relative w-full h-screen bg-transparent z-10 flex flex-col items-center justify-center overflow-hidden">
+    <div ref={wrapperRef}>
+      <section ref={containerRef} className="relative w-full h-screen bg-transparent z-10 flex flex-col items-center justify-center overflow-hidden">
 
       {/* 
         The landscape image layer. 
@@ -141,6 +144,7 @@ export default function KeyholeSection() {
         </svg>
       </div>
 
-    </section>
+      </section>
+    </div>
   );
 }

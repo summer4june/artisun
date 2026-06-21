@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { preloadedAssets } from '../lib/preloader';
 
 const line1 = "Just as clothing changes with";
 const line2 = "occasions and environments,";
@@ -15,13 +16,16 @@ export default function ClothingSection() {
   const words1Ref = useRef<(HTMLSpanElement | null)[]>([]);
   const words2Ref = useRef<(HTMLSpanElement | null)[]>([]);
 
-  words1Ref.current = [];
-  words2Ref.current = [];
-
   useEffect(() => {
+    words1Ref.current = [];
+    words2Ref.current = [];
+
     // Reduce video playback speed by 30%
     if (videoRef.current) {
       videoRef.current.playbackRate = 0.6;
+      if (preloadedAssets.videos['/6th-vid.mp4']) {
+        videoRef.current.src = preloadedAssets.videos['/6th-vid.mp4'];
+      }
     }
 
     gsap.registerPlugin(ScrollTrigger);
@@ -101,9 +105,8 @@ export default function ClothingSection() {
           muted
           playsInline
           className="w-full h-full object-cover scale-[1.05]"
-        >
-          <source src="/6th-vid.mp4" type="video/mp4" />
-        </video>
+          src="/6th-vid.mp4"
+        />
         {/* Darkening overlay just in case the video needs dimming for text readability */}
         <div className="absolute inset-0 bg-black/40"></div>
       </div>

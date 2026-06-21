@@ -123,6 +123,7 @@ export default function ProductsSection() {
     return () => {
       ctx.revert(); // Proper React cleanup
       stRef.current?.kill();
+      stRef.current = null;
     };
   }, []);
 

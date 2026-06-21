@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { preloadAll } from '../lib/preloader';
 import ScrollProgressBar from '../components/ScrollProgressBar';
 import LoadingScreen from '../components/LoadingScreen';
 import HeroSection from '../components/HeroSection';
@@ -39,18 +40,9 @@ export default function Home() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  // Fake loading progress since BleedExperience was removed
+  // Real loading progress
   useEffect(() => {
-    const timer = setInterval(() => {
-      setMediaProgress(p => {
-        if (p >= 100) {
-          clearInterval(timer);
-          return 100;
-        }
-        return p + 5; // Finish in roughly 2 seconds
-      });
-    }, 100);
-    return () => clearInterval(timer);
+    preloadAll((progress) => setMediaProgress(progress)).catch(console.error);
   }, []);
 
   // Entrance animations for Hero elements once loading is done
@@ -59,9 +51,11 @@ export default function Home() {
     
     if (loadingComplete) {
       // Refresh ScrollTrigger to recalculate heights after loading screen goes away
-      setTimeout(() => {
-        ScrollTrigger.refresh();
-      }, 100);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          ScrollTrigger.refresh();
+        });
+      });
 
       const tl = gsap.timeline();
       

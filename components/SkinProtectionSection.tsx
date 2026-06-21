@@ -14,11 +14,13 @@ export default function SkinProtectionSection() {
   const words1Ref = useRef<(HTMLSpanElement | null)[]>([]);
   const words2Ref = useRef<(HTMLSpanElement | null)[]>([]);
 
-  words1Ref.current = [];
-  words2Ref.current = [];
-
   useEffect(() => {
+    words1Ref.current = [];
+    words2Ref.current = [];
+    
     gsap.registerPlugin(ScrollTrigger);
+    
+    gsap.set(bgRef.current, { scale: 1.08 });
 
     const tl = gsap.timeline({
       scrollTrigger: {
@@ -80,8 +82,8 @@ export default function SkinProtectionSection() {
           ref={bgRef}
           src="/a-new-language-of-suncare-3.png" 
           alt="Skin Protection Multiple Forms" 
-          // Starts highly blurred and zoomed in. GSAP will animate this down to blur-4px and scale-1.02
-          className="w-full h-full object-cover scale-[1.08] blur-[16px]"
+          // Starts highly blurred and zoomed in. GSAP will animate this down to blur-0px and scale-1.0
+          className="w-full h-full object-cover blur-[16px]"
           style={{ willChange: 'transform, filter' }}
         />
         {/* Cinematic darkening overlay to make the bright white text pop perfectly */}

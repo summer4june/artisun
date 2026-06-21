@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
+import { preloadedAssets } from '../../lib/preloader';
 
 const URLS = [
   '/videos/climate/1.mp4',
@@ -45,7 +46,8 @@ export default function ClimateVideoSection() {
       clipPath: 'circle(150% at 50% 50%)',   // fully covers the section
     });
 
-    ScrollTrigger.create({
+    let irisSt: ScrollTrigger | null = null;
+    irisSt = ScrollTrigger.create({
       trigger: containerRef.current,
       start: 'top 90%',       // starts when Climate is 90% into viewport from below
       end: 'top top',         // ends when Climate hits the top (pin activates here)
@@ -222,7 +224,7 @@ export default function ClimateVideoSection() {
 
     URLS.forEach((url, idx) => {
       const vid = document.createElement('video');
-      vid.src = url;
+      vid.src = preloadedAssets.videos[url] || url;
       vid.muted = true;
       vid.loop = true;
       vid.crossOrigin = "anonymous";
@@ -513,6 +515,7 @@ export default function ClimateVideoSection() {
       clearTimeout(timeoutId);
       cancelAnimationFrame(reqId);
       if (st) st.kill();
+      if (irisSt) irisSt.kill();
       if (entranceSt) entranceSt.kill();
       renderer.dispose();
       geo.dispose();

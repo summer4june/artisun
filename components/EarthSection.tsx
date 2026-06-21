@@ -6,6 +6,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import OnScrollTypography from './OnScrollTypography';
+import { preloadedAssets } from '../lib/preloader';
 
 // Orientation that turns the textured surface to face India towards the camera
 const INDIA_FACING_ROTATION_Y = -0.08;
@@ -29,6 +30,10 @@ export default function EarthSection() {
 
     // Drop the globe in with authoritative deceleration — no bounce, just mass through air.
     let hangTween: gsap.core.Tween | null = null;
+    let sectionExiting = false;
+    let starSt: ScrollTrigger | null = null;
+    let emergenceSt: ScrollTrigger | null = null;
+    let exitSt: ScrollTrigger | null = null;
     gsap.set(container, { xPercent: -50, yPercent: -50 });
     const dropTween = gsap.fromTo(
       container,
@@ -59,6 +64,7 @@ export default function EarthSection() {
           // Max ±18px horizontal, ±12px vertical. containerRef has
           // xPercent/yPercent: -50 for centering — x/y offsets stack on top cleanly.
           const handleMouseMove = (e: MouseEvent) => {
+            if (sectionExiting) return;
             const rect = section.getBoundingClientRect();
             if (!rect.width || !rect.height) return;
             const dx = (e.clientX - (rect.left + rect.width  / 2)) / (rect.width  / 2);
@@ -193,9 +199,9 @@ export default function EarthSection() {
       camera.updateProjectionMatrix();
     };
 
-    const loader = new GLTFLoader();
-    loader.load('/planet_earth.glb', (gltf) => {
-      if (disposed) return;
+    const loadGlobe = () => {
+      const gltf = preloadedAssets.glb;
+      if (!gltf || disposed) return;
       const model = gltf.scene;
 
       // Recenter and normalize scale so the globe fits the viewport consistently
@@ -272,7 +278,8 @@ export default function EarthSection() {
       camera.position.set(0, 0, 2.6);
       camera.lookAt(0, 0, 0);
       resize();
-    });
+    };
+    loadGlobe();
 
     const IDLE_SPIN_SPEED = 0.0028;
 
@@ -298,12 +305,12 @@ export default function EarthSection() {
         starCanvas.width  = window.innerWidth;
         starCanvas.height = window.innerHeight;
 
-        // 75 stars with random positions, sizes, and opacities
-        const stars: { x: number; y: number; r: number; a: number }[] = [];
+        const yOffset = window.innerHeight * 0.18;
+        const availableHeight = starCanvas.height - yOffset;
         for (let i = 0; i < 75; i++) {
           stars.push({
             x: Math.random() * starCanvas.width,
-            y: Math.random() * starCanvas.height,
+            y: yOffset + (Math.random() * availableHeight),
             r: Math.random() < 0.12 ? 1.4 : Math.random() * 0.8 + 0.3,  // 12% bright stars
             a: Math.random() * 0.55 + 0.25,
           });
@@ -317,7 +324,7 @@ export default function EarthSection() {
         });
 
         // Scroll parallax — stars drift up at 12% of scroll speed
-        ScrollTrigger.create({
+        starSt = ScrollTrigger.create({
           trigger: section,
           start: 'top bottom',
           end: 'bottom top',
@@ -357,7 +364,7 @@ export default function EarthSection() {
       // opacity intentionally omitted — section is always visible
     });
 
-    ScrollTrigger.create({
+    emergenceSt = ScrollTrigger.create({
       trigger: sectionRef.current,
       start: 'top 90%',
       end: 'top 30%',
@@ -373,11 +380,23 @@ export default function EarthSection() {
     // ── EXIT: Globe pulls up and out ──
     // As section scrolls off the top, globe rises and fades.
     // Different from entry (which was y: 60→0). Exit goes y: 0→-70.
-    ScrollTrigger.create({
+    exitSt = ScrollTrigger.create({
       trigger: sectionRef.current,
       start: 'bottom 65%',    // when section bottom is 65% from viewport top
       end: 'bottom top',      // when section bottom leaves the viewport
       scrub: 2,
+      onEnter: () => {
+        sectionExiting = true;
+        const s = section as HTMLElement & { _mmove?: EventListener; _mleave?: EventListener };
+        if (s._mmove)  s.removeEventListener('mousemove',  s._mmove);
+        if (s._mleave) s.removeEventListener('mouseleave', s._mleave);
+      },
+      onLeaveBack: () => {
+        sectionExiting = false;
+        const s = section as HTMLElement & { _mmove?: EventListener; _mleave?: EventListener };
+        if (s._mmove)  s.addEventListener('mousemove',  s._mmove);
+        if (s._mleave) s.addEventListener('mouseleave', s._mleave);
+      },
       animation: gsap.to(containerRef.current, {
         y: -90,
         opacity: 0,
@@ -401,6 +420,14 @@ export default function EarthSection() {
       hangTween?.kill();
       titleTrigger.kill();
       subtitleTrigger.kill();
+      starSt?.kill();
+      emergenceSt?.kill();
+      exitSt?.kill();
+
+      mixer?.stopAllAction();
+      if (globeModel) {
+        mixer?.uncacheRoot(globeModel);
+      }
 
       scene.traverse((obj) => {
         if (obj instanceof THREE.Mesh || obj instanceof THREE.Sprite) {

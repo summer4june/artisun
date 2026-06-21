@@ -34,7 +34,7 @@ export default function EvolutionSection() {
       scrollTrigger: {
         trigger: containerRef.current,
         start: 'top top+=1',      // fires the instant Evolution pins (curtain up)
-        toggleActions: 'play none none reverse',
+        toggleActions: 'play none none none',
       },
       defaults: { ease: 'power4.out' }
     });
