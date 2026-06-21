@@ -16,10 +16,10 @@ export default function ClothingSection() {
   const words1Ref = useRef<(HTMLSpanElement | null)[]>([]);
   const words2Ref = useRef<(HTMLSpanElement | null)[]>([]);
 
-  useEffect(() => {
-    words1Ref.current = [];
-    words2Ref.current = [];
+  words1Ref.current = [];
+  words2Ref.current = [];
 
+  useEffect(() => {
     // Reduce video playback speed by 30%
     if (videoRef.current) {
       videoRef.current.playbackRate = 0.6;

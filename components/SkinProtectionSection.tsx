@@ -14,10 +14,10 @@ export default function SkinProtectionSection() {
   const words1Ref = useRef<(HTMLSpanElement | null)[]>([]);
   const words2Ref = useRef<(HTMLSpanElement | null)[]>([]);
 
+  words1Ref.current = [];
+  words2Ref.current = [];
+
   useEffect(() => {
-    words1Ref.current = [];
-    words2Ref.current = [];
-    
     gsap.registerPlugin(ScrollTrigger);
     
     gsap.set(bgRef.current, { scale: 1.08 });

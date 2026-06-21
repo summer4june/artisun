@@ -16,10 +16,11 @@ export default function SuncareShiftSection() {
   const words2Ref = useRef<(HTMLSpanElement | null)[]>([]);
   const words3Ref = useRef<(HTMLSpanElement | null)[]>([]);
 
+  words1Ref.current = [];
+  words2Ref.current = [];
+  words3Ref.current = [];
+
   useEffect(() => {
-    words1Ref.current = [];
-    words2Ref.current = [];
-    words3Ref.current = [];
     gsap.registerPlugin(ScrollTrigger);
 
     // ── ENTRY: Blade Reveal ──

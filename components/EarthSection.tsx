@@ -305,6 +305,7 @@ export default function EarthSection() {
         starCanvas.width  = window.innerWidth;
         starCanvas.height = window.innerHeight;
 
+        const stars: { x: number; y: number; r: number; a: number }[] = [];
         const yOffset = window.innerHeight * 0.18;
         const availableHeight = starCanvas.height - yOffset;
         for (let i = 0; i < 75; i++) {
