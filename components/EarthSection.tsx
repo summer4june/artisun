@@ -14,6 +14,9 @@ const INDIA_FACING_ROTATION_X = 0.35;
 export default function EarthSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const indiaPulseRef  = useRef<HTMLDivElement>(null);
+  const atmosphereRef  = useRef<HTMLDivElement>(null);
+  const starCanvasRef  = useRef<HTMLCanvasElement>(null);
   const [titleActive, setTitleActive] = useState(false);
   const [subtitleActive, setSubtitleActive] = useState(false);
 
@@ -24,32 +27,66 @@ export default function EarthSection() {
 
     gsap.registerPlugin(ScrollTrigger);
 
-    // Drop the globe in like it's falling under gravity, let it bounce to a stop,
-    // then keep it gently swaying as if it's hanging from a thread.
+    // Drop the globe in with authoritative deceleration — no bounce, just mass through air.
     let hangTween: gsap.core.Tween | null = null;
     gsap.set(container, { xPercent: -50, yPercent: -50 });
     const dropTween = gsap.fromTo(
       container,
-      { y: -600, rotation: -10, opacity: 0 },
+      { y: -700, rotation: -8, opacity: 0 },
       {
         y: 0,
         rotation: 0,
         opacity: 1,
-        duration: 1.6,
-        ease: 'bounce.out',
+        duration: 2.2,               // slower fall = more weight
+        ease: 'power4.out',          // fast start, dramatic deceleration — no bounce
         scrollTrigger: {
           trigger: container,
           start: 'top 85%',
-          toggleActions: 'play none none reverse',
+          toggleActions: 'play none none none',  // plays once, no reverse on scroll-up
         },
         onComplete: () => {
+          // Subtle hang — 1.5° max, 4s period. Almost imperceptible but adds life.
           hangTween = gsap.to(container, {
-            rotation: 3.5,
-            duration: 2.4,
+            rotation: 1.5,
+            duration: 4.0,
             ease: 'sine.inOut',
             yoyo: true,
             repeat: -1,
           });
+
+          // ── MOUSE INERTIA — starts only after globe has landed ──
+          // Globe drifts toward mouse with a lag that feels like mass.
+          // Max ±18px horizontal, ±12px vertical. containerRef has
+          // xPercent/yPercent: -50 for centering — x/y offsets stack on top cleanly.
+          const handleMouseMove = (e: MouseEvent) => {
+            const rect = section.getBoundingClientRect();
+            if (!rect.width || !rect.height) return;
+            const dx = (e.clientX - (rect.left + rect.width  / 2)) / (rect.width  / 2);
+            const dy = (e.clientY - (rect.top  + rect.height / 2)) / (rect.height / 2);
+            gsap.to(container, {
+              x: dx * 18,
+              y: dy * 12,
+              duration: 1.8,
+              ease: 'power3.out',
+              overwrite: 'auto',
+            });
+          };
+
+          const handleMouseLeave = () => {
+            gsap.to(container, {
+              x: 0,
+              y: 0,
+              duration: 2.2,
+              ease: 'power3.out',
+            });
+          };
+
+          section.addEventListener('mousemove', handleMouseMove);
+          section.addEventListener('mouseleave', handleMouseLeave);
+
+          // Store refs on the section element so cleanup can reach them
+          (section as HTMLElement & { _mmove?: EventListener; _mleave?: EventListener })._mmove  = handleMouseMove as EventListener;
+          (section as HTMLElement & { _mmove?: EventListener; _mleave?: EventListener })._mleave = handleMouseLeave as EventListener;
         },
       }
     );
@@ -104,16 +141,47 @@ export default function EarthSection() {
       onEnter: () => setTitleActive(true),
       onLeaveBack: () => setTitleActive(false),
     });
+    let pulseFired = false;
     const subtitleTrigger = ScrollTrigger.create({
       trigger: section,
       start: 'top top',
       onEnter: () => {
         setSubtitleActive(true);
         engageLock();
+
+        // Fire India pulse exactly once — after 600ms so globe has time to turn to India
+        if (!pulseFired) {
+          pulseFired = true;
+          gsap.delayedCall(0.6, () => {
+            if (!indiaPulseRef.current) return;
+            gsap.fromTo(
+              indiaPulseRef.current,
+              { scale: 0, opacity: 0.9 },
+              {
+                scale: 3.2,
+                opacity: 0,
+                duration: 1.8,
+                ease: 'power2.out',
+              }
+            );
+          });
+        }
+
+        // Dual atmosphere glow fades in as globe locks to India
+        gsap.to(atmosphereRef.current, {
+          opacity: 1,
+          duration: 2.5,
+          ease: 'power2.out',
+        });
       },
       onLeaveBack: () => {
         setSubtitleActive(false);
         disengageLock();
+        gsap.to(atmosphereRef.current, {
+          opacity: 0,
+          duration: 1.2,
+          ease: 'power2.in',
+        });
       },
     });
 
@@ -222,6 +290,46 @@ export default function EarthSection() {
       renderer.render(scene, camera);
     };
 
+    // ── Star Field ──
+    const starCanvas = starCanvasRef.current;
+    if (starCanvas) {
+      const sCtx = starCanvas.getContext('2d');
+      if (sCtx) {
+        starCanvas.width  = window.innerWidth;
+        starCanvas.height = window.innerHeight;
+
+        // 75 stars with random positions, sizes, and opacities
+        const stars: { x: number; y: number; r: number; a: number }[] = [];
+        for (let i = 0; i < 75; i++) {
+          stars.push({
+            x: Math.random() * starCanvas.width,
+            y: Math.random() * starCanvas.height,
+            r: Math.random() < 0.12 ? 1.4 : Math.random() * 0.8 + 0.3,  // 12% bright stars
+            a: Math.random() * 0.55 + 0.25,
+          });
+        }
+
+        stars.forEach(({ x, y, r, a }) => {
+          sCtx.beginPath();
+          sCtx.arc(x, y, r, 0, Math.PI * 2);
+          sCtx.fillStyle = `rgba(255, 248, 235, ${a})`; // warm white, not cold white
+          sCtx.fill();
+        });
+
+        // Scroll parallax — stars drift up at 12% of scroll speed
+        ScrollTrigger.create({
+          trigger: section,
+          start: 'top bottom',
+          end: 'bottom top',
+          scrub: 1,
+          animation: gsap.to(starCanvas, {
+            y: -window.innerHeight * 0.12,
+            ease: 'none',
+          }),
+        });
+      }
+    }
+
     const tick = () => {
       frameId = requestAnimationFrame(tick);
       if (isVisible && isLoaded) renderFrame(clock.getDelta());
@@ -262,6 +370,21 @@ export default function EarthSection() {
       }),
     });
 
+    // ── EXIT: Globe pulls up and out ──
+    // As section scrolls off the top, globe rises and fades.
+    // Different from entry (which was y: 60→0). Exit goes y: 0→-70.
+    ScrollTrigger.create({
+      trigger: sectionRef.current,
+      start: 'bottom 65%',    // when section bottom is 65% from viewport top
+      end: 'bottom top',      // when section bottom leaves the viewport
+      scrub: 2,
+      animation: gsap.to(containerRef.current, {
+        y: -90,
+        opacity: 0,
+        ease: 'none',
+      }),
+    });
+
     const handleVisibilityChange = () => {
       if (document.hidden) isVisible = false;
     };
@@ -293,21 +416,71 @@ export default function EarthSection() {
       });
       renderer.dispose();
       renderer.domElement.remove();
+
+      // Remove mouse listeners added after drop
+      const s = section as HTMLElement & { _mmove?: EventListener; _mleave?: EventListener };
+      if (s._mmove)  s.removeEventListener('mousemove',  s._mmove);
+      if (s._mleave) s.removeEventListener('mouseleave', s._mleave);
     };
   }, []);
 
   return (
     <section ref={sectionRef} className="relative w-full h-screen bg-black z-10 overflow-hidden">
+
+      {/* Star Field Canvas — drawn once on mount, parallaxes at 12% scroll speed */}
+      <canvas
+        ref={starCanvasRef}
+        className="absolute inset-0 w-full h-full pointer-events-none z-[1]"
+        style={{ opacity: 0.7 }}
+      />
+
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/earth_back.png"
         alt=""
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-cover z-[2]"
+      />
+
+      {/* Dual Atmosphere Glow — warm India side + cool opposite side */}
+      {/* Sized larger than globe container so gradients have room to feather */}
+      <div
+        ref={atmosphereRef}
+        className="absolute pointer-events-none z-[5]"
+        style={{
+          top: '50%',
+          left: '50%',
+          width: '80vmin',
+          height: '80vmin',
+          transform: 'translate(-50%, -50%)',
+          opacity: 0,
+          willChange: 'opacity',
+          background: `
+            radial-gradient(ellipse at 62% 42%, rgba(232,96,26,0.32) 0%, rgba(201,59,26,0.14) 35%, transparent 62%),
+            radial-gradient(ellipse at 33% 62%, rgba(10,0,80,0.28) 0%, rgba(5,0,50,0.12) 40%, transparent 68%)
+          `,
+        }}
       />
 
       <div
         ref={containerRef}
         className="absolute top-1/2 left-1/2 w-[50vmin] h-[50vmin] z-10 pointer-events-none opacity-0"
+      />
+
+      {/* India Pulse — fires once when globe locks to face India */}
+      {/* Sized to 12vmin so it matches the globe's visual scale */}
+      <div
+        ref={indiaPulseRef}
+        className="absolute pointer-events-none z-20"
+        style={{
+          top: '48%',
+          left: '54%',
+          width: '12vmin',
+          height: '12vmin',
+          transform: 'translate(-50%, -50%) scale(0)',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(232,96,26,0.85) 0%, rgba(201,59,26,0.4) 40%, transparent 70%)',
+          willChange: 'transform, opacity',
+        }}
       />
 
       <div className="absolute bottom-[8%] left-0 w-full px-6 z-20 flex flex-col items-center text-center pointer-events-none">
