@@ -13,6 +13,7 @@ export default function EvolutionSection() {
   const monogramRef = useRef<HTMLDivElement>(null);
   const line1Ref = useRef<HTMLDivElement>(null);
   const line2Ref = useRef<HTMLDivElement>(null);
+  const warmBreathRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -21,7 +22,7 @@ export default function EvolutionSection() {
     const pinSt = ScrollTrigger.create({
       trigger: containerRef.current,
       start: 'top top',
-      end: '+=150%',
+      end: '+=200%',   // Extended — gives room for exit beats to fully play
       pin: true,
     });
 
@@ -72,6 +73,42 @@ export default function EvolutionSection() {
       { opacity: 1, y: 0, duration: 1.0 },
       0.95   // starts 0.95s after overlay — clearly after Line 1
     );
+
+    // ── EXIT SEQUENCE ──
+    // The crimson world dissolves. Earth’s warm cream bleeds up from below.
+    // Evolution is bg-transparent — when overlay hits 0, EarthSection shows through.
+
+    // Hold — user reads both lines
+    tl.to({}, { duration: 0.6 }, '+=0.3');
+
+    // Warm breath rises at bottom — the Earth’s warmth seeping in
+    tl.to(warmBreathRef.current, {
+      opacity: 1,
+      duration: 1.4,
+      ease: 'power2.out',
+    }, 'exit');
+
+    // Text and monogram exit upward — they float away as the world dissolves
+    tl.to(
+      [line1Ref.current, line2Ref.current],
+      { opacity: 0, y: -30, duration: 1.0, ease: 'power3.in' },
+      'exit+=0.2'
+    );
+    tl.to(monogramRef.current, {
+      opacity: 0,
+      duration: 0.8,
+      ease: 'power2.in',
+    }, 'exit+=0.3');
+
+    // Crimson overlay dissolves — Earth shows through
+    tl.to(overlayRef.current, {
+      opacity: 0,
+      duration: 1.8,
+      ease: 'power2.inOut',
+    }, 'exit+=0.4');
+
+    // Hold fully dissolved — screen is warm cream (Earth showing through)
+    tl.to({}, { duration: 0.8 });
 
     return () => {
       if (pinSt) pinSt.kill();
@@ -133,6 +170,19 @@ export default function EvolutionSection() {
         </div>
 
       </div>
+
+      {/* Warm Breath — Earth’s warmth bleeding up from below as crimson dissolves */}
+      {/* Color matches earth_back.png cream top. Pointer-events-none, z below text. */}
+      <div
+        ref={warmBreathRef}
+        className="absolute inset-x-0 bottom-0 pointer-events-none z-[2]"
+        style={{
+          height: '45%',
+          opacity: 0,
+          background: 'linear-gradient(to top, rgba(218,175,100,0.22) 0%, rgba(200,140,60,0.10) 45%, transparent 100%)',
+          willChange: 'opacity',
+        }}
+      />
 
     </section>
   );

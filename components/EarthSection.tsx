@@ -349,24 +349,24 @@ export default function EarthSection() {
     resizeObserver.observe(container);
 
     // ── ENTRY: Globe Emergence ──
-    // The entire section rises from below with a slight scale-up.
-    // The Earth literally emerges into frame — earned, cinematic.
+    // opacity NOT set to 0 — Earth must be visible through Evolution’s
+    // transparent bg during the exit sequence. Only y and scale are animated.
     gsap.set(sectionRef.current, {
-      opacity: 0,
       y: 60,
       scale: 0.97,
+      // opacity intentionally omitted — section is always visible
     });
 
     ScrollTrigger.create({
       trigger: sectionRef.current,
-      start: 'top 85%',
-      end: 'top 25%',
+      start: 'top 90%',
+      end: 'top 30%',
       scrub: 2,
       animation: gsap.to(sectionRef.current, {
-        opacity: 1,
         y: 0,
         scale: 1,
         ease: 'power3.out',
+        // opacity intentionally omitted
       }),
     });
 
@@ -425,7 +425,7 @@ export default function EarthSection() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="relative w-full h-screen bg-black z-10 overflow-hidden">
+    <section ref={sectionRef} className="relative w-full h-screen bg-black z-[9] overflow-hidden -mt-[18vh]">
 
       {/* Star Field Canvas — drawn once on mount, parallaxes at 12% scroll speed */}
       <canvas
