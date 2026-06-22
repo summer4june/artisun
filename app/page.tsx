@@ -13,17 +13,26 @@ import dynamic from 'next/dynamic';
 
 const ClimateVideoSection = dynamic(
   () => import('../components/climate/ClimateVideoSection'),
-  { ssr: false }
+  { 
+    ssr: false,
+    loading: () => <section className="relative w-full h-screen bg-black z-10" />
+  }
 );
 
 const EarthSection = dynamic(
   () => import('../components/EarthSection'),
-  { ssr: false }
+  { 
+    ssr: false,
+    loading: () => <section className="relative w-full h-screen bg-black z-[9] overflow-hidden -mt-[18vh]" />
+  }
 );
 
 const ProductsSection = dynamic(
   () => import('../components/ProductsSection'),
-  { ssr: false }
+  { 
+    ssr: false,
+    loading: () => <div className="relative w-full"><section className="w-full h-screen bg-[#111111] relative z-10" /></div>
+  }
 );
 
 import EvolutionSection from '../components/EvolutionSection';
