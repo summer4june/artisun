@@ -536,7 +536,7 @@ export default function ClimateVideoSection() {
   }, []);
 
   return (
-    <section ref={containerRef} className="relative w-full h-screen bg-transparent z-20">
+    <section ref={containerRef} className="relative w-full h-screen bg-black z-10">
       <div ref={wrapperRef} className="relative w-full h-screen overflow-hidden z-0 bg-black origin-center" style={{ willChange: 'transform, border-radius' }}>
         <div ref={innerRef} className="relative w-full h-full origin-center" style={{ willChange: 'transform' }}>
           <canvas ref={canvasRef} className="absolute inset-0 w-full h-full block" />

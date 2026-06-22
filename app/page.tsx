@@ -165,23 +165,14 @@ export default function Home() {
       <GlobalHeader />
       <HeroSection mouseProxy={mouseProxy} />
       
-      {/* Spacer to provide breathing room between Hero and Text Reveal */}
-      <div className="section-spacer relative w-full h-[10vh] md:h-[15vh] bg-transparent pointer-events-none" />
-      
       <TextRevealSection />
 
-      {/* Wrapper added to fix Next.js / GSAP DOM mismatch on dynamic components */}
-      <div className="relative w-full">
-        <ClimateVideoSection />
-      </div>
+      <ClimateVideoSection />
 
       {/* New evolution text section */}
       <EvolutionSection />
 
-      {/* Wrapper added to fix Next.js / GSAP DOM mismatch on dynamic components */}
-      <div className="relative w-full">
-        <EarthSection />
-      </div>
+      <EarthSection />
 
       {/* Unified cinematic crossfade section */}
       <SuncareShiftSection />
@@ -195,10 +186,7 @@ export default function Home() {
       {/* Cinematic zoom-through Keyhole transition */}
       <KeyholeSection />
 
-      {/* Wrapper added to fix Next.js / GSAP DOM mismatch on dynamic components */}
-      <div className="relative w-full">
-        <ProductsSection />
-      </div>
+      <ProductsSection />
 
       {/* Main Footer */}
       <Footer />
