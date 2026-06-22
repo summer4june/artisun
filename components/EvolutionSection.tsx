@@ -14,27 +14,43 @@ export default function EvolutionSection() {
   const line1Ref = useRef<HTMLDivElement>(null);
   const line2Ref = useRef<HTMLDivElement>(null);
   const warmBreathRef = useRef<HTMLDivElement>(null);
+  const curtainLeftRef = useRef<HTMLDivElement>(null);
+  const curtainRightRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
-    // ── Pin the section (curtain reveal mechanism — do not change) ──
-    const pinSt = ScrollTrigger.create({
+    // ── ENTRY: Curtain Parting ──
+    // Climate's pinned video hands off to Evolution with nothing dressing the cut —
+    // every other section boundary on the site has a treatment (iris, blade, slash,
+    // tear) but this one didn't, so it read as a plain, undecorated scroll. Two dark
+    // panels meet at center and part like a stage curtain over the pre-pin approach
+    // window, echoing the pin-as-curtain language already used for this section.
+    const curtainSt = ScrollTrigger.create({
       trigger: containerRef.current,
-      start: 'top top',
-      end: '+=200%',   // Extended — gives room for exit beats to fully play
-      pin: true,
-      anticipatePin: 1,
+      start: 'top 90%',
+      end: 'top top',
+      scrub: 2,
+      animation: gsap.timeline()
+        .to(curtainLeftRef.current, { xPercent: -100, ease: 'power2.inOut' }, 0)
+        .to(curtainRightRef.current, { xPercent: 100, ease: 'power2.inOut' }, 0),
     });
 
-    // ── Choreographed reveal — fires when curtain has fully risen ──
-    // Evolution pins immediately after Climate's pin releases.
-    // The tiny +=1 offset ensures the pin is active before the timeline fires.
+    // ── Pinned + scroll-scrubbed reveal ──
+    // The whole beat sequence is tied to scroll progress through the pin (scrub),
+    // not real-world time. Previously this ran on toggleActions: 'play' — a fixed
+    // wall-clock animation that could finish revealing/exiting well before or after
+    // the user actually scrolled through the pinned region, leaving a blank
+    // crimson or cream screen for the rest of the scroll. Scrubbing keeps every
+    // beat locked to exactly where the user is in the pin.
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: containerRef.current,
-        start: 'top top+=1',      // fires the instant Evolution pins (curtain up)
-        toggleActions: 'play none restart none',
+        start: 'top top',
+        end: '+=200%',
+        pin: true,
+        anticipatePin: 1,
+        scrub: 1,
       },
       defaults: { ease: 'power4.out' }
     });
@@ -105,7 +121,7 @@ export default function EvolutionSection() {
     tl.to({}, { duration: 0.8 });
 
     return () => {
-      if (pinSt) pinSt.kill();
+      curtainSt.kill();
       if (tl.scrollTrigger) tl.scrollTrigger.kill();
       tl.kill();
     };
@@ -176,6 +192,19 @@ export default function EvolutionSection() {
           background: 'linear-gradient(to top, rgba(218,175,100,0.22) 0%, rgba(200,140,60,0.10) 45%, transparent 100%)',
           willChange: 'opacity',
         }}
+      />
+
+      {/* Curtain Parting — two panels meet at center, part left/right as Evolution
+          approaches the top of the viewport, dressing the cut from Climate's video. */}
+      <div
+        ref={curtainLeftRef}
+        className="absolute inset-y-0 left-0 w-1/2 pointer-events-none z-30"
+        style={{ background: '#170303', willChange: 'transform' }}
+      />
+      <div
+        ref={curtainRightRef}
+        className="absolute inset-y-0 right-0 w-1/2 pointer-events-none z-30"
+        style={{ background: '#170303', willChange: 'transform' }}
       />
 
     </section>

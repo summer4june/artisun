@@ -19,8 +19,31 @@ export default function SkinProtectionSection() {
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
-    
+
     gsap.set(bgRef.current, { scale: 1.08 });
+
+    // ── ENTRY: Iris Reveal ──
+    // Clothing's video cuts hard into this section otherwise. An expanding circular
+    // iris (echoes the blade/slash entries used by SuncareShiftSection and
+    // ClothingSection) opens over the same 90vh pre-pin window, so the cut feels
+    // like a deliberate transition rather than a jump cut.
+    ScrollTrigger.create({
+      trigger: containerRef.current,
+      start: 'top 90%',
+      end: 'top top',
+      scrub: 2,
+      animation: gsap.fromTo(
+        containerRef.current,
+        {
+          clipPath: 'circle(0% at 50% 50%)',
+          immediateRender: false,
+        },
+        {
+          clipPath: 'circle(75% at 50% 50%)',
+          ease: 'power2.inOut',
+        }
+      ),
+    });
 
     const tl = gsap.timeline({
       scrollTrigger: {

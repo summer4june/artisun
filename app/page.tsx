@@ -51,7 +51,14 @@ export default function Home() {
   // Entrance animations for Hero elements once loading is done
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
-    
+
+    // Mobile browsers resize the viewport (innerHeight) as the address bar
+    // collapses/expands *during* scroll. ScrollTrigger auto-refreshes on resize by
+    // default, which recalculates every viewport-relative pin length (e.g. "+=200%")
+    // against the new height — visibly shifting total page height and scroll position
+    // mid-scroll. This flag is GSAP's built-in fix for exactly that class of jump.
+    ScrollTrigger.config({ ignoreMobileResize: true });
+
     if (loadingComplete) {
       // Refresh ScrollTrigger to recalculate heights after loading screen goes away
       requestAnimationFrame(() => {

@@ -497,10 +497,14 @@ export default function ClimateVideoSection() {
     mat.uniforms.uAspectB.value = aspectRatios[Math.min(activeIdx + 1, N - 1)];
 
     // Initialize text and dot based on starting activeIdx
+    // Note: no local ScrollTrigger.refresh() here — page.tsx already runs a single
+    // coordinated refresh once loadingComplete fires (after every asset, including this
+    // section's videos, has finished preloading). A second, uncoordinated refresh firing
+    // 150ms after this component's own mount — which happens immediately on page load,
+    // well before loadingComplete — recalculated every pin-spacer against a not-yet-final
+    // layout, then got recalculated again later by the global refresh. If the user was
+    // already scrolling in that window, the total page height visibly shifted underneath them.
     setTimeout(() => {
-      // Force GSAP to recalculate offsets now that all pinned sections above us are mounted
-      ScrollTrigger.refresh();
-
       // Hide all text elements by default so it looks like a clean poster!
       textRefs.current.forEach((_, idx) => hideSlideText(idx));
 

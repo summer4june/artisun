@@ -29,17 +29,6 @@ export default function EarthSection() {
 
     gsap.registerPlugin(ScrollTrigger);
 
-    // ── PIN: Hold EarthSection while globe animations play ──
-    // Globe drops (2.2s), settles, India locks, text appears, exits.
-    // Without pin, section scrolls past before any of this is seen.
-    const earthPin = ScrollTrigger.create({
-      trigger: sectionRef.current,
-      start: 'top top',
-      end: '+=250%',
-      pin: true,
-      anticipatePin: 1,
-    });
-
     // Drop the globe in with authoritative deceleration — no bounce, just mass through air.
     let hangTween: gsap.core.Tween | null = null;
     let sectionExiting = false;
@@ -47,6 +36,15 @@ export default function EarthSection() {
     let emergenceSt: ScrollTrigger | null = null;
     let exitSt: ScrollTrigger | null = null;
     gsap.set(container, { xPercent: -50, yPercent: -50 });
+
+    // The drop tween used to have its own ScrollTrigger keyed off the container's
+    // pre-pin document position ('top 85%'). That position is reached while the
+    // PREVIOUS section (Evolution, higher z-index) is still on screen, so the whole
+    // entrance played out hidden behind it — by the time Earth's own pin engaged and
+    // became visible, the globe had already silently dropped and settled, reading as
+    // a dead "gap" between Evolution and Earth. Triggering it from earthPin's onEnter
+    // instead guarantees it plays exactly when Earth becomes the pinned, visible
+    // section — paused + no scrollTrigger here, played explicitly below.
     const dropTween = gsap.fromTo(
       container,
       { y: -700, rotation: -8, opacity: 0 },
@@ -56,11 +54,7 @@ export default function EarthSection() {
         opacity: 1,
         duration: 2.2,               // slower fall = more weight
         ease: 'power4.out',          // fast start, dramatic deceleration — no bounce
-        scrollTrigger: {
-          trigger: container,
-          start: 'top 85%',
-          toggleActions: 'play none none none',  // plays once, no reverse on scroll-up
-        },
+        paused: true,
         onComplete: () => {
           // Subtle hang — 1.5° max, 4s period. Almost imperceptible but adds life.
           hangTween = gsap.to(container, {
@@ -108,6 +102,20 @@ export default function EarthSection() {
         },
       }
     );
+
+    // ── PIN: Hold EarthSection while globe animations play ──
+    // Globe drops (2.2s), settles, India locks, text appears, exits.
+    // Without pin, section scrolls past before any of this is seen. Playing
+    // dropTween here (rather than off its own pre-pin trigger) guarantees the
+    // entrance is visible exactly when the section becomes pinned — see note above.
+    const earthPin = ScrollTrigger.create({
+      trigger: sectionRef.current,
+      start: 'top top',
+      end: '+=250%',
+      pin: true,
+      anticipatePin: 1,
+      onEnter: () => dropTween.play(),
+    });
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 2000);
@@ -391,6 +399,9 @@ export default function EarthSection() {
     // ── ENTRY: Globe Emergence ──
     // opacity NOT set to 0 — Earth must be visible through Evolution’s
     // transparent bg during the exit sequence. Only y and scale are animated.
+    // Anchored to the pin's own engagement ('top top'), not the pre-pin approach
+    // ('top 90%') — that earlier window overlaps with Evolution (z-10, painted on
+    // top), so the lift was completing invisibly before Earth ever became visible.
     gsap.set(sectionRef.current, {
       y: 60,
       scale: 0.97,
@@ -399,9 +410,9 @@ export default function EarthSection() {
 
     emergenceSt = ScrollTrigger.create({
       trigger: sectionRef.current,
-      start: 'top 90%',
-      end: 'top 30%',
-      scrub: 2,
+      start: 'top top',
+      end: '+=20%',
+      scrub: 1,
       animation: gsap.to(sectionRef.current, {
         y: 0,
         scale: 1,
@@ -510,40 +521,46 @@ export default function EarthSection() {
         style={{
           top: '50%',
           left: '50%',
-          width: '110vmin',
-          height: '110vmin',
+          width: '114vmin',
+          height: '114vmin',
           transform: 'translate(-50%, -50%)',
           borderRadius: '50%',
           opacity: 0,
           willChange: 'opacity',
+          // mix-blend-mode: screen makes the glow add light against the cream/dark
+          // backdrop instead of mixing into a flat muddy-brown ring (multiply-like
+          // blending of orange/navy over the cream background was the original issue).
+          mixBlendMode: 'screen',
+          filter: 'blur(6px)',
           background: `
-            radial-gradient(ellipse at 62% 42%, rgba(232,96,26,0.28) 0%, rgba(201,59,26,0.10) 35%, transparent 58%),
-            radial-gradient(ellipse at 33% 62%, rgba(10,0,80,0.22) 0%, rgba(5,0,50,0.08) 40%, transparent 65%)
+            radial-gradient(ellipse at 62% 42%, rgba(255,140,60,0.55) 0%, rgba(232,96,26,0.22) 40%, transparent 62%),
+            radial-gradient(ellipse at 33% 62%, rgba(70,110,255,0.30) 0%, rgba(30,50,160,0.12) 42%, transparent 66%)
           `,
         }}
       />
 
       <div
         ref={containerRef}
-        className="absolute top-1/2 left-1/2 w-[82vmin] h-[82vmin] z-10 pointer-events-none opacity-0"
-      />
-
-      {/* India Pulse — fires once when globe locks to face India */}
-      {/* Sized to 12vmin so it matches the globe's visual scale */}
-      <div
-        ref={indiaPulseRef}
-        className="absolute pointer-events-none z-20"
-        style={{
-          top: '48%',
-          left: '54%',
-          width: '12vmin',
-          height: '12vmin',
-          transform: 'translate(-50%, -50%) scale(0)',
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(232,96,26,0.85) 0%, rgba(201,59,26,0.4) 40%, transparent 70%)',
-          willChange: 'transform, opacity',
-        }}
-      />
+        className="absolute top-1/2 left-1/2 w-[85vmin] h-[85vmin] z-10 pointer-events-none opacity-0"
+      >
+        {/* India Pulse — fires once when globe locks to face India. Positioned as a
+            child of the globe container (not the section) so it tracks the globe's
+            mouse-parallax drift instead of floating at a fixed point on screen. */}
+        <div
+          ref={indiaPulseRef}
+          className="absolute pointer-events-none z-20"
+          style={{
+            top: '48%',
+            left: '54%',
+            width: '12vmin',
+            height: '12vmin',
+            transform: 'translate(-50%, -50%) scale(0)',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(232,96,26,0.85) 0%, rgba(201,59,26,0.4) 40%, transparent 70%)',
+            willChange: 'transform, opacity',
+          }}
+        />
+      </div>
 
       <div className="absolute bottom-[8%] left-0 w-full px-6 z-20 flex flex-col items-center text-center pointer-events-none">
         <div className="w-full max-w-[700px]" style={{ height: 100 }}>
@@ -565,7 +582,7 @@ export default function EarthSection() {
         <div className="w-full max-w-[480px]" style={{ height: 50 }}>
           <OnScrollTypography
             text="bringing protection that moves with climate, not just skin type."
-            effect="effect1"
+            effect="effect9"
             isActive={subtitleActive}
             titleFont={{
               fontFamily: 'var(--font-suisse)',
