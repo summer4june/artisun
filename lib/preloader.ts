@@ -79,30 +79,27 @@ export function preloadAll(onProgress: (progress: number) => void): Promise<void
       preloadedAssets.images[src] = img;
     });
 
-    // Preload Videos by buffering metadata/cache
-    // Use staggered loading so bandwidth isn't saturated simultaneously
+    // Preload Videos by fetching them entirely as Blobs into memory.
+    // This guarantees instant playback without buffering or cache misses.
     const loadVideoStaggered = (videos: string[], index: number) => {
       if (index >= videos.length) return;
       const src = videos[index];
-      const vid = document.createElement('video');
-      vid.preload = 'auto';
-      vid.muted = true;
-      vid.playsInline = true;
 
-      const handleLoaded = () => {
-        vid.oncanplay = null;
-        vid.onloadedmetadata = null;
-        preloadedAssets.videos[src] = src;
-        updateProgress();
-        // Load next video 150ms after this one starts buffering
-        setTimeout(() => loadVideoStaggered(videos, index + 1), 150);
-      };
-
-      vid.oncanplay = handleLoaded;
-      vid.onloadedmetadata = handleLoaded;
-      vid.onerror = () => { updateProgress(); loadVideoStaggered(videos, index + 1); };
-      vid.src = src;
-      vid.load();
+      fetch(src)
+        .then((res) => {
+          if (!res.ok) throw new Error('Video fetch failed');
+          return res.blob();
+        })
+        .then((blob) => {
+          preloadedAssets.videos[src] = URL.createObjectURL(blob);
+          updateProgress();
+          loadVideoStaggered(videos, index + 1);
+        })
+        .catch((err) => {
+          console.error("Failed to preload video:", src, err);
+          updateProgress();
+          loadVideoStaggered(videos, index + 1);
+        });
     };
 
     loadVideoStaggered(VIDEOS, 0);
