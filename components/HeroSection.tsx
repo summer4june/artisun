@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import Image from 'next/image';
 import gsap from 'gsap';
 
 export default function HeroSection({ mouseProxy }: { mouseProxy: { current: { x: number; y: number, px: number, py: number } } }) {
@@ -19,10 +20,12 @@ export default function HeroSection({ mouseProxy }: { mouseProxy: { current: { x
       <div className="relative z-10 flex flex-col items-center justify-center text-center w-full h-full mt-8 md:mt-12">
         <div className="hero-content-inner relative z-10 flex flex-col items-center justify-center gap-4 md:gap-6">
           <div ref={textRef} className="relative w-full max-w-[85vw] md:max-w-[750px]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img 
-              src="/logo.png" 
-              alt="ARTISUN" 
+            <Image
+              src="/logo.png"
+              alt="ARTISUN"
+              width={750}
+              height={167}
+              priority
               className="w-full aspect-[4.5/1] object-cover object-center drop-shadow-2xl hero-title relative z-10"
             />
           </div>

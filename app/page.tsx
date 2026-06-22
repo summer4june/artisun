@@ -9,19 +9,18 @@ import LoadingScreen from '../components/LoadingScreen';
 import HeroSection from '../components/HeroSection';
 import CustomCursor from '../components/CustomCursor';
 import TextRevealSection from '../components/TextRevealSection';
+import GlobalHeader from '../components/GlobalHeader';
 import dynamic from 'next/dynamic';
 
-import ClimateVideoSection from '../components/climate/ClimateVideoSection';
-import EarthSection from '../components/EarthSection';
-import ProductsSection from '../components/ProductsSection';
-
-import EvolutionSection from '../components/EvolutionSection';
-import SuncareShiftSection from '../components/SuncareShiftSection';
-import ClothingSection from '../components/ClothingSection';
-import SkinProtectionSection from '../components/SkinProtectionSection';
-import KeyholeSection from '../components/KeyholeSection';
-import Footer from '../components/Footer';
-import GlobalHeader from '../components/GlobalHeader';
+const ClimateVideoSection = dynamic(() => import('../components/climate/ClimateVideoSection'), { ssr: false });
+const EarthSection = dynamic(() => import('../components/EarthSection'), { ssr: false });
+const ProductsSection = dynamic(() => import('../components/ProductsSection'), { ssr: false });
+const EvolutionSection = dynamic(() => import('../components/EvolutionSection'), { ssr: false });
+const SuncareShiftSection = dynamic(() => import('../components/SuncareShiftSection'), { ssr: false });
+const ClothingSection = dynamic(() => import('../components/ClothingSection'), { ssr: false });
+const SkinProtectionSection = dynamic(() => import('../components/SkinProtectionSection'), { ssr: false });
+const KeyholeSection = dynamic(() => import('../components/KeyholeSection'), { ssr: false });
+const Footer = dynamic(() => import('../components/Footer'), { ssr: false });
 
 export default function Home() {
   const [loadingComplete, setLoadingComplete] = useState(false);
@@ -164,27 +163,13 @@ export default function Home() {
       <TextRevealSection />
 
       <ClimateVideoSection />
-
-      {/* New evolution text section */}
       <EvolutionSection />
-
       <EarthSection />
-
-      {/* Unified cinematic crossfade section */}
       <SuncareShiftSection />
-
-      {/* Clothing text reveal section with video background */}
       <ClothingSection />
-
-      {/* Skin protection text reveal with cinematic focus pull */}
       <SkinProtectionSection />
-
-      {/* Cinematic zoom-through Keyhole transition */}
       <KeyholeSection />
-
       <ProductsSection />
-
-      {/* Main Footer */}
       <Footer />
     </main>
   );

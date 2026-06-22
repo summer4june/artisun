@@ -1,11 +1,11 @@
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 const IMAGES = [
+  '/logo.png',
   '/keyhole-bg.webp',
   '/a-new-language-of-suncare.png',
   '/a-new-language-of-suncare-2.webp',
   '/a-new-language-of-suncare-3.webp',
-  '/logo.png'
 ];
 
 const VIDEOS = [
@@ -14,53 +14,45 @@ const VIDEOS = [
   '/videos/climate/3.mp4',
   '/videos/climate/4.mp4',
   '/videos/climate/5.mp4',
-  '/6th-vid.mp4'
+  '/6th-vid.mp4',
 ];
 
 const MODELS: string[] = ['/planet_earth.glb'];
 
-const FETCH_ASSETS = [
-  '/1.glb',
-  '/2.glb'
-];
+const FETCH_ASSETS = ['/1.glb', '/2.glb'];
 
 export const preloadedAssets: {
   images: Record<string, HTMLImageElement>;
-  videos: Record<string, string>; // Blob URLs
+  videos: Record<string, string>;
   glb: any | null;
 } = {
   images: {},
   videos: {},
-  glb: null
+  glb: null,
 };
 
 export function preloadAll(onProgress: (progress: number) => void): Promise<void> {
   return new Promise((resolve) => {
     let loadedCount = 0;
     const totalAssets = IMAGES.length + VIDEOS.length + MODELS.length + FETCH_ASSETS.length;
-
     let isResolved = false;
+    const abortController = new AbortController();
 
     const forceResolve = () => {
       if (isResolved) return;
       isResolved = true;
+      abortController.abort();
       onProgress(100);
       resolve();
     };
 
-    // Fallback timeout: If network is slow or an asset silently hangs, 
-    // let the user through after 12 seconds.
-    setTimeout(() => {
-      forceResolve();
-    }, 12000);
+    setTimeout(forceResolve, 12000);
 
     const updateProgress = () => {
       if (isResolved) return;
       loadedCount++;
       onProgress(Math.floor((loadedCount / totalAssets) * 100));
-      if (loadedCount >= totalAssets) {
-        forceResolve();
-      }
+      if (loadedCount >= totalAssets) forceResolve();
     };
 
     if (totalAssets === 0) {
@@ -69,7 +61,6 @@ export function preloadAll(onProgress: (progress: number) => void): Promise<void
       return;
     }
 
-    // Preload Images
     IMAGES.forEach((src) => {
       const img = new Image();
       img.onload = updateProgress;
@@ -79,32 +70,19 @@ export function preloadAll(onProgress: (progress: number) => void): Promise<void
       preloadedAssets.images[src] = img;
     });
 
-    // Preload Videos by fetching them entirely as Blobs into memory.
-    // This guarantees instant playback without buffering or cache misses.
-    const loadVideoStaggered = (videos: string[], index: number) => {
-      if (index >= videos.length) return;
-      const src = videos[index];
+    VIDEOS.forEach((src) => {
+      const vid = document.createElement('video');
+      vid.preload = 'auto';
+      vid.muted = true;
+      vid.playsInline = true;
+      vid.oncanplaythrough = () => {
+        updateProgress();
+        vid.oncanplaythrough = null;
+      };
+      vid.onerror = () => updateProgress();
+      vid.src = src;
+    });
 
-      fetch(src)
-        .then((res) => {
-          if (!res.ok) throw new Error('Video fetch failed');
-          return res.blob();
-        })
-        .then((blob) => {
-          preloadedAssets.videos[src] = URL.createObjectURL(blob);
-          updateProgress();
-          loadVideoStaggered(videos, index + 1);
-        })
-        .catch((err) => {
-          console.error("Failed to preload video:", src, err);
-          updateProgress();
-          loadVideoStaggered(videos, index + 1);
-        });
-    };
-
-    loadVideoStaggered(VIDEOS, 0);
-
-    // Preload Models
     MODELS.forEach((src) => {
       const loader = new GLTFLoader();
       loader.load(
@@ -114,23 +92,19 @@ export function preloadAll(onProgress: (progress: number) => void): Promise<void
           updateProgress();
         },
         undefined,
-        (error) => {
-          console.error("Failed to preload model:", src, error);
-          updateProgress();
-        }
+        () => updateProgress(),
       );
     });
 
-    // Fetch other heavy assets to prime the browser cache
     FETCH_ASSETS.forEach((src) => {
-      fetch(src, { cache: 'force-cache' })
+      fetch(src, { cache: 'force-cache', signal: abortController.signal })
         .then((res) => {
           if (!res.ok) throw new Error('Fetch failed');
           return res.blob();
         })
         .then(() => updateProgress())
         .catch((err) => {
-          console.error("Failed to fetch asset:", src, err);
+          if (err.name !== 'AbortError') console.error('Failed to fetch asset:', src, err);
           updateProgress();
         });
     });
