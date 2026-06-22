@@ -621,6 +621,16 @@ export default function ClimateVideoSection() {
         </div>
       </div>
 
+      {/* Bottom warm bridge — transitions Climate's black into Evolution's crimson */}
+      {/* Only visible during the end of Climate's pin as Evolution comes up from below */}
+      <div
+        className="absolute inset-x-0 bottom-0 pointer-events-none z-[5]"
+        style={{
+          height: '25%',
+          background: 'linear-gradient(to top, rgba(83,0,7,0.6) 0%, rgba(40,0,3,0.3) 50%, transparent 100%)',
+        }}
+      />
+
       {/* Solar Iris Entry Overlay — contracts from black to reveal video on entry */}
       {/* z-[50] sits above canvas, dots, text — cleared before pin activates */}
       <div

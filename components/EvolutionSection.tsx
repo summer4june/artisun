@@ -18,103 +18,84 @@ export default function EvolutionSection() {
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
-    // ── Pin the section (curtain reveal mechanism — do not change) ──
-    const pinSt = ScrollTrigger.create({
-      trigger: containerRef.current,
-      start: 'top top',
-      end: '+=200%',   // Extended — gives room for exit beats to fully play
-      pin: true,
-      anticipatePin: 1,
-    });
+    const ctx = gsap.context(() => {
 
-    // ── Choreographed reveal — fires when curtain has fully risen ──
-    // Evolution pins immediately after Climate's pin releases.
-    // The tiny +=1 offset ensures the pin is active before the timeline fires.
-    const tl = gsap.timeline({
-      scrollTrigger: {
+      // ── SCRUB TIMELINE — every beat tied to scroll position ──
+      // User scrolls through 200vh of pinned space.
+      // Each beat occupies a portion of that scroll range.
+      // Total timeline = 10 arbitrary units = 200vh of scroll.
+
+      const tl = gsap.timeline({ defaults: { ease: 'power2.inOut' } });
+
+      // Beat 0 (0-20% of scroll): Crimson atmosphere breathes in
+      tl.fromTo(overlayRef.current,
+        { opacity: 0 },
+        { opacity: 0.5, duration: 2 },
+        0
+      );
+
+      // Beat 1 (10-30%): Brand monogram materializes from darkness
+      tl.fromTo(monogramRef.current,
+        { opacity: 0 },
+        { opacity: 0.18, duration: 2 },
+        1
+      );
+
+      // Beat 2 (25-55%): Line 1 rises into place
+      tl.fromTo(line1Ref.current,
+        { opacity: 0, y: 60 },
+        { opacity: 1, y: 0, duration: 3 },
+        2.5
+      );
+
+      // Beat 3 (45-75%): Line 2 follows
+      tl.fromTo(line2Ref.current,
+        { opacity: 0, y: 60 },
+        { opacity: 1, y: 0, duration: 3 },
+        4.5
+      );
+
+      // Hold at 75-85%: both lines fully legible (no beats, scroll pauses here)
+
+      // Beat 4 (85-92%): Warm breath rises — Earth's warmth seeping up from below
+      tl.to(warmBreathRef.current,
+        { opacity: 1, duration: 0.8, ease: 'power2.out' },
+        8.5
+      );
+
+      // Beat 5 (88-95%): Lines float up and exit
+      tl.to([line1Ref.current, line2Ref.current],
+        { opacity: 0, y: -40, duration: 0.8, ease: 'power3.in' },
+        8.8
+      );
+
+      // Beat 6 (90-95%): Monogram fades
+      tl.to(monogramRef.current,
+        { opacity: 0, duration: 0.7, ease: 'power2.in' },
+        9.0
+      );
+
+      // Beat 7 (92-100%): Crimson overlay dissolves — Earth shows through below
+      tl.to(overlayRef.current,
+        { opacity: 0, duration: 0.8, ease: 'power2.inOut' },
+        9.2
+      );
+
+      // ── SCROLLTRIGGER: pin + scrub in one ──
+      ScrollTrigger.create({
         trigger: containerRef.current,
-        start: 'top top+=1',      // fires the instant Evolution pins (curtain up)
-        toggleActions: 'play none restart none',
-      },
-      defaults: { ease: 'power4.out' }
+        start: 'top top',
+        end: '+=200%',
+        pin: true,
+        anticipatePin: 1,
+        scrub: 1.5,         // 1.5s smoothing on scrub — premium, not choppy
+        animation: tl,
+      });
+
     });
 
-    // Beat 0 — Overlay breathes in (opacity 0 → 0.5)
-    // The dark crimson atmosphere fades in as Evolution is revealed,
-    // rather than being static behind the curtain from the start.
-    tl.fromTo(overlayRef.current,
-      { opacity: 0 },
-      { opacity: 0.5, duration: 1.2 },
-      0
-    );
+    return () => ctx.revert(); // gsap.context auto-cleans all ScrollTriggers and tweens
 
-    // Beat 1 — Monogram materializes (opacity 0 → 0.18)
-    // The brand mark emerges from the dark atmosphere. Silence, then the mark.
-    tl.fromTo(monogramRef.current,
-      { opacity: 0 },
-      { opacity: 0.18, duration: 1.0 },
-      0.1    // starts 0.1s after overlay
-    );
-
-    // Beat 2 — Line 1 rises into place (y: 50 → 0, opacity: 0 → 1)
-    // No scale. Pure Y movement. Decelerates to a stop — nothing bounces.
-    tl.fromTo(line1Ref.current,
-      { opacity: 0, y: 50 },
-      { opacity: 1, y: 0, duration: 1.0 },
-      0.4    // starts 0.4s after overlay — after monogram has appeared
-    );
-
-    // Beat 3 — Line 2 follows after Line 1 has landed
-    // 0.55s after Line 1 starts means it begins while Line 1 is still moving,
-    // but Line 1 will have decelerated to near-stillness by then (power4.out).
-    // The user reads Line 1 before Line 2 arrives.
-    tl.fromTo(line2Ref.current,
-      { opacity: 0, y: 50 },
-      { opacity: 1, y: 0, duration: 1.0 },
-      0.95   // starts 0.95s after overlay — clearly after Line 1
-    );
-
-    // ── EXIT SEQUENCE ──
-    // The crimson world dissolves. Earth’s warm cream bleeds up from below.
-    // Evolution is bg-transparent — when overlay hits 0, EarthSection shows through.
-
-    // Hold — user reads both lines
-    tl.to({}, { duration: 0.6 }, '+=0.3');
-
-    // Warm breath rises at bottom — the Earth’s warmth seeping in
-    tl.to(warmBreathRef.current, {
-      opacity: 1,
-      duration: 1.4,
-      ease: 'power2.out',
-    }, 'exit');
-
-    // Text and monogram exit upward — they float away as the world dissolves
-    tl.to(
-      [line1Ref.current, line2Ref.current],
-      { opacity: 0, y: -30, duration: 1.0, ease: 'power3.in' },
-      'exit+=0.2'
-    );
-    tl.to(monogramRef.current, {
-      opacity: 0,
-      duration: 0.8,
-      ease: 'power2.in',
-    }, 'exit+=0.3');
-
-    // Crimson overlay dissolves — Earth shows through
-    tl.to(overlayRef.current, {
-      opacity: 0,
-      duration: 1.8,
-      ease: 'power2.inOut',
-    }, 'exit+=0.4');
-
-    // Hold fully dissolved — screen is warm cream (Earth showing through)
-    tl.to({}, { duration: 0.8 });
-
-    return () => {
-      if (pinSt) pinSt.kill();
-      if (tl.scrollTrigger) tl.scrollTrigger.kill();
-      tl.kill();
-    };
   }, []);
 
   return (
