@@ -11,29 +11,9 @@ import CustomCursor from '../components/CustomCursor';
 import TextRevealSection from '../components/TextRevealSection';
 import dynamic from 'next/dynamic';
 
-const ClimateVideoSection = dynamic(
-  () => import('../components/climate/ClimateVideoSection'),
-  { 
-    ssr: false,
-    loading: () => <section className="relative w-full h-screen bg-black z-10" />
-  }
-);
-
-const EarthSection = dynamic(
-  () => import('../components/EarthSection'),
-  { 
-    ssr: false,
-    loading: () => <section className="relative w-full h-screen bg-black z-[9] overflow-hidden -mt-[18vh]" />
-  }
-);
-
-const ProductsSection = dynamic(
-  () => import('../components/ProductsSection'),
-  { 
-    ssr: false,
-    loading: () => <div className="relative w-full"><section className="w-full h-screen bg-[#111111] relative z-10" /></div>
-  }
-);
+import ClimateVideoSection from '../components/climate/ClimateVideoSection';
+import EarthSection from '../components/EarthSection';
+import ProductsSection from '../components/ProductsSection';
 
 import EvolutionSection from '../components/EvolutionSection';
 import SuncareShiftSection from '../components/SuncareShiftSection';
