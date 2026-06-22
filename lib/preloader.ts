@@ -36,23 +36,23 @@ export function preloadAll(onProgress: (progress: number) => void): Promise<void
     let loadedCount = 0;
     const totalAssets = IMAGES.length + VIDEOS.length + MODELS.length + FETCH_ASSETS.length;
     let isResolved = false;
-    const abortController = new AbortController();
 
     const forceResolve = () => {
       if (isResolved) return;
       isResolved = true;
-      abortController.abort();
       onProgress(100);
       resolve();
     };
 
-    setTimeout(forceResolve, 12000);
+    // Longer timeout for production — videos are ~18MB total
+    setTimeout(forceResolve, 25000);
 
     const updateProgress = () => {
-      if (isResolved) return;
       loadedCount++;
-      onProgress(Math.floor((loadedCount / totalAssets) * 100));
-      if (loadedCount >= totalAssets) forceResolve();
+      if (!isResolved) {
+        onProgress(Math.floor((loadedCount / totalAssets) * 100));
+        if (loadedCount >= totalAssets) forceResolve();
+      }
     };
 
     if (totalAssets === 0) {
@@ -71,9 +71,9 @@ export function preloadAll(onProgress: (progress: number) => void): Promise<void
       preloadedAssets.images[src] = img;
     });
 
-    // Preload Videos as Blobs (components use blob URLs via preloadedAssets.videos)
+    // Preload Videos as Blobs — never abort, let them finish in background
     VIDEOS.forEach((src) => {
-      fetch(src, { signal: abortController.signal })
+      fetch(src)
         .then((res) => {
           if (!res.ok) throw new Error('Video fetch failed');
           return res.blob();
@@ -83,9 +83,7 @@ export function preloadAll(onProgress: (progress: number) => void): Promise<void
           updateProgress();
         })
         .catch((err) => {
-          if (err.name !== 'AbortError') {
-            console.error('Failed to preload video:', src, err);
-          }
+          console.error('Failed to preload video:', src, err);
           updateProgress();
         });
     });
@@ -109,16 +107,14 @@ export function preloadAll(onProgress: (progress: number) => void): Promise<void
 
     // Fetch other heavy assets to prime the browser cache
     FETCH_ASSETS.forEach((src) => {
-      fetch(src, { cache: 'force-cache', signal: abortController.signal })
+      fetch(src, { cache: 'force-cache' })
         .then((res) => {
           if (!res.ok) throw new Error('Fetch failed');
           return res.blob();
         })
         .then(() => updateProgress())
         .catch((err) => {
-          if (err.name !== 'AbortError') {
-            console.error('Failed to fetch asset:', src, err);
-          }
+          console.error('Failed to fetch asset:', src, err);
           updateProgress();
         });
     });
