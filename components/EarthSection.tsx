@@ -201,8 +201,25 @@ export default function EarthSection() {
     };
 
     const loadGlobe = () => {
+      if (disposed) return;
+
       const gltf = preloadedAssets.glb;
-      if (!gltf || disposed) return;
+      if (!gltf) {
+        // GLB not in preloadedAssets yet — load it directly
+        // This covers: page refreshes, race conditions, or if preloader removed GLB
+        const loader = new GLTFLoader();
+        loader.load(
+          '/planet_earth.glb',
+          (loadedGltf) => {
+            preloadedAssets.glb = loadedGltf;
+            if (!disposed) loadGlobe(); // retry with the loaded GLB
+          },
+          undefined,
+          (err) => console.error('EarthSection: failed to load GLB', err)
+        );
+        return;
+      }
+
       const model = gltf.scene;
 
       // Recenter and normalize scale so the globe fits the viewport consistently

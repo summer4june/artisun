@@ -17,7 +17,7 @@ const VIDEOS = [
   '/videos/climate/5.mp4'
 ];
 
-const MODELS: string[] = [];
+const MODELS: string[] = ['/planet_earth.glb'];
 
 export const preloadedAssets: {
   images: Record<string, HTMLImageElement>;

@@ -24,6 +24,7 @@ export default function EvolutionSection() {
       start: 'top top',
       end: '+=200%',   // Extended — gives room for exit beats to fully play
       pin: true,
+      anticipatePin: 1,
     });
 
     // ── Choreographed reveal — fires when curtain has fully risen ──
@@ -34,7 +35,7 @@ export default function EvolutionSection() {
       scrollTrigger: {
         trigger: containerRef.current,
         start: 'top top+=1',      // fires the instant Evolution pins (curtain up)
-        toggleActions: 'play none none none',
+        toggleActions: 'play none restart none',
       },
       defaults: { ease: 'power4.out' }
     });

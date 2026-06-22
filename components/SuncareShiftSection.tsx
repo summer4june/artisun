@@ -27,19 +27,22 @@ export default function SuncareShiftSection() {
     // Section is hidden behind a left-edge clip. A blade sweeps right,
     // revealing the lifestyle photo. The "shift" begins with a decisive cut.
     // Runs during the 90vh scroll window before the section pins.
-    gsap.set(containerRef.current, {
-      clipPath: 'polygon(0% 0%, 0% 0%, 0% 100%, 0% 100%)',
-    });
-
     ScrollTrigger.create({
       trigger: containerRef.current,
       start: 'top 90%',
       end: 'top top',
       scrub: 2,
-      animation: gsap.to(containerRef.current, {
-        clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)',
-        ease: 'power2.inOut',
-      }),
+      animation: gsap.fromTo(
+        containerRef.current,
+        {
+          clipPath: 'polygon(0% 0%, 0% 0%, 0% 100%, 0% 100%)',
+          immediateRender: false,
+        },
+        {
+          clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)',
+          ease: 'power2.inOut',
+        }
+      ),
     });
 
     const tl = gsap.timeline({
@@ -49,6 +52,7 @@ export default function SuncareShiftSection() {
         end: "+=250%", // Slightly longer to give the scrub room to breathe
         pin: true,
         scrub: 1.5, // Buttery smooth interpolation (1.5 seconds to "catch up" to the scroll wheel)
+        anticipatePin: 1,
       }
     });
 

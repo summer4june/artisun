@@ -28,6 +28,7 @@ export default function SkinProtectionSection() {
         start: "top top",
         end: "+=150%", 
         pin: true,
+        anticipatePin: 1,
         scrub: 1.5, // Buttery smooth interpolation
       }
     });

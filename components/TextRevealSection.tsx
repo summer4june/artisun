@@ -29,7 +29,8 @@ export default function TextRevealSection() {
         start: "top top", // when the top of the container hits the top of the viewport
         end: "+=150%",    // pin for 1.5 screen heights
         pin: true,        // Pin the container so it stays sticky
-        scrub: 0.5,       // Faster scrubbing to prevent slow catch-up stutter
+        anticipatePin: 1,
+        scrub: 1.5,       // Buttery smooth scrubbing to prevent slow catch-up stutter
       }
     });
 

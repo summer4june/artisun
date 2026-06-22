@@ -56,7 +56,7 @@ export default function Home() {
       // Refresh ScrollTrigger to recalculate heights after loading screen goes away
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          ScrollTrigger.refresh();
+          ScrollTrigger.getAll().forEach(st => st.refresh());
         });
       });
 

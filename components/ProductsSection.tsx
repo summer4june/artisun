@@ -55,19 +55,22 @@ export default function ProductsSection() {
       // Section rises from the bottom edge of the screen like a theater curtain.
       // Products is the payoff of the entire site narrative — deserves a theatrical entry.
       // polygon animates from a collapsed bottom line to a full rectangle.
-      gsap.set(containerRef.current, {
-        clipPath: 'polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%)',
-      });
-
       ScrollTrigger.create({
         trigger: containerRef.current,
         start: 'top 90%',
         end: 'top top',
         scrub: 2,
-        animation: gsap.to(containerRef.current, {
-          clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)',
-          ease: 'power2.inOut',
-        }),
+        animation: gsap.fromTo(
+          containerRef.current,
+          {
+            clipPath: 'polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%)',
+            immediateRender: false,
+          },
+          {
+            clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)',
+            ease: 'power2.inOut',
+          }
+        ),
       });
 
       const tl = gsap.timeline({ paused: true });
@@ -106,6 +109,7 @@ export default function ProductsSection() {
         start: "top top",
         end: "+=200%", // Reduced scroll distance slightly for tighter control
         pin: containerRef.current,
+        anticipatePin: 1,
         scrub: 0.5, // Reduced scrub lag from 1.5 to 0.5 to make it feel much more responsive and less rubber-bandy
         animation: tl,
         onUpdate: (self) => {

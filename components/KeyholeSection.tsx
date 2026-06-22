@@ -18,19 +18,22 @@ export default function KeyholeSection() {
     // Section appears as a 4% horizontal slit at center of screen.
     // Expands outward — top half rises, bottom half drops — a tear.
     // The most dramatic entry on the site. Earns the keyhole reveal.
-    gsap.set(containerRef.current, {
-      clipPath: 'inset(48% 0% 48% 0%)',
-    });
-
     const entrySt = ScrollTrigger.create({
       trigger: containerRef.current,
       start: 'top 90%',
       end: 'top top',
       scrub: 2,
-      animation: gsap.to(containerRef.current, {
-        clipPath: 'inset(0% 0% 0% 0%)',
-        ease: 'power3.inOut',
-      }),
+      animation: gsap.fromTo(
+        containerRef.current,
+        {
+          clipPath: 'inset(48% 0% 48% 0%)',
+          immediateRender: false,
+        },
+        {
+          clipPath: 'inset(0% 0% 0% 0%)',
+          ease: 'power3.inOut',
+        }
+      ),
     });
 
     const tl = gsap.timeline({
@@ -40,6 +43,7 @@ export default function KeyholeSection() {
         end: "+=200%", // Drastically shortened scroll length so it happens very quickly
         pin: true,
         scrub: 1.5,
+        anticipatePin: 1,
       }
     });
 

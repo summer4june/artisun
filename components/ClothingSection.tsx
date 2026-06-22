@@ -69,6 +69,7 @@ export default function ClothingSection() {
         start: "top top",
         end: "+=120%",
         pin: true,
+        anticipatePin: 1,
         scrub: 1.5, // Buttery smooth interpolation
       }
     });
