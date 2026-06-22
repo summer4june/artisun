@@ -123,16 +123,16 @@ export default function EarthSection() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);
 
-    // Natural, realistic ambient light
-    scene.add(new THREE.AmbientLight('#ffffff', 0.8));
+    // Dark, moody ambient light for a darkish overlay effect
+    scene.add(new THREE.AmbientLight('#ffffff', 0.25));
 
-    // Realistic pure white sunlight coming from a low angle
-    const sunLight = new THREE.DirectionalLight('#ffffff', 3.0); 
+    // Realistic pure white sunlight coming from a low angle, reduced intensity
+    const sunLight = new THREE.DirectionalLight('#ffffff', 1.2); 
     sunLight.position.set(200, 20, 100); 
     scene.add(sunLight);
 
-    // Subtle blue rim/fill light from the opposite side to simulate space/atmospheric scattering
-    const fillLight = new THREE.DirectionalLight('#aaccff', 0.5); 
+    // Subtle blue rim/fill light from the opposite side
+    const fillLight = new THREE.DirectionalLight('#aaccff', 0.3); 
     fillLight.position.set(-150, -50, -150);
     scene.add(fillLight);
 
@@ -270,7 +270,7 @@ export default function EarthSection() {
     };
     loadGlobe();
 
-    const IDLE_SPIN_SPEED = 0.0028;
+    const IDLE_SPIN_SPEED = 0.001;
 
     const renderFrame = (delta: number) => {
       if (globeModel) {
