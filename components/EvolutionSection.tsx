@@ -28,9 +28,8 @@ export default function EvolutionSection() {
     });
 
     // ── Choreographed reveal — fires when curtain has fully risen ──
-    // 'top top' on a pinned -mt-[100vh] element means Evolution is fully
-    // visible (the curtain of Climate has completely scrolled away).
-    // We use a small scroll offset to ensure Climate is fully gone.
+    // Evolution pins immediately after Climate's pin releases.
+    // The tiny +=1 offset ensures the pin is active before the timeline fires.
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: containerRef.current,
@@ -121,7 +120,7 @@ export default function EvolutionSection() {
   return (
     <section
       ref={containerRef}
-      className="relative w-full h-screen bg-transparent z-10 -mt-[100vh] flex flex-col items-center justify-center px-6 md:px-20 overflow-hidden"
+      className="relative w-full h-screen bg-transparent z-10 flex flex-col items-center justify-center px-6 md:px-20 overflow-hidden"
     >
 
       {/* Dark Crimson Atmosphere — starts invisible, fades in as curtain rises */}

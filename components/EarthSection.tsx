@@ -29,6 +29,17 @@ export default function EarthSection() {
 
     gsap.registerPlugin(ScrollTrigger);
 
+    // ── PIN: Hold EarthSection while globe animations play ──
+    // Globe drops (2.2s), settles, India locks, text appears, exits.
+    // Without pin, section scrolls past before any of this is seen.
+    const earthPin = ScrollTrigger.create({
+      trigger: sectionRef.current,
+      start: 'top top',
+      end: '+=250%',
+      pin: true,
+      anticipatePin: 1,
+    });
+
     // Drop the globe in with authoritative deceleration — no bounce, just mass through air.
     let hangTween: gsap.core.Tween | null = null;
     let sectionExiting = false;
@@ -442,6 +453,7 @@ export default function EarthSection() {
       hangTween?.kill();
       titleTrigger.kill();
       subtitleTrigger.kill();
+      earthPin?.kill();
       starSt?.kill();
       emergenceSt?.kill();
       exitSt?.kill();
@@ -474,7 +486,7 @@ export default function EarthSection() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="relative w-full h-screen bg-black z-[9] overflow-hidden -mt-[18vh]">
+    <section ref={sectionRef} className="relative w-full h-screen bg-black z-[9] overflow-hidden">
 
       {/* Star Field Canvas — drawn once on mount, parallaxes at 12% scroll speed */}
       <canvas
@@ -512,7 +524,7 @@ export default function EarthSection() {
 
       <div
         ref={containerRef}
-        className="absolute top-1/2 left-1/2 w-[50vmin] h-[50vmin] z-10 pointer-events-none opacity-0"
+        className="absolute top-1/2 left-1/2 w-[82vmin] h-[82vmin] z-10 pointer-events-none opacity-0"
       />
 
       {/* India Pulse — fires once when globe locks to face India */}

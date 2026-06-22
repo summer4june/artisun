@@ -625,8 +625,11 @@ export default function ClimateVideoSection() {
       {/* z-[50] sits above canvas, dots, text — cleared before pin activates */}
       <div
         ref={irisRef}
-        className="absolute inset-0 bg-black pointer-events-none z-[50]"
-        style={{ willChange: 'clip-path' }}
+        className="absolute inset-0 pointer-events-none z-[50]"
+        style={{
+          willChange: 'clip-path',
+          background: 'radial-gradient(circle at 50% 50%, #FF8C22 0%, #C93B1A 25%, #6B0A0E 55%, #0a0000 100%)',
+        }}
       />
     </section>
   );
