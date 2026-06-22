@@ -240,8 +240,8 @@ export default function EarthSection() {
       const radius = Math.max(size.x, size.y, size.z) / 2;
 
       model.position.sub(center);
-      // Scale the globe up significantly to cover the whole screen
-      const scale = 1.05 / radius;
+      // Scale the globe to cover exactly 50% of the screen in the center
+      const scale = 0.50 / radius;
       model.scale.setScalar(scale);
 
       // Hide low poly atmosphere shells
@@ -446,7 +446,7 @@ export default function EarthSection() {
 
       <div
         ref={containerRef}
-        className="absolute top-1/2 left-1/2 w-[140vmin] h-[140vmin] z-10 pointer-events-none opacity-0"
+        className="absolute top-1/2 left-1/2 w-[100vmin] h-[100vmin] z-10 pointer-events-none opacity-0"
       >
         {/* India Pulse — fires once when globe locks to face India. Positioned as a
             child of the globe container (not the section) so it tracks the globe's

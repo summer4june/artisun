@@ -13,10 +13,16 @@ const VIDEOS = [
   '/videos/climate/2.mp4',
   '/videos/climate/3.mp4',
   '/videos/climate/4.mp4',
-  '/videos/climate/5.mp4'
+  '/videos/climate/5.mp4',
+  '/6th-vid.mp4'
 ];
 
 const MODELS: string[] = ['/planet_earth.glb'];
+
+const FETCH_ASSETS = [
+  '/1.glb',
+  '/2.glb'
+];
 
 export const preloadedAssets: {
   images: Record<string, HTMLImageElement>;
@@ -31,7 +37,7 @@ export const preloadedAssets: {
 export function preloadAll(onProgress: (progress: number) => void): Promise<void> {
   return new Promise((resolve) => {
     let loadedCount = 0;
-    const totalAssets = IMAGES.length + VIDEOS.length + MODELS.length;
+    const totalAssets = IMAGES.length + VIDEOS.length + MODELS.length + FETCH_ASSETS.length;
 
     let isResolved = false;
 
@@ -43,10 +49,10 @@ export function preloadAll(onProgress: (progress: number) => void): Promise<void
     };
 
     // Fallback timeout: If network is slow or an asset silently hangs, 
-    // let the user through after 8 seconds.
+    // let the user through after 12 seconds.
     setTimeout(() => {
       forceResolve();
-    }, 8000);
+    }, 12000);
 
     const updateProgress = () => {
       if (isResolved) return;
@@ -116,6 +122,20 @@ export function preloadAll(onProgress: (progress: number) => void): Promise<void
           updateProgress();
         }
       );
+    });
+
+    // Fetch other heavy assets to prime the browser cache
+    FETCH_ASSETS.forEach((src) => {
+      fetch(src, { cache: 'force-cache' })
+        .then((res) => {
+          if (!res.ok) throw new Error('Fetch failed');
+          return res.blob();
+        })
+        .then(() => updateProgress())
+        .catch((err) => {
+          console.error("Failed to fetch asset:", src, err);
+          updateProgress();
+        });
     });
   });
 }
