@@ -14,7 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${ppEditorialNew.variable} ${suisseIntl.variable}`}>
-      <body>
+      <body suppressHydrationWarning>
         {children}
       </body>
     </html>

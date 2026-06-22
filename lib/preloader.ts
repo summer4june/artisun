@@ -61,6 +61,7 @@ export function preloadAll(onProgress: (progress: number) => void): Promise<void
       return;
     }
 
+    // Preload Images
     IMAGES.forEach((src) => {
       const img = new Image();
       img.onload = updateProgress;
@@ -70,19 +71,26 @@ export function preloadAll(onProgress: (progress: number) => void): Promise<void
       preloadedAssets.images[src] = img;
     });
 
+    // Preload Videos as Blobs (components use blob URLs via preloadedAssets.videos)
     VIDEOS.forEach((src) => {
-      const vid = document.createElement('video');
-      vid.preload = 'auto';
-      vid.muted = true;
-      vid.playsInline = true;
-      vid.oncanplaythrough = () => {
-        updateProgress();
-        vid.oncanplaythrough = null;
-      };
-      vid.onerror = () => updateProgress();
-      vid.src = src;
+      fetch(src, { signal: abortController.signal })
+        .then((res) => {
+          if (!res.ok) throw new Error('Video fetch failed');
+          return res.blob();
+        })
+        .then((blob) => {
+          preloadedAssets.videos[src] = URL.createObjectURL(blob);
+          updateProgress();
+        })
+        .catch((err) => {
+          if (err.name !== 'AbortError') {
+            console.error('Failed to preload video:', src, err);
+          }
+          updateProgress();
+        });
     });
 
+    // Preload GLB Models
     MODELS.forEach((src) => {
       const loader = new GLTFLoader();
       loader.load(
@@ -92,10 +100,14 @@ export function preloadAll(onProgress: (progress: number) => void): Promise<void
           updateProgress();
         },
         undefined,
-        () => updateProgress(),
+        (error) => {
+          console.error('Failed to preload model:', src, error);
+          updateProgress();
+        },
       );
     });
 
+    // Fetch other heavy assets to prime the browser cache
     FETCH_ASSETS.forEach((src) => {
       fetch(src, { cache: 'force-cache', signal: abortController.signal })
         .then((res) => {
@@ -104,7 +116,9 @@ export function preloadAll(onProgress: (progress: number) => void): Promise<void
         })
         .then(() => updateProgress())
         .catch((err) => {
-          if (err.name !== 'AbortError') console.error('Failed to fetch asset:', src, err);
+          if (err.name !== 'AbortError') {
+            console.error('Failed to fetch asset:', src, err);
+          }
           updateProgress();
         });
     });
