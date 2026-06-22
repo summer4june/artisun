@@ -94,26 +94,6 @@ export default function TextRevealSection() {
         </div>
 
       </div>
-
-      {/* Top dissolve — soft entry from hero */}
-      <div
-        className="absolute inset-x-0 top-0 pointer-events-none z-[20]"
-        style={{
-          height: '20%',
-          background: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 100%)',
-        }}
-      />
-
-      {/* Bottom dissolve — fades TextReveal into Climate's bg-black */}
-      {/* This kills the hard seam line between the two sections */}
-      <div
-        className="absolute inset-x-0 bottom-0 pointer-events-none z-[20]"
-        style={{
-          height: '40%',
-          background: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 40%, transparent 100%)',
-        }}
-      />
-
     </section>
   );
 }

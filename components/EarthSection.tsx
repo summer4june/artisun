@@ -38,15 +38,6 @@ export default function EarthSection() {
       end: '+=250%',
       pin: true,
       anticipatePin: 1,
-      onEnter: () => {
-        // Fade warm entry color as globe world establishes
-        gsap.to('#earth-entry-warm', {
-          opacity: 0,
-          duration: 1.5,
-          ease: 'power2.in',
-          delay: 0.5,
-        });
-      },
     });
 
     // Drop the globe in with authoritative deceleration — no bounce, just mass through air.
@@ -58,7 +49,7 @@ export default function EarthSection() {
     gsap.set(container, { xPercent: -50, yPercent: -50 });
     const dropTween = gsap.fromTo(
       container,
-      { y: -700, rotation: -8, opacity: 0, immediateRender: false },
+      { y: -700, rotation: -8, opacity: 0 },
       {
         y: 0,
         rotation: 0,
@@ -66,8 +57,8 @@ export default function EarthSection() {
         duration: 2.2,               // slower fall = more weight
         ease: 'power4.out',          // fast start, dramatic deceleration — no bounce
         scrollTrigger: {
-          trigger: sectionRef.current,  // use SECTION as trigger, not container
-          start: 'top 60%',            // fires when section is 40% into viewport
+          trigger: container,
+          start: 'top 85%',
           toggleActions: 'play none none none',  // plays once, no reverse on scroll-up
         },
         onComplete: () => {
@@ -119,7 +110,7 @@ export default function EarthSection() {
     );
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 2000);
+    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 2000);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -496,17 +487,6 @@ export default function EarthSection() {
 
   return (
     <section ref={sectionRef} className="relative w-full h-screen bg-black z-[9] overflow-hidden">
-
-      {/* Entry warmth — matches Evolution's warm breath color as it dissolves */}
-      {/* Fades away as Earth pins and globe drops into frame */}
-      <div
-        id="earth-entry-warm"
-        className="absolute inset-x-0 top-0 pointer-events-none z-[8]"
-        style={{
-          height: '60%',
-          background: 'linear-gradient(to bottom, rgba(218,155,80,0.18) 0%, transparent 100%)',
-        }}
-      />
 
       {/* Star Field Canvas — drawn once on mount, parallaxes at 12% scroll speed */}
       <canvas
