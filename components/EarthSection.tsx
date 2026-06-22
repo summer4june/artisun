@@ -272,11 +272,11 @@ export default function EarthSection() {
       // camera's visible frustum (~1.08), so the fade completes before the canvas edge instead
       // of getting clipped mid-fade (which is what read as a hard square before).
       const gradient = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
-      gradient.addColorStop(0, 'rgba(255, 200, 140, 0)');
-      gradient.addColorStop(0.74, 'rgba(255, 178, 102, 0)');
-      gradient.addColorStop(0.82, 'rgba(255, 180, 110, 0.5)');
-      gradient.addColorStop(0.92, 'rgba(255, 178, 102, 0.15)');
-      gradient.addColorStop(1, 'rgba(255, 178, 102, 0)');
+      gradient.addColorStop(0,    'rgba(255, 200, 140, 0)');     // invisible at center
+      gradient.addColorStop(0.70, 'rgba(255, 190, 120, 0)');     // still invisible
+      gradient.addColorStop(0.80, 'rgba(255, 178, 102, 0.20)'); // soft peak (was 0.50)
+      gradient.addColorStop(0.90, 'rgba(255, 178, 102, 0.06)'); // gentle fade
+      gradient.addColorStop(1.0,  'rgba(255, 178, 102, 0)');     // fully transparent
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, 256, 256);
 
@@ -499,7 +499,7 @@ export default function EarthSection() {
         <img
           src="/earth_back.webp"
           alt="Earth Background"
-          className="absolute top-0 left-0 w-[100vw] h-auto object-cover opacity-80 z-[2]"
+          className="absolute inset-0 w-full h-full object-cover object-top opacity-75 z-[2]"
       />
 
       {/* Dual Atmosphere Glow — warm India side + cool opposite side */}
@@ -510,14 +510,15 @@ export default function EarthSection() {
         style={{
           top: '50%',
           left: '50%',
-          width: '80vmin',
-          height: '80vmin',
+          width: '110vmin',
+          height: '110vmin',
           transform: 'translate(-50%, -50%)',
+          borderRadius: '50%',
           opacity: 0,
           willChange: 'opacity',
           background: `
-            radial-gradient(ellipse at 62% 42%, rgba(232,96,26,0.32) 0%, rgba(201,59,26,0.14) 35%, transparent 62%),
-            radial-gradient(ellipse at 33% 62%, rgba(10,0,80,0.28) 0%, rgba(5,0,50,0.12) 40%, transparent 68%)
+            radial-gradient(ellipse at 62% 42%, rgba(232,96,26,0.28) 0%, rgba(201,59,26,0.10) 35%, transparent 58%),
+            radial-gradient(ellipse at 33% 62%, rgba(10,0,80,0.22) 0%, rgba(5,0,50,0.08) 40%, transparent 65%)
           `,
         }}
       />

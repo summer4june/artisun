@@ -92,8 +92,17 @@ export default function TextRevealSection() {
             </span>
           ))}
         </div>
-
       </div>
+
+      {/* Bottom dissolve — blends TextReveal into Climate's warm iris entry */}
+      {/* Fades from transparent to deep warm amber matching the iris gradient edge */}
+      <div
+        className="absolute inset-x-0 bottom-0 pointer-events-none z-[2]"
+        style={{
+          height: '35%',
+          background: 'linear-gradient(to bottom, transparent 0%, rgba(40,8,2,0.7) 60%, rgba(10,2,0,0.95) 100%)',
+        }}
+      />
     </section>
   );
 }

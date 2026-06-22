@@ -43,18 +43,12 @@ export default function EvolutionSection() {
     // The dark crimson atmosphere fades in as Evolution is revealed,
     // rather than being static behind the curtain from the start.
     tl.fromTo(overlayRef.current,
-      { opacity: 0 },
+      { opacity: 0.35 },
       { opacity: 0.5, duration: 1.2 },
       0
     );
 
-    // Beat 1 — Monogram materializes (opacity 0 → 0.18)
-    // The brand mark emerges from the dark atmosphere. Silence, then the mark.
-    tl.fromTo(monogramRef.current,
-      { opacity: 0 },
-      { opacity: 0.18, duration: 1.0 },
-      0.1    // starts 0.1s after overlay
-    );
+    // Beat 1 — Removed monogram animation, it stays static now.
 
     // Beat 2 — Line 1 rises into place (y: 50 → 0, opacity: 0 → 1)
     // No scale. Pure Y movement. Decelerates to a stop — nothing bounces.
@@ -129,7 +123,7 @@ export default function EvolutionSection() {
         ref={overlayRef}
         className="absolute inset-0 pointer-events-none"
         style={{
-          opacity: 0,
+          opacity: 0.35,
           background: 'radial-gradient(ellipse at 50% 50%, #6B0A0E 0%, #530007 45%, #2A0003 100%)',
         }}
       />
@@ -138,7 +132,7 @@ export default function EvolutionSection() {
       <div
         ref={monogramRef}
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] h-[90vw] md:w-[120vw] md:h-[120vw] lg:w-[1000px] lg:h-[1000px] flex items-center justify-center pointer-events-none z-[1]"
-        style={{ opacity: 0, willChange: 'opacity' }}
+        style={{ opacity: 0.14, willChange: 'opacity' }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
