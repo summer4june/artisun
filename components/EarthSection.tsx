@@ -33,88 +33,87 @@ export default function EarthSection() {
     let hangTween: gsap.core.Tween | null = null;
     let sectionExiting = false;
     let starSt: ScrollTrigger | null = null;
-    let emergenceSt: ScrollTrigger | null = null;
     let exitSt: ScrollTrigger | null = null;
+    let dropSt: ScrollTrigger | null = null;
     gsap.set(container, { xPercent: -50, yPercent: -50 });
 
-    // The drop tween used to have its own ScrollTrigger keyed off the container's
-    // pre-pin document position ('top 85%'). That position is reached while the
-    // PREVIOUS section (Evolution, higher z-index) is still on screen, so the whole
-    // entrance played out hidden behind it — by the time Earth's own pin engaged and
-    // became visible, the globe had already silently dropped and settled, reading as
-    // a dead "gap" between Evolution and Earth. Triggering it from earthPin's onEnter
-    // instead guarantees it plays exactly when Earth becomes the pinned, visible
-    // section — paused + no scrollTrigger here, played explicitly below.
-    const dropTween = gsap.fromTo(
-      container,
-      { y: -700, rotation: -8, opacity: 0 },
-      {
-        y: 0,
-        rotation: 0,
-        opacity: 1,
-        duration: 2.2,               // slower fall = more weight
-        ease: 'power4.out',          // fast start, dramatic deceleration — no bounce
-        paused: true,
-        onComplete: () => {
-          // Subtle hang — 1.5° max, 4s period. Almost imperceptible but adds life.
-          hangTween = gsap.to(container, {
-            rotation: 1.5,
-            duration: 4.0,
-            ease: 'sine.inOut',
-            yoyo: true,
-            repeat: -1,
-          });
+    const handleMouseMove = (e: MouseEvent) => {
+      if (sectionExiting) return;
+      const rect = section.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      const dx = (e.clientX - (rect.left + rect.width  / 2)) / (rect.width  / 2);
+      const dy = (e.clientY - (rect.top  + rect.height / 2)) / (rect.height / 2);
+      gsap.to(container, {
+        x: dx * 18,
+        y: dy * 12,
+        duration: 1.8,
+        ease: 'power3.out',
+        overwrite: 'auto',
+      });
+    };
+    const handleMouseLeave = () => {
+      gsap.to(container, { x: 0, y: 0, duration: 2.2, ease: 'power3.out' });
+    };
 
-          // ── MOUSE INERTIA — starts only after globe has landed ──
-          // Globe drifts toward mouse with a lag that feels like mass.
-          // Max ±18px horizontal, ±12px vertical. containerRef has
-          // xPercent/yPercent: -50 for centering — x/y offsets stack on top cleanly.
-          const handleMouseMove = (e: MouseEvent) => {
-            if (sectionExiting) return;
-            const rect = section.getBoundingClientRect();
-            if (!rect.width || !rect.height) return;
-            const dx = (e.clientX - (rect.left + rect.width  / 2)) / (rect.width  / 2);
-            const dy = (e.clientY - (rect.top  + rect.height / 2)) / (rect.height / 2);
-            gsap.to(container, {
-              x: dx * 18,
-              y: dy * 12,
-              duration: 1.8,
-              ease: 'power3.out',
-              overwrite: 'auto',
-            });
-          };
-
-          const handleMouseLeave = () => {
-            gsap.to(container, {
-              x: 0,
-              y: 0,
-              duration: 2.2,
-              ease: 'power3.out',
-            });
-          };
-
-          section.addEventListener('mousemove', handleMouseMove);
-          section.addEventListener('mouseleave', handleMouseLeave);
-
-          // Store refs on the section element so cleanup can reach them
-          (section as HTMLElement & { _mmove?: EventListener; _mleave?: EventListener })._mmove  = handleMouseMove as EventListener;
-          (section as HTMLElement & { _mmove?: EventListener; _mleave?: EventListener })._mleave = handleMouseLeave as EventListener;
-        },
-      }
-    );
+    // ── MOUSE INERTIA + HANG — only active once the globe has landed ──
+    let landed = false;
+    const setupLanded = () => {
+      if (landed) return;
+      landed = true;
+      // Subtle hang — 1.5° max, 4s period. Almost imperceptible but adds life.
+      hangTween = gsap.to(container, {
+        rotation: 1.5,
+        duration: 4.0,
+        ease: 'sine.inOut',
+        yoyo: true,
+        repeat: -1,
+      });
+      section.addEventListener('mousemove', handleMouseMove);
+      section.addEventListener('mouseleave', handleMouseLeave);
+    };
+    const teardownLanded = () => {
+      if (!landed) return;
+      landed = false;
+      hangTween?.kill();
+      hangTween = null;
+      section.removeEventListener('mousemove', handleMouseMove);
+      section.removeEventListener('mouseleave', handleMouseLeave);
+    };
 
     // ── PIN: Hold EarthSection while globe animations play ──
-    // Globe drops (2.2s), settles, India locks, text appears, exits.
-    // Without pin, section scrolls past before any of this is seen. Playing
-    // dropTween here (rather than off its own pre-pin trigger) guarantees the
-    // entrance is visible exactly when the section becomes pinned — see note above.
+    // Globe drops, settles, India locks, text appears, exits.
+    // Without pin, section scrolls past before any of this is seen.
     const earthPin = ScrollTrigger.create({
       trigger: sectionRef.current,
       start: 'top top',
       end: '+=250%',
       pin: true,
       anticipatePin: 1,
-      onEnter: () => dropTween.play(),
+    });
+
+    // ── ENTRY: Globe Drop ──
+    // Used to be a one-shot tween triggered once via onEnter (play once, never
+    // re-evaluated). That meant any navigation that skipped past the trigger's start
+    // in a single jump — clicking a nav link, browser back/forward, a fast scroll-bar
+    // drag, even just GSAP's own ScrollTrigger.refresh() recalculating mid-flight —
+    // could miss the onEnter callback entirely, leaving the globe permanently stuck
+    // at its hidden opacity:0 starting state. Scrubbing it instead means the globe's
+    // position/opacity is recomputed directly from the CURRENT scroll position on
+    // every frame, so it's always correct no matter how the user arrived here.
+    dropSt = ScrollTrigger.create({
+      trigger: sectionRef.current,
+      start: 'top top',
+      end: '+=30%',
+      scrub: 1,
+      animation: gsap.fromTo(
+        container,
+        { y: -700, rotation: -8, opacity: 0 },
+        { y: 0, rotation: 0, opacity: 1, ease: 'power4.out' }
+      ),
+      onUpdate: (self) => {
+        if (self.progress >= 0.999) setupLanded();
+        else teardownLanded();
+      },
     });
 
     const scene = new THREE.Scene();
@@ -124,12 +123,17 @@ export default function EarthSection() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);
 
-    scene.add(new THREE.AmbientLight('#ffe9cf', 1.4));
-    const sunLight = new THREE.DirectionalLight('#ffae5c', 1.8);
-    sunLight.position.set(150, 100, 200);
+    // Natural, realistic ambient light
+    scene.add(new THREE.AmbientLight('#ffffff', 0.8));
+
+    // Realistic pure white sunlight coming from a low angle
+    const sunLight = new THREE.DirectionalLight('#ffffff', 3.0); 
+    sunLight.position.set(200, 20, 100); 
     scene.add(sunLight);
-    const fillLight = new THREE.DirectionalLight('#fff2e0', 0.6);
-    fillLight.position.set(-150, -50, 150);
+
+    // Subtle blue rim/fill light from the opposite side to simulate space/atmospheric scattering
+    const fillLight = new THREE.DirectionalLight('#aaccff', 0.5); 
+    fillLight.position.set(-150, -50, -150);
     scene.add(fillLight);
 
     let mixer: THREE.AnimationMixer | null = null;
@@ -192,22 +196,10 @@ export default function EarthSection() {
             );
           });
         }
-
-        // Dual atmosphere glow fades in as globe locks to India
-        gsap.to(atmosphereRef.current, {
-          opacity: 1,
-          duration: 2.5,
-          ease: 'power2.out',
-        });
       },
       onLeaveBack: () => {
         setSubtitleActive(false);
         disengageLock();
-        gsap.to(atmosphereRef.current, {
-          opacity: 0,
-          duration: 1.2,
-          ease: 'power2.in',
-        });
       },
     });
 
@@ -248,56 +240,16 @@ export default function EarthSection() {
       const radius = Math.max(size.x, size.y, size.z) / 2;
 
       model.position.sub(center);
-      // Leave the globe slightly smaller than the full frame (radius 0.82, not 1.0) so the
-      // glow has room to fade out to true zero alpha before hitting the canvas edge -- otherwise
-      // the camera's visible frustum clips the gradient mid-fade, which reads as a hard square.
-      const scale = 0.82 / radius;
+      // Scale the globe up significantly to cover the whole screen
+      const scale = 1.05 / radius;
       model.scale.setScalar(scale);
 
-      // The original atmosphere shells are too low-poly (~1.7k verts) for a smooth per-vertex
-      // rim shader -- it shows faceting. Hide them and use a flat, resolution-independent
-      // radial-gradient sprite instead for a soft, natural sunshine glow.
-      model.traverse((obj) => {
+      // Hide low poly atmosphere shells
+      model.traverse((obj: THREE.Object3D) => {
         if (obj instanceof THREE.Mesh && /atmosfera/i.test(obj.name)) {
           obj.visible = false;
         }
       });
-
-      const glowCanvas = document.createElement('canvas');
-      glowCanvas.width = 256;
-      glowCanvas.height = 256;
-      const ctx = glowCanvas.getContext('2d')!;
-      // Clip to a circle first -- pixels outside it are never painted, so they stay
-      // truly transparent instead of relying on a gradient stop to fade to zero
-      // (which left a faint square at the texture's edges).
-      ctx.beginPath();
-      ctx.arc(128, 128, 128, 0, Math.PI * 2);
-      ctx.clip();
-      // The sprite is scaled to 2.0 world units (half-width 1.0), and the globe's own radius
-      // is 0.82 -- so its silhouette edge falls at texture offset 0.82/1.0 = 0.82. The opaque
-      // globe occludes anything inside that radius, so the brightest point of the glow sits
-      // AT that offset, then fades fully to zero by offset 1.0 -- comfortably inside the
-      // camera's visible frustum (~1.08), so the fade completes before the canvas edge instead
-      // of getting clipped mid-fade (which is what read as a hard square before).
-      const gradient = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
-      gradient.addColorStop(0,    'rgba(255, 200, 140, 0)');     // invisible at center
-      gradient.addColorStop(0.70, 'rgba(255, 190, 120, 0)');     // still invisible
-      gradient.addColorStop(0.80, 'rgba(255, 178, 102, 0.20)'); // soft peak (was 0.50)
-      gradient.addColorStop(0.90, 'rgba(255, 178, 102, 0.06)'); // gentle fade
-      gradient.addColorStop(1.0,  'rgba(255, 178, 102, 0)');     // fully transparent
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, 256, 256);
-
-      const glowTexture = new THREE.CanvasTexture(glowCanvas);
-      const glowSprite = new THREE.Sprite(
-        new THREE.SpriteMaterial({
-          map: glowTexture,
-          transparent: true,
-          depthWrite: false,
-        })
-      );
-      glowSprite.scale.set(2.0, 2.0, 1);
-      scene.add(glowSprite);
 
       // Starts mid-spin (idle state); the render loop takes over rotation from here --
       // free-spinning until the user scrolls, then settling to face India.
@@ -396,30 +348,7 @@ export default function EarthSection() {
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(container);
 
-    // ── ENTRY: Globe Emergence ──
-    // opacity NOT set to 0 — Earth must be visible through Evolution’s
-    // transparent bg during the exit sequence. Only y and scale are animated.
-    // Anchored to the pin's own engagement ('top top'), not the pre-pin approach
-    // ('top 90%') — that earlier window overlaps with Evolution (z-10, painted on
-    // top), so the lift was completing invisibly before Earth ever became visible.
-    gsap.set(sectionRef.current, {
-      y: 60,
-      scale: 0.97,
-      // opacity intentionally omitted — section is always visible
-    });
-
-    emergenceSt = ScrollTrigger.create({
-      trigger: sectionRef.current,
-      start: 'top top',
-      end: '+=20%',
-      scrub: 1,
-      animation: gsap.to(sectionRef.current, {
-        y: 0,
-        scale: 1,
-        ease: 'power3.out',
-        // opacity intentionally omitted
-      }),
-    });
+    // Removed emergenceSt that was scaling the entire section and causing a visible boundary gap
 
     // ── EXIT: Globe pulls up and out ──
     // As section scrolls off the top, globe rises and fades.
@@ -431,15 +360,15 @@ export default function EarthSection() {
       scrub: 2,
       onEnter: () => {
         sectionExiting = true;
-        const s = section as HTMLElement & { _mmove?: EventListener; _mleave?: EventListener };
-        if (s._mmove)  s.removeEventListener('mousemove',  s._mmove);
-        if (s._mleave) s.removeEventListener('mouseleave', s._mleave);
+        section.removeEventListener('mousemove', handleMouseMove);
+        section.removeEventListener('mouseleave', handleMouseLeave);
       },
       onLeaveBack: () => {
         sectionExiting = false;
-        const s = section as HTMLElement & { _mmove?: EventListener; _mleave?: EventListener };
-        if (s._mmove)  s.addEventListener('mousemove',  s._mmove);
-        if (s._mleave) s.addEventListener('mouseleave', s._mleave);
+        if (landed) {
+          section.addEventListener('mousemove', handleMouseMove);
+          section.addEventListener('mouseleave', handleMouseLeave);
+        }
       },
       animation: gsap.to(containerRef.current, {
         y: -90,
@@ -459,14 +388,12 @@ export default function EarthSection() {
       observer.disconnect();
       resizeObserver.disconnect();
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      dropTween.scrollTrigger?.kill();
-      dropTween.kill();
+      dropSt?.kill();
       hangTween?.kill();
       titleTrigger.kill();
       subtitleTrigger.kill();
       earthPin?.kill();
       starSt?.kill();
-      emergenceSt?.kill();
       exitSt?.kill();
 
       mixer?.stopAllAction();
@@ -489,10 +416,9 @@ export default function EarthSection() {
       renderer.dispose();
       renderer.domElement.remove();
 
-      // Remove mouse listeners added after drop
-      const s = section as HTMLElement & { _mmove?: EventListener; _mleave?: EventListener };
-      if (s._mmove)  s.removeEventListener('mousemove',  s._mmove);
-      if (s._mleave) s.removeEventListener('mouseleave', s._mleave);
+      teardownLanded();
+      section.removeEventListener('mousemove', handleMouseMove);
+      section.removeEventListener('mouseleave', handleMouseLeave);
     };
   }, []);
 
@@ -506,42 +432,21 @@ export default function EarthSection() {
         style={{ opacity: 0.7 }}
       />
 
-        {/* Warm cream background matching the transition */}
-        <img
-          src="/earth_back.webp"
-          alt="Earth Background"
-          className="absolute inset-0 w-full h-full object-cover object-top opacity-75 z-[2]"
-      />
-
-      {/* Dual Atmosphere Glow — warm India side + cool opposite side */}
-      {/* Sized larger than globe container so gradients have room to feather */}
+      {/* Deep sunset-to-space blend — seamlessly connects to Evolution's bottom sunset gradient */}
       <div
-        ref={atmosphereRef}
-        className="absolute pointer-events-none z-[5]"
+        className="absolute inset-0 z-[2] pointer-events-none"
         style={{
-          top: '50%',
-          left: '50%',
-          width: '114vmin',
-          height: '114vmin',
-          transform: 'translate(-50%, -50%)',
-          borderRadius: '50%',
-          opacity: 0,
-          willChange: 'opacity',
-          // mix-blend-mode: screen makes the glow add light against the cream/dark
-          // backdrop instead of mixing into a flat muddy-brown ring (multiply-like
-          // blending of orange/navy over the cream background was the original issue).
-          mixBlendMode: 'screen',
-          filter: 'blur(6px)',
-          background: `
-            radial-gradient(ellipse at 62% 42%, rgba(255,140,60,0.55) 0%, rgba(232,96,26,0.22) 40%, transparent 62%),
-            radial-gradient(ellipse at 33% 62%, rgba(70,110,255,0.30) 0%, rgba(30,50,160,0.12) 42%, transparent 66%)
-          `,
+          background: `linear-gradient(to bottom,
+            rgba(235, 90, 30, 1.0) 0%,      /* Fiery sunset orange (Matches Evolution exactly) */
+            rgba(201, 59, 26, 0.9) 30%,     /* Deep orange */
+            rgba(0, 0, 0, 0.9) 70%,         /* Space transition */
+            rgba(0, 0, 0, 1.0) 100%)`,      /* Pitch black */
         }}
       />
 
       <div
         ref={containerRef}
-        className="absolute top-1/2 left-1/2 w-[85vmin] h-[85vmin] z-10 pointer-events-none opacity-0"
+        className="absolute top-1/2 left-1/2 w-[140vmin] h-[140vmin] z-10 pointer-events-none opacity-0"
       >
         {/* India Pulse — fires once when globe locks to face India. Positioned as a
             child of the globe container (not the section) so it tracks the globe's

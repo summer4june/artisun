@@ -3,6 +3,7 @@ const nextConfig = {
   eslint: { ignoreDuringBuilds: true },
   typescript: { ignoreBuildErrors: true },
   compress: true,   // gzip all responses
+  transpilePackages: ['three', '@react-three/fiber', '@react-three/drei'],
 
   async headers() {
     return [

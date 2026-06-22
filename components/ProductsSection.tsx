@@ -1,266 +1,422 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useEffect, useState, Suspense } from 'react';
+import { Canvas, useFrame, useThree, extend, useLoader } from '@react-three/fiber';
+import { useGLTF, ContactShadows, Center, shaderMaterial, Billboard } from '@react-three/drei';
+import { EXRLoader, RGBELoader } from 'three-stdlib';
+import * as THREE from 'three';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
 
-// Register plugins
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 }
 
 const products = [
   {
-    id: 'front',
-    title: 'Electric Ace',
+    id: 'bottle-1',
+    title: 'Origin Skinwear',
     subtitle: 'ORIGIN SUNWEAR',
-    desc: 'The new Origin is the latest revolution in daily suncare with a bold finish. It combines a clean design, cutting-edge technology, and extreme UV safety features.',
-    img: '/bottle_front.png',
-    color: '#D44026'
+    desc: 'The new Origin is the latest revolution in daily suncare with a bold finish. Clean design, cutting-edge technology, and extreme UV safety.',
+    model: '/1.glb',
+    color: '#D44026',
   },
   {
-    id: 'back',
-    title: 'Electric Ivy',
+    id: 'bottle-2',
+    title: 'AURA',
     subtitle: 'ORIGIN DETAILS',
-    desc: 'Smooth evenly on face and neck each morning. Can be worn alone or under makeup. Protects your skin continuously while keeping a matte finish.',
-    img: '/bottle_back.png',
-    color: '#8A2718'
-  }
+    desc: 'Smooth evenly on face and neck each morning. Protects your skin continuously while keeping a premium matte finish.',
+    model: '/2.glb',
+    color: '#8A2718',
+  },
 ];
 
-export default function ProductsSection() {
-  const containerRef = useRef<HTMLElement>(null);
-  const triggerRef = useRef<HTMLDivElement>(null);
-  const bottle1Ref = useRef<HTMLDivElement>(null);
-  const bottle2Ref = useRef<HTMLDivElement>(null);
-  const shadow1Ref = useRef<HTMLDivElement>(null);
-  const shadow2Ref = useRef<HTMLDivElement>(null);
-  const textContainerRef = useRef<HTMLDivElement>(null);
-  const stRef = useRef<ScrollTrigger | null>(null);
+// ─── Custom Shader Material to Stitch 2 EXRs ───
+const DualHdriMaterial = shaderMaterial(
+  { tex1: null, tex2: null, scrollOffset: 0.0, transitionFade: 0.0 },
+  // vertex shader
+  `
+  varying vec3 vWorldPosition;
+  void main() {
+    vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+    vWorldPosition = worldPosition.xyz;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+  `,
+  // fragment shader
+  `
+  uniform sampler2D tex1;
+  uniform sampler2D tex2;
+  uniform float scrollOffset;
+  varying vec3 vWorldPosition;
+
+  void main() {
+    vec3 dir = normalize(vWorldPosition);
+    
+    // Calculate Equirectangular UVs
+    float u = atan(dir.z, dir.x) / (2.0 * 3.14159265359) + 0.5;
+    float v = asin(clamp(dir.y, -1.0, 1.0)) / 3.14159265359 + 0.5;
+    
+    // Add scroll offset to pan horizontally
+    float combinedU = fract(u + scrollOffset);
+    
+    vec4 color;
+    if (combinedU < 0.5) {
+      color = texture2D(tex1, vec2(combinedU * 2.0, clamp(v - 0.3, 0.0, 1.0)));
+    } else {
+      color = texture2D(tex2, vec2((combinedU - 0.5) * 2.0, v));
+    }
+    
+    // --- 2. Darkish sunset overlay ---
+    vec3 sunsetTint = vec3(0.85, 0.75, 0.65); // Warm moody sunset
+    color.rgb = color.rgb * sunsetTint * 0.45; // Significantly darkened to be moody
+    
+    gl_FragColor = color;
+    
+    // Let Three.js handle the ACES Filmic tonemapping
+    #include <tonemapping_fragment>
+    #include <colorspace_fragment>
+    
+    // --- 1. Blackish blur strictly at the seams ---
+    float distToSeam1 = abs(combinedU - 0.5); // The middle seam
+    float distToSeam2 = min(combinedU, 1.0 - combinedU); // The outer seam (wrapping)
+    float distToAnySeam = min(distToSeam1, distToSeam2);
+    
+    // Creates a tight black gradient that only covers the exact transition point
+    // This perfectly hides the seam without ruining the rest of the image
+    float seamShadow = smoothstep(0.0, 0.08, distToAnySeam);
+    
+    gl_FragColor.rgb = mix(vec3(0.0, 0.0, 0.0), gl_FragColor.rgb, seamShadow);
+  }
+  `
+);
+
+// ─── Premium Glow Radial Shader ───
+const GlowMaterial = shaderMaterial(
+  { glowColor: new THREE.Color('#ffaa55'), glowOpacity: 0.8 },
+  `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+  `uniform vec3 glowColor; uniform float glowOpacity; varying vec2 vUv;
+   void main() {
+     float dist = distance(vUv, vec2(0.5));
+     // Smooth gradient from center to edge
+     float alpha = smoothstep(0.5, 0.0, dist);
+     alpha = pow(alpha, 1.5); // soften the falloff
+     gl_FragColor = vec4(glowColor, alpha * glowOpacity);
+   }`
+);
+
+extend({ DualHdriMaterial, GlowMaterial });
+
+// ─── Single Bottle ───
+function Bottle({
+  modelPath,
+  scrollProgress,
+  isActive,
+}: {
+  modelPath: string;
+  scrollProgress: React.MutableRefObject<number>;
+  isActive: boolean;
+}) {
+  const groupRef = useRef<THREE.Group>(null!);
+  const { scene } = useGLTF(modelPath);
+  const cloned = React.useMemo(() => scene.clone(true), [scene]);
+
+  useFrame(({ clock }) => {
+    if (!groupRef.current) return;
+    
+    groupRef.current.visible = isActive;
+    if (!isActive) return;
+
+    const p = scrollProgress.current;
+
+    // Bottle rotates beautifully driven by scroll (reduced speed by 50%)
+    const scrollRotation = p * Math.PI * 2.0;
+    // Plus a tiny bit of idle life
+    const idleRotation = clock.elapsedTime * 0.2;
+    
+    const idleFloat = Math.sin(clock.elapsedTime * 0.6) * 0.008;
+
+    groupRef.current.position.set(0, idleFloat, 0);
+    groupRef.current.rotation.set(0, scrollRotation + idleRotation, 0);
+    groupRef.current.scale.setScalar(0.35);
+  });
+
+  return (
+    <group ref={groupRef}>
+      <Center>
+        <primitive object={cloned} />
+      </Center>
+    </group>
+  );
+}
+
+// ─── Dual HDRI Manager ───
+function DualPanoramaBackground({ scrollProgress, backgroundOffset, activeIndex }: { scrollProgress: React.MutableRefObject<number>; backgroundOffset: React.MutableRefObject<number>; activeIndex: number }) {
+  const { scene } = useThree();
+  const materialRef = useRef<any>(null);
   
+  const tex1 = useLoader(RGBELoader, '/hdri/new1.hdr');
+  const tex2 = useLoader(EXRLoader, '/hdri/studio.exr');
+  const loadedTextures = [tex1, tex2];
+
+  React.useLayoutEffect(() => {
+    loadedTextures[0].mapping = THREE.EquirectangularReflectionMapping;
+    loadedTextures[1].mapping = THREE.EquirectangularReflectionMapping;
+    loadedTextures[0].colorSpace = THREE.LinearSRGBColorSpace;
+    loadedTextures[1].colorSpace = THREE.LinearSRGBColorSpace;
+  }, [loadedTextures]);
+
+  React.useLayoutEffect(() => {
+    scene.environment = activeIndex === 0 ? loadedTextures[0] : loadedTextures[1];
+  }, [activeIndex, loadedTextures, scene]);
+
+  useFrame(() => {
+    if (materialRef.current) {
+      materialRef.current.scrollOffset = backgroundOffset.current;
+    }
+    if (scene.environmentRotation) {
+      scene.environmentRotation.y = backgroundOffset.current * Math.PI * 2.0;
+    }
+  });
+
+  return (
+    <mesh>
+      {/* Huge sphere to act as our skybox */}
+      <sphereGeometry args={[100, 64, 64]} />
+      {/* @ts-ignore - custom material from extend */}
+      <dualHdriMaterial 
+        ref={materialRef} 
+        side={THREE.BackSide} 
+        tex1={loadedTextures[0]} 
+        tex2={loadedTextures[1]} 
+        scrollOffset={0} 
+        toneMapped={true}
+      />
+    </mesh>
+  );
+}
+
+// ─── Scene ───
+function Scene({ scrollProgress, backgroundOffset, activeIndex }: { scrollProgress: React.MutableRefObject<number>; backgroundOffset: React.MutableRefObject<number>; activeIndex: number }) {
+  const activeColor = products[activeIndex].color;
+  const glowRef = useRef<any>(null);
+  const shadowGroupRef = useRef<THREE.Group>(null!);
+
+  useFrame(() => {
+    const p = scrollProgress.current;
+    
+    // Smooth fade out of glows during the whip pan
+    let visibility = 1.0;
+    if (p >= 0.15 && p <= 0.55) {
+      visibility = (Math.abs(p - 0.35) / 0.2);
+    }
+
+    if (glowRef.current) {
+      glowRef.current.glowOpacity = visibility * 0.85; // Stronger glow opacity
+    }
+    if (shadowGroupRef.current) {
+      shadowGroupRef.current.visible = true;
+      shadowGroupRef.current.scale.setScalar(1.0);
+    }
+  });
+
+  return (
+    <>
+      <DualPanoramaBackground scrollProgress={scrollProgress} backgroundOffset={backgroundOffset} activeIndex={activeIndex} />
+
+      {/* ── Premium Sunshine Backlight Glow ── */}
+      <Billboard position={[0, 0.3, -1.5]}>
+        <mesh>
+          <planeGeometry args={[10, 10]} />
+          {/* @ts-ignore */}
+          <glowMaterial 
+            ref={glowRef}
+            glowColor={new THREE.Color('#ffcc66')} // Golden sunshine glow
+            glowOpacity={0.85} 
+            transparent 
+            depthWrite={false} 
+            blending={THREE.AdditiveBlending} 
+          />
+        </mesh>
+      </Billboard>
+      {/* Pointlight directly behind bottle for sunshine rim-light */}
+      <pointLight position={[0, 0.5, -1]} intensity={3.5} color="#ffcc66" distance={5} decay={2} />
+
+      <ambientLight intensity={0.25} />
+      <directionalLight position={[5, 8, 5]} intensity={1.5} castShadow />
+      <directionalLight position={[-4, 3, -5]} intensity={0.4} color="#ffcc88" />
+      <spotLight position={[0, 10, 3]} angle={0.3} penumbra={1} intensity={2} castShadow />
+      
+      <group ref={shadowGroupRef}>
+        <ContactShadows position={[0, -1.2, 0]} opacity={0.35} scale={6} blur={2.5} far={4} color={activeColor} />
+      </group>
+
+      <Bottle modelPath="/1.glb" scrollProgress={scrollProgress} isActive={activeIndex === 0} />
+      <Bottle modelPath="/2.glb" scrollProgress={scrollProgress} isActive={activeIndex === 1} />
+    </>
+  );
+}
+
+// ─── Main ───
+export default function ProductsSection() {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const textTopRef = useRef<HTMLDivElement>(null);
+  const textBottomRef = useRef<HTMLDivElement>(null);
+  const scrollProgress = useRef(0);
+  const backgroundOffset = useRef(0);
   const [activeIndex, setActiveIndex] = useState(0);
-  const activeIndexRef = useRef(0);
 
   useEffect(() => {
-    if (!containerRef.current || !triggerRef.current) return;
+    if (!sectionRef.current) return;
 
     const ctx = gsap.context(() => {
-      // Reset positions initially for a dynamic 3D Isometric Camera Angle
-      // Removed filter: blur() because animating blurs causes massive GPU lag/stutter on scroll
-      gsap.set(bottle2Ref.current, { scale: 0.5, x: '25vw', y: '-5vh', z: -1200, rotationY: -35, opacity: 0 });
-      gsap.set(bottle1Ref.current, { scale: 1, x: '10vw', y: '0vh', z: 0, rotationY: -5, opacity: 1 });
-
-      // ── ENTRY: Stage Rise ──
-      // Section rises from the bottom edge of the screen like a theater curtain.
-      // Products is the payoff of the entire site narrative — deserves a theatrical entry.
-      // polygon animates from a collapsed bottom line to a full rectangle.
+      // Clip-path entry
       ScrollTrigger.create({
-        trigger: containerRef.current,
-        start: 'top 90%',
+        trigger: sectionRef.current,
+        start: 'top 85%',
         end: 'top top',
-        scrub: 2,
+        scrub: 1.5,
         animation: gsap.fromTo(
-          containerRef.current,
-          {
-            clipPath: 'polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%)',
-            immediateRender: false,
-          },
-          {
-            clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)',
-            ease: 'power2.inOut',
-          }
+          sectionRef.current,
+          { clipPath: 'polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%)', immediateRender: false },
+          { clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)', ease: 'power2.inOut' }
         ),
       });
 
-      const tl = gsap.timeline({ paused: true });
-
-      // The Veloretti True 3D Carousel Push (Optimized)
-      tl.to(bottle1Ref.current, {
-        scale: 0.5,
-        x: '-5vw',
-        y: '-5vh',
-        z: -1200,
-        rotationY: 25,
-        opacity: 0,
-        ease: 'power2.inOut',
-        duration: 1.5
-      }, 0);
-
-      // Bottle 2 pulls forward
-      tl.to(bottle2Ref.current, {
-        scale: 1,
-        x: '10vw',
-        y: '0vh',
-        z: 0,
-        rotationY: -5,
-        opacity: 1,
-        ease: 'power2.inOut',
-        duration: 1.5
-      }, 0);
-
-      // Fade out text 1, fade in text 2
-      tl.to('.text-panel-0', { opacity: 0, y: -30, duration: 0.6, ease: 'power2.inOut' }, 0);
-      tl.fromTo('.text-panel-1', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.inOut' }, 0.9);
-
-      // Create the ScrollTrigger
-      stRef.current = ScrollTrigger.create({
-        trigger: triggerRef.current,
-        start: "top top",
-        end: "+=200%", // Reduced scroll distance slightly for tighter control
-        pin: containerRef.current,
-        anticipatePin: 1,
-        scrub: 0.5, // Reduced scrub lag from 1.5 to 0.5 to make it feel much more responsive and less rubber-bandy
-        animation: tl,
-        onUpdate: (self) => {
-          if (self.progress > 0.5 && activeIndexRef.current !== 1) {
-            activeIndexRef.current = 1;
-            setActiveIndex(1);
-          } else if (self.progress <= 0.5 && activeIndexRef.current !== 0) {
-            activeIndexRef.current = 0;
-            setActiveIndex(0);
-          }
+      // Whip-pan Timeline
+      const whipTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: 'top top',
+          end: '+=200%', // Reduced from 400% for much faster scrolling
+          pin: true,
+          anticipatePin: 1,
+          scrub: 1.0, // Reduced smoothing slightly for snappier response
+          onUpdate: (self) => {
+            const p = self.progress;
+            scrollProgress.current = p; // Global scroll progress
+            
+            const proxyVal = proxy.offset; // Capture the animated GSAP proxy value
+            // Rotate the background slightly continuously as the user scrolls
+            backgroundOffset.current = proxyVal + (p * 0.25);
+            
+            // Whip pan midpoint is now 0.35
+            const newIdx = p >= 0.35 ? 1 : 0;
+            setActiveIndex((prev) => (prev !== newIdx ? newIdx : prev));
+            
+            // Smooth crossfade for the text panels
+            if (textTopRef.current && textBottomRef.current) {
+              let textOp = 1.0;
+              if (p >= 0.15 && p <= 0.55) {
+                textOp = (Math.abs(p - 0.35) / 0.2);
+              }
+              
+              textTopRef.current.style.opacity = textOp.toString();
+              textBottomRef.current.style.opacity = textOp.toString();
+            }
+          },
         }
       });
-    }, containerRef); // Scope to container for safety
 
-    return () => {
-      ctx.revert(); // Proper React cleanup
-      stRef.current?.kill();
-      stRef.current = null;
-    };
+      const proxy = { offset: 0 };
+      // 0% - 15%: Hold on Wall 1
+      whipTl.to(proxy, { offset: 0, duration: 0.15 })
+      // 15% - 55%: Slower Whip pan 180 degrees (duration doubled to reduce speed by 50%)
+      .to(proxy, { 
+        offset: 0.5, 
+        duration: 0.40, 
+        ease: "power2.inOut"
+      })
+      // 55% - 100%: Hold on Wall 2
+      .to(proxy, { offset: 0.5, duration: 0.45 });
+    }, sectionRef);
+
+    return () => ctx.revert();
   }, []);
 
-  const handleNavClick = (index: number) => {
-    if (!stRef.current) return;
-    const st = stRef.current;
-    const targetProgress = index === 0 ? 0 : 1;
-    const scrollPos = st.start + (st.end - st.start) * targetProgress;
-
-    gsap.to(window, {
-      scrollTo: scrollPos,
-      duration: 1.0,
-      ease: "power3.inOut"
-    });
-  };
-
-  const navDots = [
-    { x: 70, y: 15 },
-    { x: 90, y: 85 }
-  ];
-
   return (
-    <div ref={triggerRef} className="relative w-full">
-      {/* Pinned Container */}
-      <section 
-        ref={containerRef} 
-        className="w-full h-screen bg-[#111111] flex items-center justify-center overflow-hidden touch-none relative z-10"
+    <div id="products-section" ref={sectionRef} className="relative w-full h-screen overflow-hidden">
+
+      {/* R3F Canvas */}
+      <div className="absolute inset-0 z-0">
+        <Canvas
+          dpr={[1, 2]}
+          camera={{ position: [0, 0.3, 5], fov: 38 }}
+          gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.0 }}
+        >
+          <Suspense fallback={null}>
+            <Scene scrollProgress={scrollProgress} backgroundOffset={backgroundOffset} activeIndex={activeIndex} />
+          </Suspense>
+        </Canvas>
+      </div>
+      {/* ── Top Title ── */}
+      <div 
+        ref={textTopRef}
+        className="absolute top-16 md:top-24 left-1/2 -translate-x-1/2 z-20 pointer-events-none text-center"
       >
-        {/* Cinematic Lighting: Hardware-accelerated opacity fades instead of background-color transitions */}
-        <div 
-          className="absolute top-1/2 left-[60%] -translate-x-1/2 -translate-y-1/2 w-[70vw] h-[70vw] max-w-[1000px] max-h-[1000px] rounded-full blur-[120px] pointer-events-none z-0 bg-[#D44026] transition-opacity duration-1000 ease-in-out"
-          style={{ opacity: activeIndex === 0 ? 0.12 : 0 }}
-        />
-        <div 
-          className="absolute top-1/2 left-[60%] -translate-x-1/2 -translate-y-1/2 w-[70vw] h-[70vw] max-w-[1000px] max-h-[1000px] rounded-full blur-[120px] pointer-events-none z-0 bg-[#8A2718] transition-opacity duration-1000 ease-in-out"
-          style={{ opacity: activeIndex === 1 ? 0.12 : 0 }}
-        />
-        
-        {/* Floor Gradient to ground the 3D scene */}
-        <div className="absolute bottom-0 left-0 w-full h-[30vh] bg-gradient-to-t from-black to-transparent z-0 pointer-events-none" />
+        {products.map((p, i) => (
+          <h1 
+            key={p.id}
+            className={`absolute top-0 left-1/2 -translate-x-1/2 w-max text-5xl md:text-8xl font-thin text-white tracking-[0.1em] transition-opacity duration-300 ${activeIndex === i ? 'opacity-100' : 'opacity-0'}`}
+          >
+            {p.title}
+          </h1>
+        ))}
+      </div>
 
-        <div className="relative w-full max-w-[1400px] h-full flex items-center justify-between px-8 md:px-16 pt-20 z-10 perspective-[1500px]">
-          
-          {/* Left Text Panel - Exactly aligned with Veloretti */}
-          <div ref={textContainerRef} className="relative w-1/3 h-full flex flex-col justify-center pointer-events-none z-30">
-            {products.map((prod, idx) => (
-              <div 
-                key={prod.id} 
-                className={`absolute left-0 text-panel-${idx} w-[120%]`}
-                style={{ opacity: idx === 0 ? 1 : 0, transform: idx === 0 ? 'translateY(0)' : 'translateY(30px)' }}
-              >
-                <p className="font-suisse text-xs tracking-[0.25em] uppercase text-white/40 mb-4">{prod.subtitle}</p>
-                <h2 className="font-editorial text-[#ffffff] text-[72px] md:text-[96px] leading-[0.9] mb-8 tracking-tighter drop-shadow-lg">{prod.title}</h2>
-                <div className="w-12 h-[1px] bg-white/20 mb-8" /> {/* Subtle separator line */}
-                <p className="font-suisse text-[14px] md:text-[16px] text-[#efeeed]/60 leading-relaxed max-w-sm font-light">
-                  {prod.desc}
-                </p>
-              </div>
-            ))}
+      {/* ── Bottom Subtitle & Desc ── */}
+      <div 
+        ref={textBottomRef}
+        className="absolute bottom-16 md:bottom-24 left-1/2 -translate-x-1/2 z-20 pointer-events-none text-center w-[90%] max-w-lg"
+      >
+        {products.map((p, i) => (
+          <div 
+            key={p.id}
+            className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-full transition-opacity duration-300 flex flex-col items-center ${activeIndex === i ? 'opacity-100' : 'opacity-0'}`}
+          >
+            <h3 className="text-xs md:text-sm uppercase tracking-[0.4em] text-white/80 mb-4">{p.subtitle}</h3>
+            <p className="text-sm md:text-base text-white leading-relaxed font-light">{p.desc}</p>
           </div>
+        ))}
+      </div>
 
-          {/* Center 3D Carousel Stage */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ transformStyle: 'preserve-3d' }}>
-            
-            {/* Bottle 2 (Background) */}
-            <div ref={bottle2Ref} className="absolute top-[50%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[640px] flex flex-col items-center justify-center origin-bottom will-change-transform">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img 
-                src={products[1].img} 
-                alt={products[1].title} 
-                className="w-auto h-full max-w-none object-contain drop-shadow-2xl" 
-              />
-              {/* Floor Shadow */}
-              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-[250px] h-[30px] bg-black/60 rounded-[100%] blur-[15px]" />
-            </div>
+      {/* ── Nav Dots ── */}
+      <div className="absolute right-6 md:right-12 top-1/2 -translate-y-1/2 z-30 flex flex-col items-center gap-4">
+        {products.map((prod, idx) => {
+          const isActive = activeIndex === idx;
+          return (
+            <button
+              key={prod.id}
+              className="group flex items-center gap-2.5 cursor-pointer"
+              onClick={() => {
+                const st = ScrollTrigger.getAll().find((t: any) => t.trigger === sectionRef.current);
+                if (st) {
+                  const scrollPos = st.start + (st.end - st.start) * (idx === 0 ? 0.25 : 0.75);
+                  gsap.to(window, { scrollTo: scrollPos, duration: 1.2, ease: 'power3.inOut' });
+                }
+              }}
+            >
+              <span className={`block rounded-full transition-all duration-500 ${
+                isActive ? 'w-3 h-3 bg-white' : 'w-2 h-2 bg-white/20 group-hover:bg-white/40'
+              }`} />
+              <span className={`text-[10px] uppercase tracking-[0.15em] font-medium transition-all duration-500 ${
+                isActive ? 'text-white opacity-100' : 'opacity-0 group-hover:opacity-50 text-white'
+              }`}>
+                {prod.title}
+              </span>
+            </button>
+          );
+        })}
+      </div>
 
-            {/* Bottle 1 (Foreground) */}
-            <div ref={bottle1Ref} className="absolute top-[50%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[640px] flex flex-col items-center justify-center origin-bottom will-change-transform">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img 
-                src={products[0].img} 
-                alt={products[0].title} 
-                className="w-auto h-full max-w-none object-contain drop-shadow-2xl" 
-              />
-              {/* Floor Shadow */}
-              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-[250px] h-[30px] bg-black/60 rounded-[100%] blur-[15px]" />
-            </div>
-
-          </div>
-
-          {/* Right Curved Navigation */}
-          <div className="relative w-32 h-[300px] flex items-center justify-center z-40">
-            <svg width="100" height="200" viewBox="0 0 100 200" className="absolute right-4 top-1/2 -translate-y-1/2 overflow-visible">
-              <path 
-                d="M 50 0 A 150 150 0 0 1 50 200" 
-                fill="transparent" 
-                stroke="rgba(255,255,255,0.15)" 
-                strokeWidth="1.5" 
-              />
-              
-              {products.map((prod, idx) => {
-                const pos = navDots[idx];
-                const isActive = activeIndex === idx;
-                return (
-                  <g 
-                    key={prod.id} 
-                    transform={`translate(${pos.x}, ${pos.y})`}
-                    onClick={() => handleNavClick(idx)}
-                    className="cursor-pointer group"
-                  >
-                    <circle 
-                      cx="0" cy="0" 
-                      r={isActive ? "14" : "10"} 
-                      fill="transparent" 
-                      stroke={isActive ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.2)"} 
-                      strokeWidth="2"
-                      className="transition-all duration-500 group-hover:stroke-white"
-                    />
-                    <circle 
-                      cx="0" cy="0" 
-                      r={isActive ? "10" : "6"} 
-                      fill={isActive ? prod.color : "rgba(255,255,255,0.1)"} 
-                      className="transition-all duration-500 group-hover:fill-white/40"
-                    />
-                  </g>
-                );
-              })}
-            </svg>
-          </div>
-
-        </div>
-      </section>
+      {/* ── Heavy Vignette to keep focus on product ── */}
+      <div className="absolute inset-0 z-[1] pointer-events-none" style={{
+        background: 'radial-gradient(ellipse at center, transparent 15%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.9) 100%)',
+      }} />
     </div>
   );
 }
 
+useGLTF.preload('/1.glb');
+useGLTF.preload('/2.glb');

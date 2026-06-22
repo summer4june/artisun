@@ -14,26 +14,27 @@ export default function EvolutionSection() {
   const line1Ref = useRef<HTMLDivElement>(null);
   const line2Ref = useRef<HTMLDivElement>(null);
   const warmBreathRef = useRef<HTMLDivElement>(null);
-  const curtainLeftRef = useRef<HTMLDivElement>(null);
-  const curtainRightRef = useRef<HTMLDivElement>(null);
+  const curtainRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
-    // ── ENTRY: Curtain Parting ──
+    // ── ENTRY: Curtain Rise ──
     // Climate's pinned video hands off to Evolution with nothing dressing the cut —
     // every other section boundary on the site has a treatment (iris, blade, slash,
-    // tear) but this one didn't, so it read as a plain, undecorated scroll. Two dark
-    // panels meet at center and part like a stage curtain over the pre-pin approach
-    // window, echoing the pin-as-curtain language already used for this section.
+    // tear) but this one didn't, so it read as a plain, undecorated scroll. A single
+    // dark panel — standing in for Climate's last frame — lifts straight up and off
+    // like a theater curtain rising, revealing Evolution underneath as it goes.
     const curtainSt = ScrollTrigger.create({
       trigger: containerRef.current,
       start: 'top 90%',
       end: 'top top',
       scrub: 2,
-      animation: gsap.timeline()
-        .to(curtainLeftRef.current, { xPercent: -100, ease: 'power2.inOut' }, 0)
-        .to(curtainRightRef.current, { xPercent: 100, ease: 'power2.inOut' }, 0),
+      animation: gsap.fromTo(
+        curtainRef.current,
+        { yPercent: 0 },
+        { yPercent: -100, ease: 'power2.inOut' }
+      ),
     });
 
     // ── Pinned + scroll-scrubbed reveal ──
@@ -181,30 +182,35 @@ export default function EvolutionSection() {
 
       </div>
 
-      {/* Warm Breath — Earth’s warmth bleeding up from below as crimson dissolves */}
-      {/* Color matches earth_back.webp cream top. Pointer-events-none, z below text. */}
+      {/* Warm Breath — Earth's warmth bleeding up from below as crimson dissolves.
+          Goes fully opaque at the bottom edge, matching EarthSection's own top
+          gradient color exactly (rgba(243,225,191,...)) — so once this reaches
+          opacity:1, the bottom of Evolution and the top of Earth are the literal
+          same color and the section boundary becomes invisible while scrolling.
+          Previously this peaked at only 22% opacity, so the section's transparent
+          background let the dark global "molten-core" backdrop show through as a
+          visible reddish band before Earth's much more opaque gradient cut in hard. */}
       <div
         ref={warmBreathRef}
         className="absolute inset-x-0 bottom-0 pointer-events-none z-[2]"
         style={{
-          height: '45%',
+          height: '85%',
           opacity: 0,
-          background: 'linear-gradient(to top, rgba(218,175,100,0.22) 0%, rgba(200,140,60,0.10) 45%, transparent 100%)',
+          background: 'linear-gradient(to top, rgba(235, 90, 30, 1.0) 0%, rgba(235, 90, 30, 0.85) 18%, rgba(235, 90, 30, 0.35) 45%, transparent 80%)',
           willChange: 'opacity',
         }}
       />
 
-      {/* Curtain Parting — two panels meet at center, part left/right as Evolution
-          approaches the top of the viewport, dressing the cut from Climate's video. */}
+      {/* Curtain Rise — a single panel covers Evolution and lifts straight up and
+          off as the section approaches the top of the viewport, like a stage
+          curtain rising to reveal what's beneath, dressing the cut from Climate. */}
       <div
-        ref={curtainLeftRef}
-        className="absolute inset-y-0 left-0 w-1/2 pointer-events-none z-30"
-        style={{ background: '#170303', willChange: 'transform' }}
-      />
-      <div
-        ref={curtainRightRef}
-        className="absolute inset-y-0 right-0 w-1/2 pointer-events-none z-30"
-        style={{ background: '#170303', willChange: 'transform' }}
+        ref={curtainRef}
+        className="absolute inset-0 pointer-events-none z-30"
+        style={{
+          background: 'linear-gradient(to bottom, #2a0f02 0%, #170303 60%, #0a0000 100%)',
+          willChange: 'transform',
+        }}
       />
 
     </section>

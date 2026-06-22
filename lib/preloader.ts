@@ -1,7 +1,6 @@
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 const IMAGES = [
-  '/earth_back.webp',
   '/keyhole-bg.webp',
   '/a-new-language-of-suncare.png',
   '/a-new-language-of-suncare-2.webp',

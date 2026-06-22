@@ -465,7 +465,11 @@ export default function ClimateVideoSection() {
         // Debounced snap-back for minor scrolls
         if (scrollTimeout) clearTimeout(scrollTimeout);
         scrollTimeout = setTimeout(() => {
-          if (isAnimating || !st) return;
+          // Guard against a stale timer: if the user has since scrolled away from
+          // this section entirely (its pin is no longer active), forcing st.scroll()
+          // here would yank their real scroll position back into this section from
+          // wherever they've navigated to — which is exactly what was happening.
+          if (isAnimating || !st || !st.isActive) return;
           const targetScroll = st.start + (activeIdx / (N - 1)) * (st.end - st.start);
           const scrollObj = { y: st.scroll() };
           if (Math.abs(scrollObj.y - targetScroll) > 2) {
@@ -484,7 +488,9 @@ export default function ClimateVideoSection() {
             });
           }
         }, 150);
-      }
+      },
+      onLeave: () => { if (scrollTimeout) clearTimeout(scrollTimeout); },
+      onLeaveBack: () => { if (scrollTimeout) clearTimeout(scrollTimeout); },
     });
 
     // Set initial activeIdx based on starting scroll position
