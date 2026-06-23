@@ -40,23 +40,15 @@ export default function ClimateVideoSection() {
     const N = URLS.length;
     if (!canvasRef.current || !containerRef.current) return;
 
-    // ── ENTRY: Solar Iris ──
-    // A black circular mask shrinks from covering the whole screen down to nothing.
-    // Reveals the video beneath like an eye/iris opening. Runs before the section pins.
-    gsap.set(irisRef.current, {
-      clipPath: 'circle(150% at 50% 50%)',   // fully covers the section
-    });
-
+    // ── ENTRY: Overlay dissolve ──
+    // Warm overlay dissolves as the section's existing scale-up entrance plays.
     let irisSt: ScrollTrigger | null = null;
     irisSt = ScrollTrigger.create({
       trigger: containerRef.current,
-      start: 'top 90%',       // starts when Climate is 90% into viewport from below
-      end: 'top top',         // ends when Climate hits the top (pin activates here)
-      scrub: 2,
-      animation: gsap.to(irisRef.current, {
-        clipPath: 'circle(0% at 50% 50%)',   // contracts to nothing, fully revealed
-        ease: 'power2.inOut',
-      }),
+      start: 'top 85%',
+      end: 'top 20%',
+      scrub: 1.5,
+      animation: gsap.to(irisRef.current, { opacity: 0, ease: 'power2.inOut' }),
     });
 
     const renderer = new THREE.WebGLRenderer({ 
@@ -636,14 +628,13 @@ export default function ClimateVideoSection() {
         </div>
       </div>
 
-      {/* Solar Iris Entry Overlay — contracts from black to reveal video on entry */}
-      {/* z-[50] sits above canvas, dots, text — cleared before pin activates */}
+      {/* Entry Dissolve Overlay — fades out with blur to reveal video */}
       <div
         ref={irisRef}
         className="absolute inset-0 pointer-events-none z-[50]"
         style={{
-          willChange: 'clip-path',
-          background: 'radial-gradient(circle at 50% 50%, #FF8C22 0%, #C93B1A 25%, #6B0A0E 55%, #0a0000 100%)',
+          willChange: 'opacity, filter',
+          background: 'linear-gradient(to bottom, rgba(40,8,2,0.95) 0%, #0a0000 50%, #050505 100%)',
         }}
       />
     </section>

@@ -11,7 +11,8 @@ const line2 = "occasions and environments,";
 export default function ClothingSection() {
   const containerRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const slashRef = useRef<HTMLDivElement>(null);
+  const entryOverlayRef = useRef<HTMLDivElement>(null);
+  const exitOverlayRef = useRef<HTMLDivElement>(null);
 
   const words1Ref = useRef<(HTMLSpanElement | null)[]>([]);
   const words2Ref = useRef<(HTMLSpanElement | null)[]>([]);
@@ -20,7 +21,6 @@ export default function ClothingSection() {
   words2Ref.current = [];
 
   useEffect(() => {
-    // Reduce video playback speed by 30%
     if (videoRef.current) {
       videoRef.current.playbackRate = 0.6;
     }
@@ -35,73 +35,79 @@ export default function ClothingSection() {
             observer.disconnect();
           }
         },
-        { rootMargin: '50% 0px' }  // starts loading when 50vh away from viewport
+        { rootMargin: '50% 0px' }
       );
       observer.observe(videoEl);
     }
 
     gsap.registerPlugin(ScrollTrigger);
 
-    // ── ENTRY: Diagonal Slash ──
-    // A rotated black panel translates off to the right at 12°.
-    // The section is revealed at an angle — fashion editorial, distinctive.
-    // The 200% width ensures the rotated panel has no gaps at screen edges.
-    gsap.set(slashRef.current, {
-      x: '-5%',
-      rotate: 12,
-    });
+    const triggers: ScrollTrigger[] = [];
 
-    ScrollTrigger.create({
+    // ── ENTRY: Card Emerge ──
+    // Section reveals through a rounded card aperture that opens to full screen.
+    gsap.set(containerRef.current, { clipPath: 'inset(8% round 28px)' });
+    triggers.push(ScrollTrigger.create({
       trigger: containerRef.current,
       start: 'top 90%',
       end: 'top top',
-      scrub: 2,
-      animation: gsap.to(slashRef.current, {
-        x: '160%',
-        rotate: 12,
-        ease: 'power2.inOut',
+      scrub: 1.5,
+      animation: gsap.to(containerRef.current, {
+        clipPath: 'inset(0% round 0px)',
+        ease: 'power3.out',
       }),
-    });
+    }));
+
+    // Dark overlay dissolves as the card opens
+    triggers.push(ScrollTrigger.create({
+      trigger: containerRef.current,
+      start: 'top 85%',
+      end: 'top 20%',
+      scrub: 1.5,
+      animation: gsap.to(entryOverlayRef.current, { opacity: 0, ease: 'power2.inOut' }),
+    }));
 
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: containerRef.current,
         start: "top top",
-        end: "+=120%",
+        end: "+=140%",
         pin: true,
         anticipatePin: 1,
-        scrub: 1.5, // Buttery smooth interpolation
+        scrub: 1.5,
       }
     });
 
-    // Reveal Line 1 and 2
-    // words1 — Effect 10: editorial skew entrance
-    // Words arrive at 8° skew and scale 0.8, straighten and expand to full size.
-    // Fashion-forward arrival suited to the slow atmospheric video environment.
     tl.fromTo(words1Ref.current,
       { opacity: 0, y: 40, scale: 0.8, skewY: 8 },
       { opacity: 1, y: 0, scale: 1, skewY: 0, stagger: 0.05, ease: "power3.out" }
     );
 
-    // words2 — same effect, offset
     tl.fromTo(words2Ref.current,
       { opacity: 0, y: 40, scale: 0.8, skewY: 8 },
       { opacity: 1, y: 0, scale: 1, skewY: 0, stagger: 0.05, ease: "power3.out" },
       "+=0.1"
     );
 
-    // Hold the final frame briefly
     tl.to({}, { duration: 0.5 });
 
-    const timeoutId = setTimeout(() => {
-      // Intentionally removed to prevent layout thrashing
-    }, 0);
+    // ── EXIT: Content dissolves, dark overlay fades in ──
+    tl.addLabel('exit');
+    tl.to(
+      [...words1Ref.current, ...words2Ref.current],
+      { opacity: 0, y: -25, filter: 'blur(6px)', duration: 0.6, ease: 'power2.in' },
+      'exit'
+    );
+    tl.fromTo(exitOverlayRef.current,
+      { opacity: 0 },
+      { opacity: 1, duration: 0.8, ease: 'power2.in' },
+      'exit+=0.1'
+    );
+
+    triggers.push(tl.scrollTrigger!);
 
     return () => {
-      clearTimeout(timeoutId);
-      if (tl.scrollTrigger) {
-        tl.scrollTrigger.kill();
-      }
+      triggers.forEach(st => st.kill());
       tl.kill();
     };
   }, []);
@@ -122,7 +128,6 @@ export default function ClothingSection() {
         >
           <source src="/6th-vid.mp4" type="video/mp4" />
         </video>
-        {/* Darkening overlay just in case the video needs dimming for text readability */}
         <div className="absolute inset-0 bg-black/40"></div>
       </div>
 
@@ -159,19 +164,23 @@ export default function ClothingSection() {
 
       </div>
 
-      {/* Diagonal Slash Entry Overlay */}
-      {/* A rotated black panel that translates off to the right as section enters */}
+      {/* Entry Dissolve Overlay */}
       <div
-        ref={slashRef}
-        className="absolute pointer-events-none z-[25]"
+        ref={entryOverlayRef}
+        className="absolute inset-0 pointer-events-none z-[25]"
         style={{
-          top: '-50%',
-          left: '-50%',
-          width: '200%',
-          height: '200%',
-          background: '#030101',
-          transformOrigin: 'center center',
-          willChange: 'transform',
+          background: '#000000',
+          willChange: 'opacity, filter',
+        }}
+      />
+
+      {/* Exit Dissolve Overlay */}
+      <div
+        ref={exitOverlayRef}
+        className="absolute inset-0 pointer-events-none z-[25] opacity-0"
+        style={{
+          background: '#000000',
+          willChange: 'opacity',
         }}
       />
     </section>

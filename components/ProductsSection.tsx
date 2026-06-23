@@ -271,18 +271,30 @@ export default function ProductsSection() {
     if (!sectionRef.current) return;
 
     const ctx = gsap.context(() => {
-      // Clip-path entry
+      // Cinematic Iris Open — circle expands from center outward
+      gsap.set(sectionRef.current, { clipPath: 'inset(40% round 50%)' });
       ScrollTrigger.create({
         trigger: sectionRef.current,
-        start: 'top 85%',
+        start: 'top 90%',
         end: 'top top',
         scrub: 1.5,
-        animation: gsap.fromTo(
-          sectionRef.current,
-          { clipPath: 'polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%)', immediateRender: false },
-          { clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)', ease: 'power2.inOut' }
-        ),
+        animation: gsap.to(sectionRef.current, {
+          clipPath: 'inset(0% round 0px)',
+          ease: 'power2.out',
+        }),
       });
+
+      // Overlay dissolves during iris open
+      const entryOverlay = sectionRef.current?.querySelector('.products-entry-overlay') as HTMLElement;
+      if (entryOverlay) {
+        ScrollTrigger.create({
+          trigger: sectionRef.current,
+          start: 'top 85%',
+          end: 'top 20%',
+          scrub: 1.5,
+          animation: gsap.to(entryOverlay, { opacity: 0, ease: 'power2.inOut' }),
+        });
+      }
 
       // Whip-pan Timeline
       const whipTl = gsap.timeline({
@@ -414,6 +426,15 @@ export default function ProductsSection() {
       <div className="absolute inset-0 z-[1] pointer-events-none" style={{
         background: 'radial-gradient(ellipse at center, transparent 15%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.9) 100%)',
       }} />
+
+      {/* Entry Dissolve Overlay */}
+      <div
+        className="products-entry-overlay absolute inset-0 pointer-events-none z-[35]"
+        style={{
+          background: 'radial-gradient(ellipse at 50% 50%, #3a0d0d 0%, #0a0000 100%)',
+          willChange: 'opacity, filter',
+        }}
+      />
     </div>
   );
 }

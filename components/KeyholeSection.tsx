@@ -14,26 +14,28 @@ export default function KeyholeSection() {
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
-    // ── ENTRY: Horizontal Tear ──
-    // Section appears as a 4% horizontal slit at center of screen.
-    // Expands outward — top half rises, bottom half drops — a tear.
-    // The most dramatic entry on the site. Earns the keyhole reveal.
-    const entrySt = ScrollTrigger.create({
+    // ── ENTRY: Card Emerge ──
+    // Section reveals through a rounded card aperture that opens to full screen.
+    gsap.set(containerRef.current, { clipPath: 'inset(8% round 28px)' });
+    const scaleEntrySt = ScrollTrigger.create({
       trigger: containerRef.current,
       start: 'top 90%',
       end: 'top top',
-      scrub: 2,
-      animation: gsap.fromTo(
-        containerRef.current,
-        {
-          clipPath: 'inset(48% 0% 48% 0%)',
-          immediateRender: false,
-        },
-        {
-          clipPath: 'inset(0% 0% 0% 0%)',
-          ease: 'power3.inOut',
-        }
-      ),
+      scrub: 1.5,
+      animation: gsap.to(containerRef.current, {
+        clipPath: 'inset(0% round 0px)',
+        ease: 'power3.out',
+      }),
+    });
+
+    // Dark overlay dissolves as the card opens
+    const entryOverlay = containerRef.current?.querySelector('.keyhole-entry-overlay') as HTMLElement;
+    const entrySt = ScrollTrigger.create({
+      trigger: containerRef.current,
+      start: 'top 85%',
+      end: 'top 20%',
+      scrub: 1.5,
+      animation: gsap.to(entryOverlay, { opacity: 0, ease: 'power2.inOut' }),
     });
 
     const tl = gsap.timeline({
@@ -81,6 +83,7 @@ export default function KeyholeSection() {
         tl.scrollTrigger.kill();
       }
       tl.kill();
+      scaleEntrySt.kill();
       entrySt.kill();
     };
   }, []);
@@ -147,6 +150,15 @@ export default function KeyholeSection() {
           <rect width="100%" height="100%" fill="url(#keyholeGrad)" mask="url(#keyholeMask)" />
         </svg>
       </div>
+
+      {/* Entry Dissolve Overlay */}
+      <div
+        className="keyhole-entry-overlay absolute inset-0 pointer-events-none z-[30]"
+        style={{
+          background: 'linear-gradient(to bottom, #0a0000 0%, #1a0505 50%, #0a0000 100%)',
+          willChange: 'opacity, filter',
+        }}
+      />
 
       </section>
     </div>

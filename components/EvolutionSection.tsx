@@ -19,22 +19,28 @@ export default function EvolutionSection() {
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
-    // ── ENTRY: Curtain Rise ──
-    // Climate's pinned video hands off to Evolution with nothing dressing the cut —
-    // every other section boundary on the site has a treatment (iris, blade, slash,
-    // tear) but this one didn't, so it read as a plain, undecorated scroll. A single
-    // dark panel — standing in for Climate's last frame — lifts straight up and off
-    // like a theater curtain rising, revealing Evolution underneath as it goes.
-    const curtainSt = ScrollTrigger.create({
+    // ── ENTRY: Card Emerge ──
+    // Section reveals through a rounded card aperture that opens to full screen.
+    // Uses clip-path which doesn't conflict with GSAP's pin transforms.
+    gsap.set(containerRef.current, { clipPath: 'inset(8% round 28px)' });
+    const entrySt = ScrollTrigger.create({
       trigger: containerRef.current,
       start: 'top 90%',
       end: 'top top',
-      scrub: 2,
-      animation: gsap.fromTo(
-        curtainRef.current,
-        { yPercent: 0 },
-        { yPercent: -100, ease: 'power2.inOut' }
-      ),
+      scrub: 1.5,
+      animation: gsap.to(containerRef.current, {
+        clipPath: 'inset(0% round 0px)',
+        ease: 'power3.out',
+      }),
+    });
+
+    // Curtain overlay dissolves as the card opens
+    const curtainSt = ScrollTrigger.create({
+      trigger: containerRef.current,
+      start: 'top 85%',
+      end: 'top 20%',
+      scrub: 1.5,
+      animation: gsap.to(curtainRef.current, { opacity: 0, ease: 'power2.inOut' }),
     });
 
     // ── Pinned + scroll-scrubbed reveal ──
@@ -47,12 +53,12 @@ export default function EvolutionSection() {
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: containerRef.current,
-        start: 'top top',
-        end: '+=200%',
-        pin: true,
-        anticipatePin: 1,
-        scrub: 1,
-      },
+      start: 'top top',
+      end: '+=100%',
+      pin: true,
+      anticipatePin: 1,
+      scrub: 1,
+    },
       defaults: { ease: 'power4.out' }
     });
 
@@ -122,6 +128,7 @@ export default function EvolutionSection() {
     tl.to({}, { duration: 0.8 });
 
     return () => {
+      entrySt.kill();
       curtainSt.kill();
       if (tl.scrollTrigger) tl.scrollTrigger.kill();
       tl.kill();
@@ -201,15 +208,13 @@ export default function EvolutionSection() {
         }}
       />
 
-      {/* Curtain Rise — a single panel covers Evolution and lifts straight up and
-          off as the section approaches the top of the viewport, like a stage
-          curtain rising to reveal what's beneath, dressing the cut from Climate. */}
+      {/* Entry Dissolve — dark overlay dissolves with blur to reveal Evolution */}
       <div
         ref={curtainRef}
         className="absolute inset-0 pointer-events-none z-30"
         style={{
           background: 'linear-gradient(to bottom, #2a0f02 0%, #170303 60%, #0a0000 100%)',
-          willChange: 'transform',
+          willChange: 'opacity, filter',
         }}
       />
 
