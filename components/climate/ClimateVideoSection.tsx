@@ -346,7 +346,7 @@ export default function ClimateVideoSection() {
   }, []);
 
   return (
-    <section ref={containerRef} className="relative w-full h-screen bg-black z-10">
+    <section ref={containerRef} className="relative w-full h-screen bg-black z-20">
       <div
         ref={wrapperRef}
         className="relative w-full h-screen overflow-hidden z-0 bg-black origin-center"

@@ -15,6 +15,7 @@ export default function EvolutionSection() {
   const line2Ref = useRef<HTMLDivElement>(null);
   const warmBreathRef = useRef<HTMLDivElement>(null);
   const curtainRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
 
   const words1Ref = useRef<(HTMLSpanElement | null)[]>([]);
   const words2Ref = useRef<(HTMLSpanElement | null)[]>([]);
@@ -24,17 +25,20 @@ export default function EvolutionSection() {
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
-    // ── ENTRY: Vertical Slit — curtains part top & bottom ──
-    gsap.set(containerRef.current, { clipPath: 'inset(48% 0%)' });
+    // ── ENTRY: Curtain Reveal from behind ClimateSection ──
+    // EvolutionSection starts physically shifted up behind ClimateVideoSection (-100%).
+    // As Climate scrolls up naturally, we animate Evolution's Y offset to 0.
+    // This cancels out the native scroll, making Evolution appear completely
+    // stationary while Climate slides off it vertically like a curtain lifting.
     const entrySt = ScrollTrigger.create({
       trigger: containerRef.current,
-      start: 'top 90%',
+      start: 'top bottom',
       end: 'top top',
-      scrub: 1.5,
-      animation: gsap.to(containerRef.current, {
-        clipPath: 'inset(0% 0%)',
-        ease: 'power3.out',
-      }),
+      scrub: true,
+      animation: gsap.fromTo(innerRef.current, 
+        { yPercent: -100 },
+        { yPercent: 0, ease: 'none' }
+      ),
     });
 
     // Curtain overlay dissolves as the card opens
@@ -136,9 +140,9 @@ export default function EvolutionSection() {
   return (
     <section
       ref={containerRef}
-      className="relative w-full h-screen bg-transparent z-10 flex flex-col items-center justify-center px-6 md:px-20 overflow-hidden"
+      className="relative w-full h-screen bg-transparent z-10"
     >
-
+      <div ref={innerRef} className="absolute inset-0 flex flex-col items-center justify-center px-6 md:px-20 w-full h-full overflow-hidden">
       {/* Dark Crimson Atmosphere — starts invisible, fades in as curtain rises */}
       {/* Radial gradient: brighter at center, deeper at edges — depth not flatness */}
       <div
@@ -228,7 +232,7 @@ export default function EvolutionSection() {
           willChange: 'opacity, filter',
         }}
       />
-
+      </div>
     </section>
   );
 }
