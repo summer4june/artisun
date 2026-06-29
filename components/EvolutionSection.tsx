@@ -16,20 +16,23 @@ export default function EvolutionSection() {
   const warmBreathRef = useRef<HTMLDivElement>(null);
   const curtainRef = useRef<HTMLDivElement>(null);
 
+  const words1Ref = useRef<(HTMLSpanElement | null)[]>([]);
+  const words2Ref = useRef<(HTMLSpanElement | null)[]>([]);
+  words1Ref.current = [];
+  words2Ref.current = [];
+
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
-    // ── ENTRY: Card Emerge ──
-    // Section reveals through a rounded card aperture that opens to full screen.
-    // Uses clip-path which doesn't conflict with GSAP's pin transforms.
-    gsap.set(containerRef.current, { clipPath: 'inset(8% round 28px)' });
+    // ── ENTRY: Vertical Slit — curtains part top & bottom ──
+    gsap.set(containerRef.current, { clipPath: 'inset(48% 0%)' });
     const entrySt = ScrollTrigger.create({
       trigger: containerRef.current,
       start: 'top 90%',
       end: 'top top',
       scrub: 1.5,
       animation: gsap.to(containerRef.current, {
-        clipPath: 'inset(0% round 0px)',
+        clipPath: 'inset(0% 0%)',
         ease: 'power3.out',
       }),
     });
@@ -73,23 +76,19 @@ export default function EvolutionSection() {
 
     // Beat 1 — Removed monogram animation, it stays static now.
 
-    // Beat 2 — Line 1 rises into place (y: 50 → 0, opacity: 0 → 1)
-    // No scale. Pure Y movement. Decelerates to a stop — nothing bounces.
-    tl.fromTo(line1Ref.current,
-      { opacity: 0, y: 50 },
-      { opacity: 1, y: 0, duration: 1.0 },
-      0.4    // starts 0.4s after overlay — after monogram has appeared
-    );
+    // Beat 2 — Line 1 words highlight one by one
+    tl.to(words1Ref.current, {
+      opacity: 1,
+      stagger: 0.1,
+      ease: "none",
+    }, 0.4);
 
-    // Beat 3 — Line 2 follows after Line 1 has landed
-    // 0.55s after Line 1 starts means it begins while Line 1 is still moving,
-    // but Line 1 will have decelerated to near-stillness by then (power4.out).
-    // The user reads Line 1 before Line 2 arrives.
-    tl.fromTo(line2Ref.current,
-      { opacity: 0, y: 50 },
-      { opacity: 1, y: 0, duration: 1.0 },
-      0.95   // starts 0.95s after overlay — clearly after Line 1
-    );
+    // Beat 3 — Line 2 words highlight one by one
+    tl.to(words2Ref.current, {
+      opacity: 1,
+      stagger: 0.1,
+      ease: "none",
+    }, 0.95);
 
     // ── EXIT SEQUENCE ──
     // The crimson world dissolves. Earth’s warm cream bleeds up from below.
@@ -105,10 +104,9 @@ export default function EvolutionSection() {
       ease: 'power2.out',
     }, 'exit');
 
-    // Text and monogram exit upward — they float away as the world dissolves
     tl.to(
-      [line1Ref.current, line2Ref.current],
-      { opacity: 0, y: -30, duration: 1.0, ease: 'power3.in' },
+      [...words1Ref.current, ...words2Ref.current],
+      { opacity: 0, duration: 1.0, ease: 'power3.in' },
       'exit+=0.2'
     );
     tl.to(monogramRef.current, {
@@ -169,22 +167,36 @@ export default function EvolutionSection() {
       {/* Foreground Text */}
       <div className="relative z-10 w-full max-w-[90vw] md:max-w-[800px] lg:max-w-[1200px] mx-auto text-center font-editorial font-normal text-[32px] md:text-[54px] lg:text-[72px] leading-[1.1] tracking-[-0.02em] text-white">
 
-        {/* Line 1 — starts invisible, rises into place */}
+        {/* Line 1 */}
         <div
           ref={line1Ref}
-          className="mb-[0.2em] w-full"
-          style={{ opacity: 0, willChange: 'transform, opacity' }}
+          className="mb-[0.2em] flex flex-wrap justify-center gap-x-[0.25em] gap-y-[0.15em] w-full"
         >
-          {line1}
+          {line1.split(" ").map((word, i) => (
+            <span
+              key={`l1-${i}`}
+              ref={el => { if (el) words1Ref.current.push(el); }}
+              className="opacity-[0.15]"
+            >
+              {word}
+            </span>
+          ))}
         </div>
 
-        {/* Line 2 — follows after Line 1 has landed */}
+        {/* Line 2 */}
         <div
           ref={line2Ref}
-          className="w-full"
-          style={{ opacity: 0, willChange: 'transform, opacity' }}
+          className="flex flex-wrap justify-center gap-x-[0.25em] gap-y-[0.15em] w-full"
         >
-          {line2}
+          {line2.split(" ").map((word, i) => (
+            <span
+              key={`l2-${i}`}
+              ref={el => { if (el) words2Ref.current.push(el); }}
+              className="opacity-[0.15]"
+            >
+              {word}
+            </span>
+          ))}
         </div>
 
       </div>

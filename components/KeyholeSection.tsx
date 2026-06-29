@@ -4,6 +4,9 @@ import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
+const keyholeTitle = "Welcome to Climate-smart Skinwear™";
+const keyholeSubtitle = "Clothing for your skin, built for daily life.";
+
 export default function KeyholeSection() {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLElement>(null);
@@ -11,19 +14,23 @@ export default function KeyholeSection() {
   const imageLayerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
+  const titleWordsRef = useRef<(HTMLSpanElement | null)[]>([]);
+  const subWordsRef = useRef<(HTMLSpanElement | null)[]>([]);
+  titleWordsRef.current = [];
+  subWordsRef.current = [];
+
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
-    // ── ENTRY: Card Emerge ──
-    // Section reveals through a rounded card aperture that opens to full screen.
-    gsap.set(containerRef.current, { clipPath: 'inset(8% round 28px)' });
+    // ── ENTRY: Rising Portal — rises from bottom with rounded top ──
+    gsap.set(containerRef.current, { clipPath: 'inset(100% 0% 0% 0% round 20px)' });
     const scaleEntrySt = ScrollTrigger.create({
       trigger: containerRef.current,
       start: 'top 90%',
       end: 'top top',
       scrub: 1.5,
       animation: gsap.to(containerRef.current, {
-        clipPath: 'inset(0% round 0px)',
+        clipPath: 'inset(0% 0% 0% 0% round 0px)',
         ease: 'power3.out',
       }),
     });
@@ -63,22 +70,31 @@ export default function KeyholeSection() {
       ease: "power2.out"
     }, 0);
 
-    // 3. Fade in the Welcome Text incredibly early in the sequence!
+    // 3. Fade in the content container
     tl.to(contentRef.current, {
       opacity: 1,
-      duration: 1.5,
+      duration: 0.5,
       ease: "power2.out"
-    }, 1.0); // Starts at time 1.0 (barely after the zoom begins)
+    }, 1.0);
+
+    // 3b. Word-by-word highlight for title
+    tl.to(titleWordsRef.current, {
+      opacity: 1,
+      stagger: 0.08,
+      ease: "none",
+    }, 1.2);
+
+    // 3c. Word-by-word highlight for subtitle
+    tl.to(subWordsRef.current, {
+      opacity: 1,
+      stagger: 0.08,
+      ease: "none",
+    }, 1.8);
 
     // 4. Hold the final frame
     tl.to({}, { duration: 1.0 });
 
-    const timeoutId = setTimeout(() => {
-      // Intentionally removed to prevent layout thrashing
-    }, 0);
-
     return () => {
-      clearTimeout(timeoutId);
       if (tl.scrollTrigger) {
         tl.scrollTrigger.kill();
       }
@@ -111,11 +127,27 @@ export default function KeyholeSection() {
         ref={contentRef}
         className="relative z-10 opacity-0 flex flex-col items-center justify-center text-center px-6 w-full"
       >
-        <h2 className="font-editorial font-normal text-[40px] md:text-[64px] lg:text-[80px] text-white leading-tight tracking-wide">
-          Welcome to Climate-smart Skinwear™
+        <h2 className="font-editorial font-normal text-[40px] md:text-[64px] lg:text-[80px] text-white leading-tight tracking-wide flex flex-wrap justify-center gap-x-[0.25em] gap-y-[0.15em]">
+          {keyholeTitle.split(" ").map((word, i) => (
+            <span
+              key={`kt-${i}`}
+              ref={el => { if (el) titleWordsRef.current.push(el); }}
+              className="opacity-[0.15]"
+            >
+              {word}
+            </span>
+          ))}
         </h2>
-        <p className="font-editorial font-normal text-white/80 mt-4 text-[20px] md:text-[28px] tracking-wide">
-          Clothing for your skin, built for daily life.
+        <p className="font-editorial font-normal text-white/80 mt-4 text-[20px] md:text-[28px] tracking-wide flex flex-wrap justify-center gap-x-[0.25em] gap-y-[0.15em]">
+          {keyholeSubtitle.split(" ").map((word, i) => (
+            <span
+              key={`ks-${i}`}
+              ref={el => { if (el) subWordsRef.current.push(el); }}
+              className="opacity-[0.15]"
+            >
+              {word}
+            </span>
+          ))}
         </p>
       </div>
 

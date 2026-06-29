@@ -26,9 +26,8 @@ export default function SkinProtectionSection() {
 
     const triggers: ScrollTrigger[] = [];
 
-    // ── ENTRY: Horizontal Curtain Open ──
-    // Section reveals from center outward like theater curtains parting.
-    gsap.set(containerRef.current, { clipPath: 'inset(0% 50% 0% 50%)' });
+    // ── ENTRY: Left Wipe — sweeps in from the left edge ──
+    gsap.set(containerRef.current, { clipPath: 'inset(0% 100% 0% 0%)' });
     triggers.push(ScrollTrigger.create({
       trigger: containerRef.current,
       start: 'top 90%',
@@ -67,17 +66,17 @@ export default function SkinProtectionSection() {
       ease: "power2.out"
     }, 0);
 
-    tl.fromTo(words1Ref.current,
-      { opacity: 0, y: 40, filter: "blur(12px)" },
-      { opacity: 1, y: 0, filter: "blur(0px)", stagger: 0.05, ease: "power3.out" },
-      0
-    );
+    tl.to(words1Ref.current, {
+      opacity: 1,
+      stagger: 0.1,
+      ease: "none",
+    }, 0);
 
-    tl.fromTo(words2Ref.current,
-      { opacity: 0, y: 40, filter: "blur(12px)" },
-      { opacity: 1, y: 0, filter: "blur(0px)", stagger: 0.05, ease: "power3.out" },
-      0.2
-    );
+    tl.to(words2Ref.current, {
+      opacity: 1,
+      stagger: 0.1,
+      ease: "none",
+    }, 0.2);
 
     tl.to({}, { duration: 0.5 });
 
@@ -85,7 +84,7 @@ export default function SkinProtectionSection() {
     tl.addLabel('exit');
     tl.to(
       [...words1Ref.current, ...words2Ref.current],
-      { opacity: 0, y: -25, filter: 'blur(6px)', duration: 0.6, ease: 'power2.in' },
+      { opacity: 0, duration: 0.6, ease: 'power2.in' },
       'exit'
     );
     tl.to(bgRef.current, {
@@ -133,8 +132,7 @@ export default function SkinProtectionSection() {
             <span
               key={`l1-${wordIndex}`}
               ref={el => { if (el) words1Ref.current.push(el); }}
-              className="opacity-0"
-              style={{ willChange: 'transform, opacity, filter', display: 'inline-block' }}
+              className="opacity-[0.15]"
             >
               {word}
             </span>
@@ -147,8 +145,7 @@ export default function SkinProtectionSection() {
             <span
               key={`l2-${wordIndex}`}
               ref={el => { if (el) words2Ref.current.push(el); }}
-              className="opacity-0"
-              style={{ willChange: 'transform, opacity, filter', display: 'inline-block' }}
+              className="opacity-[0.15]"
             >
               {word}
             </span>

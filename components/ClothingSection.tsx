@@ -3,8 +3,6 @@
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { preloadedAssets } from '../lib/preloader';
-
 const line1 = "Just as clothing changes with";
 const line2 = "occasions and environments,";
 
@@ -44,9 +42,8 @@ export default function ClothingSection() {
 
     const triggers: ScrollTrigger[] = [];
 
-    // ── ENTRY: Card Emerge ──
-    // Section reveals through a rounded card aperture that opens to full screen.
-    gsap.set(containerRef.current, { clipPath: 'inset(8% round 28px)' });
+    // ── ENTRY: Cinema Card — rounded card opens with depth ──
+    gsap.set(containerRef.current, { clipPath: 'inset(12% round 32px)' });
     triggers.push(ScrollTrigger.create({
       trigger: containerRef.current,
       start: 'top 90%',
@@ -78,16 +75,17 @@ export default function ClothingSection() {
       }
     });
 
-    tl.fromTo(words1Ref.current,
-      { opacity: 0, y: 40, scale: 0.8, skewY: 8 },
-      { opacity: 1, y: 0, scale: 1, skewY: 0, stagger: 0.05, ease: "power3.out" }
-    );
+    tl.to(words1Ref.current, {
+      opacity: 1,
+      stagger: 0.1,
+      ease: "none",
+    });
 
-    tl.fromTo(words2Ref.current,
-      { opacity: 0, y: 40, scale: 0.8, skewY: 8 },
-      { opacity: 1, y: 0, scale: 1, skewY: 0, stagger: 0.05, ease: "power3.out" },
-      "+=0.1"
-    );
+    tl.to(words2Ref.current, {
+      opacity: 1,
+      stagger: 0.1,
+      ease: "none",
+    }, "+=0.1");
 
     tl.to({}, { duration: 0.5 });
 
@@ -95,7 +93,7 @@ export default function ClothingSection() {
     tl.addLabel('exit');
     tl.to(
       [...words1Ref.current, ...words2Ref.current],
-      { opacity: 0, y: -25, filter: 'blur(6px)', duration: 0.6, ease: 'power2.in' },
+      { opacity: 0, duration: 0.6, ease: 'power2.in' },
       'exit'
     );
     tl.fromTo(exitOverlayRef.current,
@@ -140,8 +138,7 @@ export default function ClothingSection() {
             <span
               key={`l1-${wordIndex}`}
               ref={el => { if (el) words1Ref.current.push(el); }}
-              className="opacity-0"
-              style={{ willChange: 'transform, opacity', display: 'inline-block' }}
+              className="opacity-[0.15]"
             >
               {word}
             </span>
@@ -154,8 +151,7 @@ export default function ClothingSection() {
             <span
               key={`l2-${wordIndex}`}
               ref={el => { if (el) words2Ref.current.push(el); }}
-              className="opacity-0"
-              style={{ willChange: 'transform, opacity', display: 'inline-block' }}
+              className="opacity-[0.15]"
             >
               {word}
             </span>

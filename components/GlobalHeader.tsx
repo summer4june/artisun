@@ -18,17 +18,19 @@ export default function GlobalHeader() {
       <div className="flex items-center gap-4 md:gap-8 pointer-events-auto">
         <span className="font-editorial text-[var(--brand-cream)] text-base md:text-[19px]">Climate-smart</span>
         
-        <div className="flex items-end gap-2 mb-1">
-          {/* Tall bottle silhouette */}
-          <div className="flex flex-col items-center justify-end h-6 md:h-8">
-            <div className="w-[8px] h-[8px] md:w-[10px] md:h-[10px] bg-[#c7341e] rounded-full mb-[2px]" />
-            <div className="w-[12px] h-[16px] md:w-[14px] md:h-[20px] bg-[#c7341e] rounded-t-md" />
-          </div>
-          {/* Wide jar silhouette */}
-          <div className="flex flex-col items-center justify-end h-6 md:h-8">
-            <div className="w-[14px] h-[5px] md:w-[18px] md:h-[6px] bg-[#c7341e] rounded-t-xl mb-[1px]" />
-            <div className="w-[20px] h-[10px] md:w-[24px] md:h-[14px] bg-[#c7341e] rounded-t-sm" />
-          </div>
+        <div className="flex items-end gap-[6px] md:gap-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img 
+            src="/b2.png" 
+            alt="Artisun Bottle" 
+            className="h-6 md:h-8 w-auto object-contain"
+          />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img 
+            src="/b1.png" 
+            alt="Artisun Jar" 
+            className="h-4 md:h-[22px] w-auto object-contain mb-[2px]"
+          />
         </div>
         
         <span className="font-editorial text-[var(--brand-cream)] text-base md:text-[19px]">Skinwear™</span>

@@ -1,13 +1,15 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { Timer } from 'three/src/core/Timer.js';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import OnScrollTypography from './OnScrollTypography';
 import { preloadedAssets } from '../lib/preloader';
+
+const earthTitle = "A Climate-smart approach to Suncare";
+const earthSubtitle = "bringing protection that moves with climate, not just skin type.";
 
 // Orientation that turns the textured surface to face India towards the camera
 const INDIA_FACING_ROTATION_Y = -0.08;
@@ -19,8 +21,11 @@ export default function EarthSection() {
   const indiaPulseRef  = useRef<HTMLDivElement>(null);
   const atmosphereRef  = useRef<HTMLDivElement>(null);
   const starCanvasRef  = useRef<HTMLCanvasElement>(null);
-  const [titleActive, setTitleActive] = useState(false);
-  const [subtitleActive, setSubtitleActive] = useState(false);
+
+  const earthTitleWordsRef = useRef<(HTMLSpanElement | null)[]>([]);
+  const earthSubWordsRef = useRef<(HTMLSpanElement | null)[]>([]);
+  earthTitleWordsRef.current = [];
+  earthSubWordsRef.current = [];
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -172,15 +177,26 @@ export default function EarthSection() {
     const titleTrigger = ScrollTrigger.create({
       trigger: section,
       start: 'top bottom',
-      onEnter: () => setTitleActive(true),
-      onLeaveBack: () => setTitleActive(false),
+      end: 'top top',
+      scrub: 1.5,
+      animation: gsap.to(earthTitleWordsRef.current, {
+        opacity: 1,
+        stagger: 0.1,
+        ease: "none",
+      }),
     });
     let pulseFired = false;
     const subtitleTrigger = ScrollTrigger.create({
       trigger: section,
       start: 'top top',
+      end: '+=30%',
+      scrub: 1.5,
+      animation: gsap.to(earthSubWordsRef.current, {
+        opacity: 1,
+        stagger: 0.1,
+        ease: "none",
+      }),
       onEnter: () => {
-        setSubtitleActive(true);
         engageLock();
 
         // Fire India pulse exactly once — after 600ms so globe has time to turn to India
@@ -202,7 +218,6 @@ export default function EarthSection() {
         }
       },
       onLeaveBack: () => {
-        setSubtitleActive(false);
         disengageLock();
       },
     });
@@ -472,37 +487,27 @@ export default function EarthSection() {
       </div>
 
       <div className="absolute bottom-[8%] left-0 w-full px-6 z-20 flex flex-col items-center text-center pointer-events-none">
-        <div className="w-full max-w-[700px]" style={{ height: 100 }}>
-          <OnScrollTypography
-            text="A Climate-smart approach to Suncare"
-            effect="effect1"
-            isActive={titleActive}
-            titleFont={{
-              fontFamily: 'var(--font-editorial)',
-              fontWeight: 400,
-              fontSize: 36,
-              lineHeight: 1.15,
-              letterSpacing: -0.3,
-              textAlign: 'center',
-            }}
-            textColor="#ffffff"
-          />
+        <div className="w-full max-w-[700px] flex flex-wrap justify-center gap-x-[0.25em] gap-y-[0.15em] font-editorial font-normal text-[36px] leading-[1.15] tracking-tight text-white">
+          {earthTitle.split(" ").map((word, i) => (
+            <span
+              key={`et-${i}`}
+              ref={el => { if (el) earthTitleWordsRef.current.push(el); }}
+              className="opacity-[0.15]"
+            >
+              {word}
+            </span>
+          ))}
         </div>
-        <div className="w-full max-w-[480px]" style={{ height: 50 }}>
-          <OnScrollTypography
-            text="bringing protection that moves with climate, not just skin type."
-            effect="effect9"
-            isActive={subtitleActive}
-            titleFont={{
-              fontFamily: 'var(--font-suisse)',
-              fontWeight: 300,
-              fontSize: 12,
-              lineHeight: 1.5,
-              letterSpacing: 1.2,
-              textAlign: 'center',
-            }}
-            textColor="rgba(255,255,255,0.8)"
-          />
+        <div className="w-full max-w-[480px] mt-3 flex flex-wrap justify-center gap-x-[0.2em] gap-y-[0.1em] font-suisse font-light text-[12px] leading-[1.5] tracking-[1.2px] text-white/80">
+          {earthSubtitle.split(" ").map((word, i) => (
+            <span
+              key={`es-${i}`}
+              ref={el => { if (el) earthSubWordsRef.current.push(el); }}
+              className="opacity-[0.15]"
+            >
+              {word}
+            </span>
+          ))}
         </div>
       </div>
     </section>

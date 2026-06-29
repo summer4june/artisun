@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import Lenis from 'lenis';
 import { preloadAll } from '../lib/preloader';
 import ScrollProgressBar from '../components/ScrollProgressBar';
 import LoadingScreen from '../components/LoadingScreen';
@@ -43,6 +44,30 @@ export default function Home() {
   // Real loading progress
   useEffect(() => {
     preloadAll((progress) => setMediaProgress(progress)).catch(console.error);
+  }, []);
+
+  // ── Smooth scroll (Lenis) driven by GSAP's single ticker ──
+  // The library + CSS were already in place but no instance was ever created, so
+  // scrolling ran on the raw native event loop while heavy GSAP scrub animations and
+  // canvas render loops competed for the main thread — the source of the jank.
+  // Driving Lenis from gsap.ticker means one rAF loop powers smoothing AND ScrollTrigger.
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.1,
+      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+    });
+
+    lenis.on('scroll', ScrollTrigger.update);
+
+    const raf = (time: number) => lenis.raf(time * 1000);
+    gsap.ticker.add(raf);
+    gsap.ticker.lagSmoothing(0);
+
+    return () => {
+      gsap.ticker.remove(raf);
+      lenis.destroy();
+    };
   }, []);
 
   // Entrance animations for Hero elements once loading is done
