@@ -157,6 +157,11 @@ export default function ProductsSection() {
   const canvasWrapRef = useRef<HTMLDivElement>(null);
   const uiWrapRef = useRef<HTMLDivElement>(null);
   const bgWrapRef = useRef<HTMLDivElement>(null);
+  const vignetteRef = useRef<HTMLDivElement>(null);
+  
+  const introWordsRef = useRef<(HTMLSpanElement | null)[]>([]);
+  introWordsRef.current = [];
+  const introString = "Two ways to wear protection";
   
   const scrollProgress = useRef(0);
   const proxyOffset = useRef(0);
@@ -220,6 +225,7 @@ export default function ProductsSection() {
             if (canvasWrapRef.current) canvasWrapRef.current.style.opacity = canvasOp.toString();
             if (uiWrapRef.current) uiWrapRef.current.style.opacity = canvasOp.toString();
             if (bgWrapRef.current) bgWrapRef.current.style.opacity = canvasOp.toString();
+            if (vignetteRef.current) vignetteRef.current.style.opacity = canvasOp.toString();
 
             // ── Handle Rotation Offset ──
             const proxyVal = proxy.offset; 
@@ -243,12 +249,21 @@ export default function ProductsSection() {
       });
 
       const proxy = { offset: 0 };
+      
+      // Reveal the intro words sequentially during the first 10% of the scroll
+      whipTl.to(introWordsRef.current, {
+        opacity: 1,
+        stagger: 0.02,
+        duration: 0.10,
+        ease: "none"
+      }, 0);
+
       // 0.0 to 0.66: holding on Product 1.
-      whipTl.to(proxy, { offset: 0, duration: 0.66 })
+      whipTl.to(proxy, { offset: 0, duration: 0.66 }, 0)
       // 0.66 to 0.90: Whip pan
-      .to(proxy, { offset: 0.5, duration: 0.24, ease: "power2.inOut" })
+      .to(proxy, { offset: 0.5, duration: 0.24, ease: "power2.inOut" }, 0.66)
       // 0.90 to 1.0: Hold on Product 2
-      .to(proxy, { offset: 0.5, duration: 0.10 });
+      .to(proxy, { offset: 0.5, duration: 0.10 }, 0.90);
 
     }, sectionRef);
 
@@ -282,8 +297,16 @@ export default function ProductsSection() {
         ref={introTextRef}
         className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none"
       >
-        <h2 className="text-4xl md:text-7xl lg:text-8xl font-thin text-white tracking-[0.05em] text-center px-4 max-w-5xl leading-tight drop-shadow-2xl font-editorial">
-          Two ways to wear protection
+        <h2 className="text-4xl md:text-7xl lg:text-8xl font-thin text-white tracking-[0.05em] text-center px-4 max-w-5xl leading-tight drop-shadow-2xl font-editorial flex flex-wrap justify-center gap-x-[0.25em] gap-y-[0.15em]">
+          {introString.split(" ").map((word, wordIndex) => (
+            <span 
+              key={`intro-${wordIndex}`} 
+              ref={el => { if (el) introWordsRef.current.push(el); }} 
+              className="opacity-15 inline-block"
+            >
+              {word}
+            </span>
+          ))}
         </h2>
       </div>
 
@@ -359,8 +382,10 @@ export default function ProductsSection() {
         })}
       </div>
 
-      {/* ── Heavy Vignette to keep focus on product ── */}
-      <div className="absolute inset-0 z-[1] pointer-events-none" style={{
+      {/* ── Heavy Vignette to keep focus on product (fades in with canvas) ── */}
+      <div ref={vignetteRef} className="absolute inset-0 z-[1] pointer-events-none" style={{
+        opacity: 0,
+        willChange: 'opacity',
         background: 'radial-gradient(ellipse at center, transparent 15%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.9) 100%)',
       }} />
 

@@ -150,10 +150,9 @@ export default function EvolutionSection() {
         }}
       />
 
-      {/* Monogram — starts invisible, materializes as first beat */}
       <div
         ref={monogramRef}
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] h-[90vw] md:w-[120vw] md:h-[120vw] lg:w-[1000px] lg:h-[1000px] flex items-center justify-center pointer-events-none z-[1]"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[60vw] sm:w-[50vw] sm:h-[50vw] md:w-[40vw] md:h-[40vw] lg:w-[800px] lg:h-[800px] flex items-center justify-center pointer-events-none z-[1]"
         style={{ opacity: 0.14, willChange: 'opacity' }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
